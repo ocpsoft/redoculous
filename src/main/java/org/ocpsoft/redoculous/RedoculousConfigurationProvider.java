@@ -95,15 +95,17 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                   {
                      Gson gson = new Gson();
                      try {
-//                        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-//                        Streams.copy(event.getRequest().getInputStream(), buffer);
-//                        String jsonString = new String(buffer.toByteArray());
-                        
+                        // ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                        // Streams.copy(event.getRequest().getInputStream(), buffer);
+                        // String jsonString = new String(buffer.toByteArray());
+
                         String jsonString = event.getRequest().getParameter("payload");
                         System.out.println(jsonString);
                         Map json = gson.fromJson(jsonString, Map.class);
                         StringMap repository = (StringMap) json.get("repository");
                         String repo = (String) repository.get("url");
+                        if (!repo.endsWith(".git"))
+                           repo = repo + ".git";
 
                         File repoDir = new File(root, safeFileName.transform(event, context, repo));
                         File cacheDir = new File(root, safeFileName.transform(event, context, repo) + "-cache");
