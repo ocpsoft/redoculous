@@ -21,43 +21,46 @@ import java.io.IOException;
 import javax.servlet.ServletContext;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.ocpsoft.rewrite.bind.Evaluation;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.config.Direction;
 import org.ocpsoft.rewrite.config.Filesystem;
 import org.ocpsoft.rewrite.config.Subset;
+import org.ocpsoft.rewrite.context.EvaluationContext;
+import org.ocpsoft.rewrite.event.Rewrite;
 import org.ocpsoft.rewrite.exception.RewriteException;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
 import org.ocpsoft.rewrite.servlet.config.Header;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
-import org.ocpsoft.rewrite.servlet.config.Path;
+import org.ocpsoft.rewrite.servlet.config.HttpOperation;
+import org.ocpsoft.rewrite.servlet.config.Lifecycle;
+import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
 import org.ocpsoft.rewrite.servlet.config.Stream;
+import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
 import org.ocpsoft.rewrite.transform.Transform;
 import org.ocpsoft.rewrite.transform.markup.Asciidoc;
 
 public class RedoculousConfigurationProvider extends HttpConfigurationProvider
 {
+   org.ocpsoft.rewrite.param.Transform<String> safeFileName = new org.ocpsoft.rewrite.param.Transform<String>() {
+
+      @Override
+      public String transform(Rewrite event, EvaluationContext context, String value)
+      {
+         return value.replaceAll("[/?<>\\\\:*|\"]", "");
+      }
+   };
+
    @Override
    public Configuration getConfiguration(ServletContext context)
    {
       final File root;
-      final File cache;
       try {
-         root = File.createTempFile("redoculous", "x");
+         root = File.createTempFile("redoculous", "");
          root.delete();
          root.mkdirs();
-
-         try {
-            GitUtils.clone(root, "https://github.com/lincolnthree/cdi.git");
-         }
-         catch (GitAPIException e) {
-            throw new RewriteException("Could not clone git repository.", e);
-         }
-
-         cache = new File(root, "redoculous-cache");
-         cache.delete();
-         cache.mkdirs();
       }
       catch (IOException e) {
          throw new RewriteException("Could not create temp folder for doc files or cache.", e);
@@ -66,34 +69,68 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
       return ConfigurationBuilder.begin()
 
                .addRule()
+               .when(Direction.isInbound()
+                        .and(DispatchType.isRequest())
+                        .andNot(Query.parameterExists("repo")
+                                 .and(Query.parameterExists("repo"))))
+               .perform(Lifecycle.handled())
+
+               .addRule()
                .when(Header.matches("{Accept-Encoding}", "{gzip}"))
                .perform(Response.gzipStreamCompression())
                .where("Accept-Encoding").matches("(?i)Accept-Encoding")
                .where("gzip").matches("(?i).*\\bgzip\\b.*")
+
+               .addRule()
+               .when(Direction.isInbound()
+                        .and(DispatchType.isRequest())
+                        .and(Query.parameterExists("repo")))
+               .perform(new HttpOperation() {
+                  @Override
+                  public void performHttp(HttpServletRewrite event, EvaluationContext context)
+                  {
+                     String repo = (String) Evaluation.property("repo").retrieve(event, context);
+                     File repoDir = new File(root, safeFileName.transform(event, context, repo));
+                     File cacheDir = new File(root, safeFileName.transform(event, context, repo) + "-cache");
+                     if (!repoDir.exists())
+                     {
+                        try {
+                           repoDir.mkdirs();
+                           cacheDir.mkdirs();
+                           GitUtils.clone(repoDir, repo);
+                        }
+                        catch (GitAPIException e) {
+                           throw new RewriteException("Could not clone git repository.", e);
+                        }
+                     }
+                  }
+               })
 
                /**
                 * Figure out if we want a doc.
                 */
                .addRule()
                .when(Direction.isInbound().and(DispatchType.isRequest())
-                        .and(Path.matches("/{page}").withRequestBinding())
-                        .and(Filesystem.fileExists(new File(root, "{page}.asciidoc"))))
+                        .and(Query.parameterExists("repo"))
+                        .and(Query.parameterExists("path"))
+                        .and(Filesystem.fileExists(new File(root, "{repo}/{path}.asciidoc"))))
                .perform(Response.setContentType("text/html")
                         .and(Response.addHeader("Charset", "UTF-8"))
                         .and(Response.setStatus(200))
                         .and(Subset.evaluate(ConfigurationBuilder.begin()
                                  .addRule()
-                                 .when(Filesystem.fileExists(new File(cache, "{page}.html")))
-                                 .perform(Stream.from(new File(cache, "{page}.html")))
+                                 .when(Filesystem.fileExists(new File(root, "{repo}-cache/{path}.html")))
+                                 .perform(Stream.from(new File(root, "{repo}-cache/{path}.html")))
                                  .otherwise(Transform.with(Asciidoc.fullDocument()
                                           .withTitle("Redoculous")
                                           .addStylesheet(context.getContextPath() + "/common/bootstrap.css")
                                           .addStylesheet(context.getContextPath() + "/common/common.css"))
-                                          .and(Stream.to(new File(cache, "{page}.html")))
-                                          .and(Stream.from(new File(root, "{page}.asciidoc")))
+                                          .and(Stream.to(new File(root, "{repo}-cache/{path}.html")))
+                                          .and(Stream.from(new File(root, "{repo}/{path}.asciidoc")))
                                  )))
                         .and(Response.complete()))
-               .where("page").matches(".*");
+               .where("path").matches(".*")
+               .where("repo").transformedBy(safeFileName);
 
    }
 
