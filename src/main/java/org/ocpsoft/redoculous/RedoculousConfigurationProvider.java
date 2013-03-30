@@ -26,6 +26,7 @@ import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.config.Direction;
 import org.ocpsoft.rewrite.config.Filesystem;
+import org.ocpsoft.rewrite.config.Not;
 import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.event.Rewrite;
@@ -68,19 +69,30 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
 
       return ConfigurationBuilder.begin()
 
+               /*
+                * Don't do anything if we don't have required values.
+                */
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .andNot(Query.parameterExists("repo")
-                                 .and(Query.parameterExists("repo"))))
+                        .and(Not.any(Query.parameterExists("repo"))
+                                 .or(Not.any(Query.parameterExists("path")))
+                        )
+               )
                .perform(Lifecycle.handled())
 
+               /*
+                * Set up compression.
+                */
                .addRule()
                .when(Header.matches("{Accept-Encoding}", "{gzip}"))
                .perform(Response.gzipStreamCompression())
                .where("Accept-Encoding").matches("(?i)Accept-Encoding")
                .where("gzip").matches("(?i).*\\bgzip\\b.*")
 
+               /*
+                * Clone the repository and set up the cache dir.
+                */
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
@@ -106,8 +118,8 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                   }
                })
 
-               /**
-                * Figure out if we want a doc.
+               /*
+                * Serve, render, and cache the doc, or serve directly from cache.
                 */
                .addRule()
                .when(Direction.isInbound().and(DispatchType.isRequest())
