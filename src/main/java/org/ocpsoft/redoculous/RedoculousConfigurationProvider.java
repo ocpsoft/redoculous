@@ -15,7 +15,6 @@
  */
 package org.ocpsoft.redoculous;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -25,7 +24,6 @@ import javax.servlet.ServletContext;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.rewrite.bind.Evaluation;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
@@ -218,7 +216,14 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                                           .and(Stream.from(new File(root, "{repo}/{path}.asciidoc")))
                                  )))
                         .and(Response.complete()))
-               .where("path").matches(".*")
+               .where("path").matches(".*").transformedBy(new org.ocpsoft.rewrite.param.Transform<String>() {
+
+                  @Override
+                  public String transform(Rewrite event, EvaluationContext context, String value)
+                  {
+                     return value.replaceAll("(.*)\\.asciidoc$", "$1");
+                  }
+               })
                .where("repo").transformedBy(safeFileName);
 
    }
