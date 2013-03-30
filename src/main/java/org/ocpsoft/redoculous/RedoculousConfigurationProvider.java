@@ -15,16 +15,17 @@
  */
 package org.ocpsoft.redoculous;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.rewrite.bind.Evaluation;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
@@ -89,11 +90,16 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .perform(new HttpOperation() {
 
                   @Override
+                  @SuppressWarnings("rawtypes")
                   public void performHttp(HttpServletRewrite event, EvaluationContext context)
                   {
                      Gson gson = new Gson();
                      try {
-                        Map json = gson.fromJson(new InputStreamReader(event.getRequest().getInputStream()), Map.class);
+                        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                        Streams.copy(event.getRequest().getInputStream(), buffer);
+                        String jsonString = new String(buffer.toByteArray());
+                        System.out.println(jsonString);
+                        Map json = gson.fromJson(jsonString, Map.class);
                         StringMap repository = (StringMap) json.get("repository");
                         String repo = (String) repository.get("url");
 
