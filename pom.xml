@@ -93,6 +93,10 @@
 
    <repositories>
       <repository>
+         <id>sonatype-snapshots</id>
+         <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      </repository>
+      <repository>
          <id>eap</id>
          <url>http://maven.repository.redhat.com/techpreview/all</url>
          <releases>
