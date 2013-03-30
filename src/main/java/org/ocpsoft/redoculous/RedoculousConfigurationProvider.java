@@ -16,10 +16,14 @@
 package org.ocpsoft.redoculous;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.ocpsoft.rewrite.bind.Evaluation;
 import org.ocpsoft.rewrite.config.Configuration;
@@ -36,12 +40,17 @@ import org.ocpsoft.rewrite.servlet.config.Header;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
 import org.ocpsoft.rewrite.servlet.config.HttpOperation;
 import org.ocpsoft.rewrite.servlet.config.Lifecycle;
+import org.ocpsoft.rewrite.servlet.config.Method;
+import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
 import org.ocpsoft.rewrite.servlet.config.Stream;
 import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
 import org.ocpsoft.rewrite.transform.Transform;
 import org.ocpsoft.rewrite.transform.markup.Asciidoc;
+
+import com.google.gson.Gson;
+import com.google.gson.internal.StringMap;
 
 public class RedoculousConfigurationProvider extends HttpConfigurationProvider
 {
@@ -68,6 +77,64 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
       }
 
       return ConfigurationBuilder.begin()
+
+               /*
+                * Clear the cache and or re-clone when github says so:
+                */
+               .addRule()
+               .when(Direction.isInbound()
+                        .and(DispatchType.isRequest())
+                        .and(Method.isPost())
+                        .and(Path.matches("/update")))
+               .perform(new HttpOperation() {
+
+                  @Override
+                  public void performHttp(HttpServletRewrite event, EvaluationContext context)
+                  {
+                     Gson gson = new Gson();
+                     try {
+                        Map json = gson.fromJson(new InputStreamReader(event.getRequest().getInputStream()), Map.class);
+                        StringMap repository = (StringMap) json.get("repository");
+                        String repo = (String) repository.get("url");
+
+                        File repoDir = new File(root, safeFileName.transform(event, context, repo));
+                        File cacheDir = new File(root, safeFileName.transform(event, context, repo) + "-cache");
+
+                        if (!repoDir.exists())
+                        {
+                           repoDir.mkdirs();
+                           cacheDir.mkdirs();
+                           GitUtils.clone(repoDir, repo);
+                        }
+                        else
+                        {
+                           try {
+                              Git git = GitUtils.git(repoDir);
+                              GitUtils.pull(git, 15);
+                              deleteRecursively(cacheDir);
+                              cacheDir.mkdirs();
+                           }
+                           catch (GitAPIException e) {
+                              throw new RewriteException("Could not pull from git repository.", e);
+                           }
+                        }
+                     }
+                     catch (Exception e) {
+                        throw new RewriteException("Error parsing update hook", e);
+                     }
+                  }
+
+                  private void deleteRecursively(File f) throws IOException
+                  {
+                     if (f.isDirectory()) {
+                        for (File c : f.listFiles())
+                           deleteRecursively(c);
+                     }
+                     if (!f.delete())
+                        throw new FileNotFoundException("Failed to delete file: " + f);
+                  }
+               }.and(Response.setStatus(200))
+                        .and(Response.complete()))
 
                /*
                 * Don't do anything if we don't have required values.

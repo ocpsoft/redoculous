@@ -12,6 +12,7 @@
       <maven.compiler.target>1.6</maven.compiler.target>
       <version.rewrite>2.0.0-SNAPSHOT</version.rewrite>
       <version.jgit>2.3.1.201302201838-r</version.jgit>
+      <version.gson>2.2.2</version.gson>
    </properties>
 
    <dependencyManagement>
@@ -62,6 +63,11 @@
          <groupId>org.eclipse.jgit</groupId>
          <artifactId>org.eclipse.jgit</artifactId>
          <version>${version.jgit}</version>
+      </dependency>
+      <dependency>
+         <groupId>com.google.code.gson</groupId>
+         <artifactId>gson</artifactId>
+         <version>${version.gson}</version>
       </dependency>
    </dependencies>
 

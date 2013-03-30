@@ -37,10 +37,10 @@ import org.ocpsoft.common.util.Strings;
 
 /**
  * Convenience tools for interacting with the Git version control system.
- *
+ * 
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * @author <a href="mailto:jevgeni.zelenkov@gmail.com">Jevgeni Zelenkov</a>
- *
+ * 
  */
 public abstract class GitUtils
 {
@@ -104,7 +104,7 @@ public abstract class GitUtils
 
    /**
     * Initialize a new git repository.
-    *
+    * 
     * @param dir The directory in which to create a new .git/ folder and repository.
     */
    public static Git init(final File dir) throws IOException
