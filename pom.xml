@@ -12,6 +12,7 @@
       <maven.compiler.target>1.6</maven.compiler.target>
       <version.rewrite>2.0.0-SNAPSHOT</version.rewrite>
       <version.jgit>2.3.1.201302201838-r</version.jgit>
+      <version.junit>4.8.1</version.junit>
       <version.gson>2.2.2</version.gson>
    </properties>
 
@@ -68,6 +69,14 @@
          <groupId>com.google.code.gson</groupId>
          <artifactId>gson</artifactId>
          <version>${version.gson}</version>
+      </dependency>
+
+      <!-- Test Dependencies -->
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>${version.junit}</version>
+         <scope>test</scope>
       </dependency>
    </dependencies>
 

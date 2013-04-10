@@ -16,15 +16,11 @@
 package org.ocpsoft.redoculous;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Map;
 
 import javax.servlet.ServletContext;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.ocpsoft.rewrite.bind.Evaluation;
+import org.ocpsoft.rewrite.config.And;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.config.Direction;
@@ -34,33 +30,22 @@ import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.event.Rewrite;
 import org.ocpsoft.rewrite.exception.RewriteException;
+import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
 import org.ocpsoft.rewrite.servlet.config.Header;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
-import org.ocpsoft.rewrite.servlet.config.HttpOperation;
 import org.ocpsoft.rewrite.servlet.config.Lifecycle;
 import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
 import org.ocpsoft.rewrite.servlet.config.Stream;
-import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
 import org.ocpsoft.rewrite.transform.Transform;
 import org.ocpsoft.rewrite.transform.markup.Asciidoc;
 
-import com.google.gson.Gson;
-import com.google.gson.internal.StringMap;
-
 public class RedoculousConfigurationProvider extends HttpConfigurationProvider
 {
-   org.ocpsoft.rewrite.param.Transform<String> safeFileName = new org.ocpsoft.rewrite.param.Transform<String>() {
-
-      @Override
-      public String transform(Rewrite event, EvaluationContext context, String value)
-      {
-         return value.replaceAll("[/?<>\\\\:*|\"]", "");
-      }
-   };
+   Transposition<String> safeFileName = new SafeFileNameTransposition();
 
    @Override
    public Configuration getConfiguration(ServletContext context)
@@ -85,63 +70,8 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                         .and(DispatchType.isRequest())
                         .and(Method.isPost())
                         .and(Path.matches("/update")))
-               .perform(new HttpOperation() {
-
-                  @Override
-                  @SuppressWarnings("rawtypes")
-                  public void performHttp(HttpServletRewrite event, EvaluationContext context)
-                  {
-                     Gson gson = new Gson();
-                     try {
-                        // ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                        // Streams.copy(event.getRequest().getInputStream(), buffer);
-                        // String jsonString = new String(buffer.toByteArray());
-
-                        String jsonString = event.getRequest().getParameter("payload");
-                        System.out.println(jsonString);
-                        Map json = gson.fromJson(jsonString, Map.class);
-                        StringMap repository = (StringMap) json.get("repository");
-                        String repo = (String) repository.get("url");
-                        if (!repo.endsWith(".git"))
-                           repo = repo + ".git";
-
-                        File repoDir = new File(root, safeFileName.transform(event, context, repo));
-                        File cacheDir = new File(root, safeFileName.transform(event, context, repo) + "-cache");
-
-                        if (!repoDir.exists())
-                        {
-                           repoDir.mkdirs();
-                           cacheDir.mkdirs();
-                           GitUtils.clone(repoDir, repo);
-                        }
-                        else
-                        {
-                           try {
-                              Git git = GitUtils.git(repoDir);
-                              GitUtils.pull(git, 15);
-                              deleteRecursively(cacheDir);
-                              cacheDir.mkdirs();
-                           }
-                           catch (GitAPIException e) {
-                              throw new RewriteException("Could not pull from git repository.", e);
-                           }
-                        }
-                     }
-                     catch (Exception e) {
-                        throw new RewriteException("Error parsing update hook", e);
-                     }
-                  }
-
-                  private void deleteRecursively(File f) throws IOException
-                  {
-                     if (f.isDirectory()) {
-                        for (File c : f.listFiles())
-                           deleteRecursively(c);
-                     }
-                     if (!f.delete())
-                        throw new FileNotFoundException("Failed to delete file: " + f);
-                  }
-               }.and(Response.setStatus(200))
+               .perform(new UpdateRepositoryOperation(root)
+                        .and(Response.setStatus(200))
                         .and(Response.complete()))
 
                /*
@@ -150,8 +80,8 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .and(Not.any(Query.parameterExists("repo"))
-                                 .or(Not.any(Query.parameterExists("path")))
+                        .and(Not.any(And.all(Query.parameterExists("repo"),
+                                 Query.parameterExists("path")))
                         )
                )
                .perform(Lifecycle.handled())
@@ -172,26 +102,7 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
                         .and(Query.parameterExists("repo")))
-               .perform(new HttpOperation() {
-                  @Override
-                  public void performHttp(HttpServletRewrite event, EvaluationContext context)
-                  {
-                     String repo = (String) Evaluation.property("repo").retrieve(event, context);
-                     File repoDir = new File(root, safeFileName.transform(event, context, repo));
-                     File cacheDir = new File(root, safeFileName.transform(event, context, repo) + "-cache");
-                     if (!repoDir.exists())
-                     {
-                        try {
-                           repoDir.mkdirs();
-                           cacheDir.mkdirs();
-                           GitUtils.clone(repoDir, repo);
-                        }
-                        catch (GitAPIException e) {
-                           throw new RewriteException("Could not clone git repository.", e);
-                        }
-                     }
-                  }
-               })
+               .perform(new CloneRepositoryOperation(root))
 
                /*
                 * Serve, render, and cache the doc, or serve directly from cache.
@@ -216,17 +127,18 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                                           .and(Stream.from(new File(root, "{repo}/{path}.asciidoc")))
                                  )))
                         .and(Response.complete()))
-               .where("path").matches(".*").transformedBy(new org.ocpsoft.rewrite.param.Transform<String>() {
+               .where("path").matches(".*").transposedBy(new Transposition<String>() {
 
                   @Override
-                  public String transform(Rewrite event, EvaluationContext context, String value)
+                  public String transpose(Rewrite event, EvaluationContext context, String value)
                   {
                      return value.replaceAll("(.*)\\.asciidoc$", "$1");
                   }
                })
-               .where("repo").transformedBy(safeFileName);
+               .where("repo").transposedBy(safeFileName);
 
    }
+
 
    @Override
    public int priority()

@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
@@ -44,14 +43,6 @@ import org.ocpsoft.common.util.Strings;
  */
 public abstract class GitUtils
 {
-   public static Git clone(final File dir, final String repoUri) throws GitAPIException
-   {
-      CloneCommand clone = Git.cloneRepository().setURI(repoUri)
-               .setDirectory(dir);
-      Git git = clone.call();
-      return git;
-   }
-
    public static Git git(final File dir) throws IOException
    {
       RepositoryBuilder db = new RepositoryBuilder().findGitDir(dir);
