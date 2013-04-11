@@ -1,10 +1,10 @@
 package org.ocpsoft.redoculous;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.util.DocumentFilter;
 import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.context.EvaluationContext;
@@ -15,7 +15,7 @@ import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.HttpOperation;
 import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
 
-public final class CloneRepositoryOperation extends HttpOperation
+public final class CheckoutRefOperation extends HttpOperation
 {
    Transposition<String> safeFileName = new SafeFileNameTransposition();
 
@@ -25,7 +25,7 @@ public final class CloneRepositoryOperation extends HttpOperation
 
    private String refParam;
 
-   public CloneRepositoryOperation(File root, String repoParam, String refParam)
+   public CheckoutRefOperation(File root, String repoParam, String refParam)
    {
       this.root = root;
       this.repoParam = repoParam;
@@ -44,24 +44,23 @@ public final class CloneRepositoryOperation extends HttpOperation
       File refsDir = new File(root, safeFileName.transpose(event, context, repo) + "/refs");
       File cacheDir = new File(root, safeFileName.transpose(event, context, repo) + "/caches");
       File refDir = new File(refsDir, ref);
+      File refCacheDir = new File(cacheDir, ref);
 
-      if (!repoDir.exists())
+      if (!refDir.exists())
       {
+         refDir.mkdirs();
+         refCacheDir.mkdirs();
          try {
-            repoDir.mkdirs();
-            refsDir.mkdirs();
-            cacheDir.mkdirs();
-
-            Git.cloneRepository().setURI(repo).setRemote("origin")
-                     .setCloneAllBranches(true).setDirectory(repoDir).call();
+            Git git = Git.open(repoDir);
+            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS).setThin(false).setTimeout(10).call();
+            git.reset().setRef(ref).setMode(ResetType.HARD).call();
 
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());
          }
-         catch (GitAPIException e) {
-            throw new RewriteException("Could not clone git repository.", e);
-         }
-         catch (IOException e) {
-            throw new RewriteException("Could not copy repository to ref dir.", e);
+         catch (Exception e) {
+            Files.delete(refDir, true);
+            Files.delete(refCacheDir, true);
+            throw new RewriteException("Could checkout ref [" + ref + "] repository.", e);
          }
       }
    }

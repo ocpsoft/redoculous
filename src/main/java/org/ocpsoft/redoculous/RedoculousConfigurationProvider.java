@@ -60,6 +60,8 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
          throw new RewriteException("Could not create temp folder for doc files or cache.", e);
       }
 
+      System.out.println("Redoculous starting with storage directory [" + root.getAbsolutePath() + "]");
+
       return ConfigurationBuilder.begin()
 
                /*
@@ -110,6 +112,18 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                         .and(Query.parameterExists("ref"))
                )
                .perform(new CloneRepositoryOperation(root, "repo", "ref"))
+
+               /*
+                * Check out the ref if it does not exist.
+                */
+               .addRule()
+               .when(Direction.isInbound()
+                        .and(DispatchType.isRequest())
+                        .and(Query.parameterExists("repo"))
+                        .and(Query.parameterExists("ref"))
+                        .andNot(Filesystem.directoryExists(new File(root, "{repo}/refs/{ref}")))
+               )
+               .perform(new CheckoutRefOperation(root, "repo", "ref"))
 
                /*
                 * Serve, render, and cache the doc, or serve directly from cache.
