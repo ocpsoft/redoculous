@@ -7,14 +7,10 @@ import junit.framework.Assert;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.TextProgressMonitor;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.junit.Before;
@@ -57,7 +53,7 @@ public class TestJGit
                .setForce(true)
                .call();
 
-      Ref result = git.checkout()
+      git.checkout()
                .setName("master")
                .setStartPoint("origin/master")
                .setCreateBranch(true)
@@ -67,7 +63,7 @@ public class TestJGit
 
       Assert.assertEquals("master", git.getRepository().getBranch());
 
-      result = git.checkout()
+      git.checkout()
                .setName("test")
                .call();
 
@@ -85,7 +81,7 @@ public class TestJGit
 
       int size = git.branchList().setListMode(ListMode.ALL).call().size();
 
-      result = git.branchCreate()
+      git.branchCreate()
                .setName("2.0.0.Beta2")
                .setUpstreamMode(SetupUpstreamMode.TRACK)
                .setStartPoint("refs/tags/2.0.0.Beta2")
@@ -94,17 +90,17 @@ public class TestJGit
 
       Assert.assertEquals(size + 1, git.branchList().setListMode(ListMode.ALL).call().size());
 
-      result = git.reset()
+      git.reset()
                .setRef("2.0.0.Beta2")
                .setMode(ResetType.HARD)
                .call();
 
-      result = git.reset()
+      git.reset()
                .setRef("HEAD")
                .setMode(ResetType.HARD)
                .call();
 
-      result = git.reset()
+      git.reset()
                .setRef("2.0.0.Beta1")
                .setMode(ResetType.HARD)
                .call();
@@ -113,7 +109,7 @@ public class TestJGit
 
       Assert.assertEquals("f9c951a9036afedb1743fa5f5265044abfe8b675", git.getRepository().getBranch());
 
-      result = git.reset()
+      git.reset()
                .setRef("2.0.0.Beta2")
                .setMode(ResetType.HARD)
                .call();

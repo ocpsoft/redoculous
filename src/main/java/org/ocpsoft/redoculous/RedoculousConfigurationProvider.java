@@ -80,8 +80,13 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .and(Not.any(And.all(Query.parameterExists("repo"),
-                                 Query.parameterExists("path")))
+                        .and(Not.any(
+                                 And.all(
+                                          Query.parameterExists("repo"),
+                                          Query.parameterExists("path"),
+                                          Query.parameterExists("ref")
+                                          )
+                                 )
                         )
                )
                .perform(Lifecycle.handled())
@@ -101,8 +106,10 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .and(Query.parameterExists("repo")))
-               .perform(new CloneRepositoryOperation(root))
+                        .and(Query.parameterExists("repo"))
+                        .and(Query.parameterExists("ref"))
+               )
+               .perform(new CloneRepositoryOperation(root, "repo", "ref"))
 
                /*
                 * Serve, render, and cache the doc, or serve directly from cache.
@@ -110,21 +117,22 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound().and(DispatchType.isRequest())
                         .and(Query.parameterExists("repo"))
+                        .and(Query.parameterExists("ref"))
                         .and(Query.parameterExists("path"))
-                        .and(Filesystem.fileExists(new File(root, "{repo}/{path}.asciidoc"))))
+                        .and(Filesystem.fileExists(new File(root, "{repo}/refs/{ref}/{path}.asciidoc"))))
                .perform(Response.setContentType("text/html")
                         .and(Response.addHeader("Charset", "UTF-8"))
                         .and(Response.setStatus(200))
                         .and(Subset.evaluate(ConfigurationBuilder.begin()
                                  .addRule()
-                                 .when(Filesystem.fileExists(new File(root, "{repo}-cache/{path}.html")))
-                                 .perform(Stream.from(new File(root, "{repo}-cache/{path}.html")))
+                                 .when(Filesystem.fileExists(new File(root, "{repo}/caches/{ref}/{path}.html")))
+                                 .perform(Stream.from(new File(root, "{repo}/caches/{ref}/{path}.html")))
                                  .otherwise(Transform.with(Asciidoc.fullDocument()
                                           .withTitle("Redoculous")
                                           .addStylesheet(context.getContextPath() + "/common/bootstrap.css")
                                           .addStylesheet(context.getContextPath() + "/common/common.css"))
-                                          .and(Stream.to(new File(root, "{repo}-cache/{path}.html")))
-                                          .and(Stream.from(new File(root, "{repo}/{path}.asciidoc")))
+                                          .and(Stream.to(new File(root, "{repo}/caches/{ref}/{path}.html")))
+                                          .and(Stream.from(new File(root, "{repo}/refs/{ref}/{path}.asciidoc")))
                                  )))
                         .and(Response.complete()))
                .where("path").matches(".*").transposedBy(new Transposition<String>() {
@@ -138,7 +146,6 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .where("repo").transposedBy(safeFileName);
 
    }
-
 
    @Override
    public int priority()
