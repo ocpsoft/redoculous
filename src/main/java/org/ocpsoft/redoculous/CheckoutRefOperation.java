@@ -72,7 +72,7 @@ public final class CheckoutRefOperation extends HttpOperation implements Paramet
          catch (Exception e) {
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
-            throw new RewriteException("Could checkout ref [" + ref + "] repository.", e);
+            throw new RewriteException("Could checkout ref [" + ref + "] from repository [" + repo + "].", e);
          }
       }
    }

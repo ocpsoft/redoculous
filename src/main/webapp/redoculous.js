@@ -2,10 +2,10 @@ $.support.cors = true;
 $.fn.redoculous = function()
 {
 	var handle = $(this);
-	var server = "http://localhost:8080/redoculous";
+	var server = handle.attr("data-redoculous");
 	var repo = handle.attr("data-repo");
+	var repoRoot = handle.attr("data-repo-root");
 	var ref = handle.attr("data-ref");
-	var path = handle.attr("data-path");
 	var root = handle.attr("data-root");
 	var history = handle.attr("data-history") === "false" ? false : true;
 
@@ -13,7 +13,7 @@ $.fn.redoculous = function()
 
 	var setupHistory = function(root)
 	{
-		console.log("Configuring History with root [" + root + "]");
+		console.log("Configuring History with Redoculous root [" + root + "]");
 		var History = window.History;
 		if (!History.enabled)
 		{
@@ -26,15 +26,13 @@ $.fn.redoculous = function()
 			var State = History.getState();
 			History.log(State.data, State.title, State.url);
 		});
-
-		History.pushState({
-			state : 1
-		}, "Root State", root);
 	};
 
-	var loadDoc = function(repo, ref, root, path)
+	var loadDoc = function(repo, ref, root, browserPath, docPath)
 	{
-		var url = server + "?repo=" + repo + "&ref=" + ref + "&path=" + path;
+		var url = server + "?repo=" + repo + "&ref=" + ref + "&path=" + docPath;
+
+		console.log("Requesting document [" + url + "]");
 
 		$.ajax({
 			url : url,
@@ -48,39 +46,47 @@ $.fn.redoculous = function()
 			console.log("Error fetching document [" + url + "] - [" + status + "-" + error + "]");
 		})
 		// Success
-		.done(function(html)
-		{
-			var dom = $.parseHTML(html);
-			handle.html(html);
-			$(handle).find("a").each(function()
-			{
-				var link = $(this);
-				var href = link.attr("href");
-				if (href.match(/.*/g) != null)
+		.done(
+				function(html)
 				{
-					// console.log("Processing link [" + href + "]");
+					var dom = $.parseHTML(html);
+					handle.html(html);
 
-					var documentLink = getDocumentLink(root, href);
-					if (documentLink != null)
+					if (window.location.pathname != browserPath)
 					{
-						console.log("Matched link [" + href + "] to document [" + documentLink + "]");
-
-						link.click(function(event)
-						{
-							History.pushState({
-								state : History.getState().state
-							}, "State 1", "?state=1");
-
-							event.preventDefault();
-							loadDoc(repo, ref, root, href);
-						});
+						History.pushState({
+							state : History.getState().state
+						}, "State 1", browserPath);
 					}
-					// else
-					// console.log("Ignored link [" + href + "]");
-				}
-			});
-			handle.show();
-		});
+
+					$(handle).find("a").each(
+							function()
+							{
+								var link = $(this);
+								var href = link.attr("href");
+								if (href.match(/.*/g) != null)
+								{
+									// console.log("Processing link [" + href + "]");
+
+									var documentLink = getDocumentLink(root, href);
+									if (documentLink != null)
+									{
+										var documentPath = calculateDocPathFromBrowserPath(documentLink);
+
+										console.log("Mapped link [" + href + "] to document [" + documentPath + "] at address ["
+												+ documentLink + "]");
+										// link.attr("href", documentLink);
+										link.click(function(event)
+										{
+											event.preventDefault();
+											loadDoc(repo, ref, root, documentLink, documentPath);
+										});
+									}
+									// else
+									// console.log("Ignored link [" + href + "]");
+								}
+							});
+				});
 	};
 
 	var getDocumentLink = function(root, href)
@@ -88,8 +94,6 @@ $.fn.redoculous = function()
 		if (href)
 		{
 			if (href.match(/^(http|www|ftp|mailto|ssh|scp):.*/g) != null) { return null; }
-
-			console.log("Beginning [" + href + "]");
 
 			var currentPath = window.location.pathname;
 
@@ -116,30 +120,44 @@ $.fn.redoculous = function()
 
 			}
 
-			console.log(rootChunks);
-			console.log(linkChunks);
-			console.log(locationChunks);
+			var result = "/" + rootChunks.join("/") + "/" + linkChunks.join("/");
 
-			if (href.match(new RegExp("///")) != null) { return true; }
-			if (href.match(/ /) != null) { return true; }
-			if (href.match(/ /) != null)
-			{
-			}
-			if (href.match(/ /) != null)
-			{
-			}
-			if (href.match(/ /) != null)
-			{
-			}
-			if (href.match(/ /) != null)
-			{
-			}
+			if (locationChunks.length >= rootChunks.length) { return result; }
 		}
 		return null;
 	};
 
+	var calculateDocPathFromBrowserPath = function(browserPath)
+	{
+		if (root.indexOf("/", 0) == 0) root = root.substring(1);
+		var rootChunks = root.split("/");
+
+		if (browserPath.indexOf("/", 0) == 0) browserPath = browserPath.substring(1);
+		var pathChunks = browserPath.split("/");
+
+		while (rootChunks.length > 0 && pathChunks.length > 0)
+		{
+			rootChunks.shift();
+			pathChunks.shift();
+		}
+
+		var result = browserPath;
+		if (pathChunks.length > 0)
+		{
+			result = repoRoot + "/" + pathChunks.join("/");
+		}
+		;
+
+		console.log("Calculated document path [" + result + "] repository root [" + repoRoot + "], site root [" + root
+				+ "], and location [" + browserPath + "].");
+
+		return result;
+	};
+
 	if (history) setupHistory(root);
-	loadDoc(repo, ref, root, path);
+
+	var initialDocPath = calculateDocPathFromBrowserPath(window.location.pathname);
+	loadDoc(repo, ref, root, window.location.pathname, initialDocPath);
 
 };
 
