@@ -25,6 +25,7 @@ $.fn.redoculous = function()
 		{
 			var State = History.getState();
 			History.log(State.data, State.title, State.url);
+			handle.html(State.data.html);
 		});
 	};
 
@@ -49,15 +50,9 @@ $.fn.redoculous = function()
 		.done(
 				function(html)
 				{
-					var dom = $.parseHTML(html);
-					handle.html(html);
-
-					if (window.location.pathname != browserPath)
-					{
-						History.pushState({
-							state : History.getState().state
-						}, "State 1", browserPath);
-					}
+					History.pushState({
+						"html" : html
+					}, "State 1", browserPath);
 
 					$(handle).find("a").each(
 							function()
