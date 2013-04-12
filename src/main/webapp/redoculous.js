@@ -45,7 +45,7 @@ $.fn.redoculous = function() {
 								// console.log("Ignored link [" + href + "]");
 							}
 						});
-	}
+	};
 
 	var setupHistory = function(root) {
 		console.log("Configuring History with Redoculous root [" + root + "]");
@@ -138,11 +138,10 @@ $.fn.redoculous = function() {
 			pathChunks.shift();
 		}
 
-		var result = browserPath;
+		var result = repoRoot;
 		if (pathChunks.length > 0) {
 			result = repoRoot + "/" + pathChunks.join("/");
 		}
-		;
 
 		console.log("Calculated document path [" + result
 				+ "] repository root [" + repoRoot + "], site root [" + root
