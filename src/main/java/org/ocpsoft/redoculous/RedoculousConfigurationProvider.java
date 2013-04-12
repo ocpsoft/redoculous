@@ -144,6 +144,33 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                                                                      "{repo}/refs/{ref}/{path}.asciidoc")))
                                           )))
                                  .and(Response.complete()))
+                                 
+                                 
+                        .addRule()
+                        .when(Filesystem.fileExists(new File(root, "{repo}/refs/{ref}/{path}/index.asciidoc")))
+                        .perform(Response
+                                 .setContentType("text/html")
+                                 .and(Response.addHeader("Charset", "UTF-8"))
+                                 .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
+                                 .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
+                                 .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
+                                 .and(Response.addHeader("Access-Control-Allow-Headers",
+                                          "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
+                                 .and(Response.setStatus(200))
+                                 .and(Subset.evaluate(ConfigurationBuilder
+                                          .begin()
+                                          .addRule()
+                                          .when(Filesystem
+                                                   .fileExists(new File(root, "{repo}/caches/{ref}/{path}/index.html")))
+                                          .perform(Stream.from(new File(root, "{repo}/caches/{ref}/{path}/index.html")))
+                                          .otherwise(
+                                                   Transform.with(Asciidoc.partialDocument())
+                                                            .and(Stream.to(new File(root,
+                                                                     "{repo}/caches/{ref}/{path}/index.html")))
+                                                            .and(Stream.from(new File(root,
+                                                                     "{repo}/refs/{ref}/{path}/index.asciidoc")))
+                                          )))
+                                 .and(Response.complete()))
 
                         ))
                .where("path").matches(".*").transposedBy(new Transposition<String>() {
