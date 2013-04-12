@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import javax.servlet.ServletContext;
 
-import org.ocpsoft.rewrite.config.And;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.config.Direction;
@@ -34,12 +33,12 @@ import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
 import org.ocpsoft.rewrite.servlet.config.Header;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
-import org.ocpsoft.rewrite.servlet.config.Lifecycle;
 import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
 import org.ocpsoft.rewrite.servlet.config.Stream;
+import org.ocpsoft.rewrite.servlet.config.rule.Join;
 import org.ocpsoft.rewrite.transform.Transform;
 import org.ocpsoft.rewrite.transform.markup.Asciidoc;
 
@@ -65,6 +64,9 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
       return ConfigurationBuilder
                .begin()
 
+               .addRule(Join.path("/docs").to("/demo.html"))
+               .addRule(Join.path("/docs/{*}").to("/demo.html"))
+
                /*
                 * Clear the cache and or re-clone when github says so:
                 */
@@ -78,23 +80,6 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                         .and(Response.complete()))
 
                /*
-                * Don't do anything if we don't have required values.
-                */
-               .addRule()
-               .when(Direction.isInbound()
-                        .and(DispatchType.isRequest())
-                        .and(Not.any(
-                                 And.all(
-                                          Query.parameterExists("repo"),
-                                          Query.parameterExists("path"),
-                                          Query.parameterExists("ref")
-                                          )
-                                 )
-                        )
-               )
-               .perform(Lifecycle.handled())
-
-               /*
                 * Set up compression.
                 */
                .addRule()
@@ -106,55 +91,61 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .matches("(?i).*\\bgzip\\b.*")
 
                /*
-                * Clone the repository and set up the cache dir.
+                * Don't do anything if we don't have required values.
                 */
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .and(Query.parameterExists("repo"))
-                        .and(Query.parameterExists("ref"))
-               )
-               .perform(new CloneRepositoryOperation(root, "repo", "ref"))
-
-               /*
-                * Check out the ref if it does not exist.
-                */
-               .addRule()
-               .when(Direction.isInbound()
-                        .and(DispatchType.isRequest())
-                        .and(Query.parameterExists("repo"))
-                        .and(Query.parameterExists("ref"))
-                        .andNot(Filesystem.directoryExists(new File(root, "{repo}/refs/{ref}")))
-               )
-               .perform(new CheckoutRefOperation(root, "repo", "ref"))
-
-               /*
-                * Serve, render, and cache the doc, or serve directly from cache.
-                */
-               .addRule()
-               .when(Direction.isInbound().and(DispatchType.isRequest())
                         .and(Query.parameterExists("repo"))
                         .and(Query.parameterExists("ref"))
                         .and(Query.parameterExists("path"))
-                        .and(Filesystem.fileExists(new File(root, "{repo}/refs/{ref}/{path}.asciidoc"))))
-               .perform(Response
-                        .setContentType("text/html")
-                        .and(Response.addHeader("Charset", "UTF-8"))
-                        .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
-                        .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
-                        .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
-                        .and(Response.addHeader("Access-Control-Allow-Headers",
-                                 "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
-                        .and(Response.setStatus(200))
-                        .and(Subset.evaluate(ConfigurationBuilder.begin()
-                                 .addRule()
-                                 .when(Filesystem.fileExists(new File(root, "{repo}/caches/{ref}/{path}.html")))
-                                 .perform(Stream.from(new File(root, "{repo}/caches/{ref}/{path}.html")))
-                                 .otherwise(Transform.with(Asciidoc.partialDocument())
-                                          .and(Stream.to(new File(root, "{repo}/caches/{ref}/{path}.html")))
-                                          .and(Stream.from(new File(root, "{repo}/refs/{ref}/{path}.asciidoc")))
-                                 )))
-                        .and(Response.complete()))
+               )
+               .perform(Subset.evaluate(ConfigurationBuilder
+                        .begin()
+
+                        /*
+                         * Clone the repository and set up the cache dir.
+                         */
+                        .addRule()
+                        .perform(new CloneRepositoryOperation(root, "repo", "ref"))
+
+                        /*
+                         * Check out the ref if it does not exist.
+                         */
+                        .addRule()
+                        .when(Not.any(Filesystem.directoryExists(new File(root, "{repo}/refs/{ref}"))))
+                        .perform(new CheckoutRefOperation(root, "repo", "ref"))
+
+                        /*
+                         * Serve, render, and cache the doc, or serve directly from cache.
+                         */
+                        .addRule()
+                        .when(Filesystem.fileExists(new File(root, "{repo}/refs/{ref}/{path}.asciidoc")))
+                        .perform(Response
+                                 .setContentType("text/html")
+                                 .and(Response.addHeader("Charset", "UTF-8"))
+                                 .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
+                                 .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
+                                 .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
+                                 .and(Response.addHeader("Access-Control-Allow-Headers",
+                                          "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
+                                 .and(Response.setStatus(200))
+                                 .and(Subset.evaluate(ConfigurationBuilder
+                                          .begin()
+                                          .addRule()
+                                          .when(Filesystem
+                                                   .fileExists(new File(root, "{repo}/caches/{ref}/{path}.html")))
+                                          .perform(Stream.from(new File(root, "{repo}/caches/{ref}/{path}.html")))
+                                          .otherwise(
+                                                   Transform.with(Asciidoc.partialDocument())
+                                                            .and(Stream.to(new File(root,
+                                                                     "{repo}/caches/{ref}/{path}.html")))
+                                                            .and(Stream.from(new File(root,
+                                                                     "{repo}/refs/{ref}/{path}.asciidoc")))
+                                          )))
+                                 .and(Response.complete()))
+
+                        ))
                .where("path").matches(".*").transposedBy(new Transposition<String>() {
 
                   @Override
