@@ -9,7 +9,7 @@ $.fn.redoculous = function() {
 
 	handle.hide();
 
-	var loadDoc = function(repo, ref, path) {
+	var loadDoc = function(repo, ref, root, path) {
 		var url = server + "?repo=" + repo + "&ref=" + ref + "&path=" + path;
 
 		$.ajax({
@@ -18,24 +18,27 @@ $.fn.redoculous = function() {
 			dataType : "html",
 			type : "GET"
 		}).fail(function(xhr, status, error) {
-			alert("failed! " + status + " " + error);
+			console.log("Error fetching document ["+url+"] - ["+status+"-"+error+"]");
 		}).done(function(html) {
 			var dom = $.parseHTML(html);
 			handle.html(html);
 			$(handle).find("a").each(function() {
 				var link = $(this);
 				var href = link.attr("href");
-				if(href.match("/^(!?(http|www|mailto|ftp|ssh).*).*$"))
-				link.click(function(event) {
-					event.preventDefault();
-					loadDoc(repo, ref, href);
-				});
+				console.log("Processing link [" + href + "]");
+				if (href.match(/.*/g) != null) {
+					console.log("Matched link [" + href + "]");
+					link.click(function(event) {
+						event.preventDefault();
+						loadDoc(repo, ref, root, href);
+					});
+				}
 			});
 			handle.show();
 		});
 	};
 
-	loadDoc(repo, ref, path);
+	loadDoc(repo, ref, root, path);
 
 };
 

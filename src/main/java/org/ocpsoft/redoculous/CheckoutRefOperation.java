@@ -59,7 +59,9 @@ public final class CheckoutRefOperation extends HttpOperation
                      .setProgressMonitor(new TextProgressMonitor()).call();
 
             git.reset().setRef(ref).setMode(ResetType.HARD).call();
-
+            git.pull().setRebase(false).setTimeout(10).setProgressMonitor(new TextProgressMonitor()).call();
+            Files.delete(refCacheDir, true);
+            refCacheDir.mkdirs();
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());
          }
          catch (Exception e) {
