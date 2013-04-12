@@ -1,16 +1,15 @@
-== Lots of Links
+== one/Test.asciidoc
 
-link:/../../install[install]
-link:../../install[install]
-link:./../install[install]
-link:../install[install]
-link:./install[install]
-link:install[install]
-link:/install[install]
-link:/install[install]
-link:/documentation/src/main/asciidoc/install[install]
-link:/documentation/src/main/asciidoc/install.asciidoc[install]
+link:/../../test[/../../test]
+link:../../test[../../test]
+link:./../test[./../test]
+link:../test[../test]
+link:./test[./test]
+link:test[test]
+link:/test[/test]
+link:/one/test[/one/test]
+link:/one/two/test[/one/two/test]
 
-link:http://ocpsoft.org
-link:www.google.com
-link:mailto:lincolnbaxter@gmail.com
+link:http://ocpsoft.org[ocpsoft.org]
+link:www.google.com[google.com]
+link:mailto:lincolnbaxter@gmail.com[mail to lincoln]

@@ -1,4 +1,4 @@
-== /one/two/Test.asciidoc
+== Test2.asciidoc
 
 link:/../../test[/../../test]
 link:../../test[../../test]
