@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.ocpsoft.redoculous.util.DocumentFilter;
 import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.context.EvaluationContext;
@@ -53,7 +54,8 @@ public final class CloneRepositoryOperation extends HttpOperation
             cacheDir.mkdirs();
 
             Git.cloneRepository().setURI(repo).setRemote("origin")
-                     .setCloneAllBranches(true).setDirectory(repoDir).call();
+                     .setCloneAllBranches(true).setDirectory(repoDir)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
 
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());
          }

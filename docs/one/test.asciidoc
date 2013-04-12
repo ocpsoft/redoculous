@@ -1,0 +1,16 @@
+== Lots of Links
+
+link:/../../install[install]
+link:../../install[install]
+link:./../install[install]
+link:../install[install]
+link:./install[install]
+link:install[install]
+link:/install[install]
+link:/install[install]
+link:/documentation/src/main/asciidoc/install[install]
+link:/documentation/src/main/asciidoc/install.asciidoc[install]
+
+link:http://ocpsoft.org
+link:www.google.com
+link:mailto:lincolnbaxter@gmail.com

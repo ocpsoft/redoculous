@@ -62,7 +62,8 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
 
       System.out.println("Redoculous starting with storage directory [" + root.getAbsolutePath() + "]");
 
-      return ConfigurationBuilder.begin()
+      return ConfigurationBuilder
+               .begin()
 
                /*
                 * Clear the cache and or re-clone when github says so:
@@ -99,8 +100,10 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Header.matches("{Accept-Encoding}", "{gzip}"))
                .perform(Response.gzipStreamCompression())
-               .where("Accept-Encoding").matches("(?i)Accept-Encoding")
-               .where("gzip").matches("(?i).*\\bgzip\\b.*")
+               .where("Accept-Encoding")
+               .matches("(?i)Accept-Encoding")
+               .where("gzip")
+               .matches("(?i).*\\bgzip\\b.*")
 
                /*
                 * Clone the repository and set up the cache dir.
@@ -134,17 +137,20 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                         .and(Query.parameterExists("ref"))
                         .and(Query.parameterExists("path"))
                         .and(Filesystem.fileExists(new File(root, "{repo}/refs/{ref}/{path}.asciidoc"))))
-               .perform(Response.setContentType("text/html")
+               .perform(Response
+                        .setContentType("text/html")
                         .and(Response.addHeader("Charset", "UTF-8"))
+                        .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
+                        .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
+                        .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
+                        .and(Response.addHeader("Access-Control-Allow-Headers",
+                                 "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
                         .and(Response.setStatus(200))
                         .and(Subset.evaluate(ConfigurationBuilder.begin()
                                  .addRule()
                                  .when(Filesystem.fileExists(new File(root, "{repo}/caches/{ref}/{path}.html")))
                                  .perform(Stream.from(new File(root, "{repo}/caches/{ref}/{path}.html")))
-                                 .otherwise(Transform.with(Asciidoc.fullDocument()
-                                          .withTitle("Redoculous")
-                                          .addStylesheet(context.getContextPath() + "/common/bootstrap.css")
-                                          .addStylesheet(context.getContextPath() + "/common/common.css"))
+                                 .otherwise(Transform.with(Asciidoc.partialDocument())
                                           .and(Stream.to(new File(root, "{repo}/caches/{ref}/{path}.html")))
                                           .and(Stream.from(new File(root, "{repo}/refs/{ref}/{path}.asciidoc")))
                                  )))

@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.util.DocumentFilter;
 import org.ocpsoft.redoculous.util.Files;
@@ -46,13 +47,17 @@ public final class CheckoutRefOperation extends HttpOperation
       File refDir = new File(refsDir, ref);
       File refCacheDir = new File(cacheDir, ref);
 
-      if (!refDir.exists())
+      if (!refDir.exists() || true)
       {
          refDir.mkdirs();
          refCacheDir.mkdirs();
          try {
             Git git = Git.open(repoDir);
-            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS).setThin(false).setTimeout(10).call();
+            git.fetch()
+                     .setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
+                     .setThin(false).setTimeout(10)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
             git.reset().setRef(ref).setMode(ResetType.HARD).call();
 
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());

@@ -1,0 +1,15 @@
+== Lots of Links
+
+link:/../../test
+link:../../test
+link:./../test
+link:../test
+link:./test
+link:test
+link:/test
+link:/one/test
+link:/one/two/test
+
+link:http://ocpsoft.org
+link:www.google.com
+link:mailto:lincolnbaxter@gmail.com
