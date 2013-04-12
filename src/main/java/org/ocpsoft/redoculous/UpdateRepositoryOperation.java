@@ -44,8 +44,8 @@ public final class UpdateRepositoryOperation extends HttpOperation
          if (!repo.endsWith(".git"))
             repo = repo + ".git";
 
-         File repoDir = new File(root, safeFileName.transpose(event, context, repo));
-         File cacheDir = new File(root, safeFileName.transpose(event, context, repo) + "-cache");
+         File repoDir = new File(root, safeFileName.transpose(event, context, repo) + "/repo");
+         File cacheDir = new File(root, safeFileName.transpose(event, context, repo) + "/caches");
 
          if (!repoDir.exists())
          {
