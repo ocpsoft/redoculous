@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.exception.RewriteException;
 import org.ocpsoft.rewrite.param.Transposition;
@@ -32,10 +35,6 @@ public final class UpdateRepositoryOperation extends HttpOperation
    {
       Gson gson = new Gson();
       try {
-         // ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-         // Streams.copy(event.getRequest().getInputStream(), buffer);
-         // String jsonString = new String(buffer.toByteArray());
-
          String jsonString = event.getRequest().getParameter("payload");
          System.out.println(jsonString);
          Map json = gson.fromJson(jsonString, Map.class);
@@ -47,24 +46,31 @@ public final class UpdateRepositoryOperation extends HttpOperation
          File repoDir = new File(root, safeFileName.transpose(event, context, repo) + "/repo");
          File cacheDir = new File(root, safeFileName.transpose(event, context, repo) + "/caches");
 
-         if (!repoDir.exists())
-         {
-            repoDir.mkdirs();
+         try {
+            Git git = Git.open(repoDir);
+
+            git.fetch().setTagOpt(TagOpt.FETCH_TAGS)
+                     .setRemote("origin")
+                     .setRefSpecs(new RefSpec("+refs/heads/*:refs/remotes/origin/*"))
+                     .setProgressMonitor(new TextProgressMonitor())
+                     .call();
+
+            git.fetch().setTagOpt(TagOpt.FETCH_TAGS)
+                     .setRemote("origin")
+                     .setRefSpecs(new RefSpec("+refs/tags/*:refs/tags/*"))
+                     .setProgressMonitor(new TextProgressMonitor())
+                     .call();
+
+            git.pull()
+                     .setRebase(false)
+                     .setProgressMonitor(new TextProgressMonitor())
+                     .call();
+
+            deleteRecursively(cacheDir);
             cacheDir.mkdirs();
-            Git.cloneRepository().setURI(repo)
-                     .setCloneAllBranches(true).setDirectory(repoDir).call();
          }
-         else
-         {
-            try {
-               Git git = GitUtils.git(repoDir);
-               GitUtils.pull(git, 15);
-               deleteRecursively(cacheDir);
-               cacheDir.mkdirs();
-            }
-            catch (GitAPIException e) {
-               throw new RewriteException("Could not pull from git repository.", e);
-            }
+         catch (GitAPIException e) {
+            throw new RewriteException("Could not pull from git repository.", e);
          }
       }
       catch (Exception e) {
