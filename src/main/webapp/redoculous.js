@@ -7,9 +7,11 @@ $.fn.redoculous = function()
 	var repoRoot = handle.attr("data-repo-root");
 	var ref = handle.attr("data-ref");
 	var root = handle.attr("data-root");
+	var titlePattern = handle.attr("data-title");
 	var onload = handle.attr("data-onload");
 	var history = handle.attr("data-history") === "false" ? false : true;
 
+	if (!titlePattern) titlePattern = "%TITLE%";
 	if (history) History.enabled = true;
 
 	var displayContent = function()
@@ -93,7 +95,7 @@ $.fn.redoculous = function()
 			}
 			History.pushState({
 				"html" : html
-			}, title, browserPath);
+			}, titlePattern.replace("%TITLE%", title), browserPath);
 		});
 	};
 
