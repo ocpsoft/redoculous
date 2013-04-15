@@ -20,7 +20,6 @@ import java.io.File;
 import javax.servlet.ServletContext;
 
 import org.ocpsoft.logging.Logger.Level;
-import org.ocpsoft.redoculous.Redoculous;
 import org.ocpsoft.redoculous.config.util.CanonicalizeFileName;
 import org.ocpsoft.redoculous.config.util.RemoveFilePrefixTransposition;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
@@ -49,8 +48,6 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
    @Override
    public Configuration getConfiguration(ServletContext context)
    {
-      File root = Redoculous.getRoot();
-
       return ConfigurationBuilder
                .begin()
 
@@ -69,7 +66,7 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                  .begin()
 
                                  /*
-                                  * Serve, render, and cache the doc, or serve directly from cache.
+                                  * Serve, render, and cache the doc, or serve directly from file.
                                   */
                                  .addRule()
                                  .when(Filesystem.fileExists(new File("/{path}.asciidoc")))
@@ -86,30 +83,25 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                                             "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
 
                                           .and(Response.setStatus(200))
-                                          .and(Subset.evaluate(ConfigurationBuilder
-                                                   .begin()
-                                                   .addRule()
-                                                   .when(Filesystem.fileExists(new File(root,
-                                                            "fscache/{path}.html")))
-                                                   .perform(Stream.from(new File(root, "fscache/{path}.html")))
-                                                   .otherwise(
-                                                            Subset.evaluate(
-                                                                     ConfigurationBuilder
-                                                                              .begin()
+                                          .and(Subset
+                                                   .evaluate(
+                                                            ConfigurationBuilder
+                                                                     .begin()
 
-                                                                              .addRule()
-                                                                              .when(Query.parameterExists("preview"))
-                                                                              .perform(Response
-                                                                                       .withOutputInterceptedBy(new PreviewLinkInterceptor()))
-                                                                     )
-                                                                     .and(Transform.with(Asciidoc.partialDocument())
-                                                                              .and(Stream.to(new File(root,
-                                                                                       "fscache/{path}.html")))
-                                                                              .and(Stream.from(new File(
-                                                                                       "/{path}.asciidoc"))))
-                                                   )))
+                                                                     .addRule()
+                                                                     .when(Query.parameterExists("preview"))
+                                                                     .perform(Response
+                                                                              .withOutputInterceptedBy(new PreviewLinkInterceptor()))
+                                                   )
+                                                   .and(Transform.with(Asciidoc.partialDocument())
+                                                            .and(Stream.from(new File(
+                                                                     "/{path}.asciidoc"))))
+                                          )
                                           .and(Response.complete()))
 
+                                 /*
+                                  * Serve from directory index file.
+                                  */
                                  .addRule()
                                  .when(Filesystem.fileExists(new File("/{path}/index.asciidoc")))
                                  .perform(Log
@@ -126,33 +118,21 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                                             "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
 
                                           .and(Response.setStatus(200))
-                                          .and(Subset.evaluate(ConfigurationBuilder
-                                                   .begin()
-                                                   .addRule()
-                                                   .when(Filesystem
-                                                            .fileExists(new File(root,
-                                                                     "fscache/{path}/index.html")))
-                                                   .perform(Stream.from(new File(root,
-                                                            "fscache/{path}/index.html")))
-                                                   .otherwise(
-                                                            Subset.evaluate(
-                                                                     ConfigurationBuilder
-                                                                              .begin()
+                                          .and(Subset
+                                                   .evaluate(
+                                                            ConfigurationBuilder
+                                                                     .begin()
 
-                                                                              .addRule()
-                                                                              .when(Query.parameterExists("preview"))
-                                                                              .perform(Response
-                                                                                       .withOutputInterceptedBy(new PreviewLinkInterceptor()))
-                                                                     )
-                                                                     .and(Transform
-                                                                              .with(Asciidoc.partialDocument())
-                                                                              .and(Stream
-                                                                                       .to(new File(root,
-                                                                                                "fscache/{path}/index.html")))
-                                                                              .and(Stream
-                                                                                       .from(new File(
-                                                                                                "/{path}/index.asciidoc"))))
-                                                   )))
+                                                                     .addRule()
+                                                                     .when(Query.parameterExists("preview"))
+                                                                     .perform(Response
+                                                                              .withOutputInterceptedBy(new PreviewLinkInterceptor()))
+                                                   )
+                                                   .and(Transform
+                                                            .with(Asciidoc.partialDocument())
+                                                            .and(Stream.from(new File(
+                                                                     "/{path}/index.asciidoc"))))
+                                          )
                                           .and(Response.complete()))
 
                                  .addRule()
