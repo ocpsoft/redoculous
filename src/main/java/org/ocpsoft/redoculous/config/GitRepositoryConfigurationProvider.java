@@ -123,29 +123,13 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                                    .when(Filesystem
                                                             .fileExists(new File(root,
                                                                      "{repo}/caches/{ref}/{path}.html")))
-                                                   .perform(Subset
-                                                            .evaluate(
-                                                                     ConfigurationBuilder
-                                                                              .begin()
-                                                                              .addRule()
-                                                                              .perform(Log.message(Level.INFO,
-                                                                                       "Preview mode enabled."))
-
-                                                                              .addRule()
-                                                                              .when(Query.parameterExists("preview"))
-                                                                              .perform(Response
-                                                                                       .withOutputInterceptedBy(new PreviewCachedGitLinkInterceptor(
-                                                                                                root)))
-                                                            )
-                                                            .and(
-                                                                     Stream.from(new File(root,
-                                                                              "{repo}/caches/{ref}/{path}.html"))))
-                                                   .otherwise(
-                                                            Transform.with(Asciidoc.partialDocument())
-                                                                     .and(Stream.to(new File(root,
-                                                                              "{repo}/caches/{ref}/{path}.html")))
-                                                                     .and(Stream.from(new File(root,
-                                                                              "{repo}/refs/{ref}/{path}.asciidoc")))
+                                                   .perform(Stream.from(new File(root,
+                                                            "{repo}/caches/{ref}/{path}.html")))
+                                                   .otherwise(Transform.with(Asciidoc.partialDocument())
+                                                            .and(Stream.to(new File(root,
+                                                                     "{repo}/caches/{ref}/{path}.html")))
+                                                            .and(Stream.from(new File(root,
+                                                                     "{repo}/refs/{ref}/{path}.asciidoc")))
                                                    )))
                                           .and(Response.complete()))
 
@@ -172,22 +156,8 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                                    .when(Filesystem
                                                             .fileExists(new File(root,
                                                                      "{repo}/caches/{ref}/{path}/index.html")))
-                                                   .perform(Subset
-                                                            .evaluate(
-                                                                     ConfigurationBuilder
-                                                                              .begin()
-                                                                              .addRule()
-                                                                              .perform(Log.message(Level.INFO,
-                                                                                       "Preview mode enabled."))
-
-                                                                              .addRule()
-                                                                              .when(Query.parameterExists("preview"))
-                                                                              .perform(Response
-                                                                                       .withOutputInterceptedBy(new PreviewCachedGitLinkInterceptor(
-                                                                                                root)))
-                                                            )
-                                                            .and(Stream.from(new File(root,
-                                                                     "{repo}/caches/{ref}/{path}/index.html"))))
+                                                   .perform(Stream.from(new File(root,
+                                                            "{repo}/caches/{ref}/{path}/index.html")))
                                                    .otherwise(
                                                             Transform.with(Asciidoc.partialDocument())
                                                                      .and(Stream.to(new File(root,

@@ -1,8 +1,6 @@
 package org.ocpsoft.redoculous.config;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -79,7 +77,7 @@ public class PreviewCachedGitLinkInterceptor implements ResponseContentIntercept
                }
             }
 
-            if (!requestedFile.isDirectory())
+            if (!requestedFile.isDirectory() && !segments.isEmpty())
             {
                segments.remove(segments.size() - 1);
             }

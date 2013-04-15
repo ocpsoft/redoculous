@@ -17,10 +17,13 @@ package org.ocpsoft.redoculous.config;
 
 import javax.servlet.ServletContext;
 
+import org.ocpsoft.logging.Logger.Level;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
+import org.ocpsoft.rewrite.config.Log;
 import org.ocpsoft.rewrite.servlet.config.Header;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
+import org.ocpsoft.rewrite.servlet.config.RequestParameter;
 import org.ocpsoft.rewrite.servlet.config.Response;
 
 public class GZipConfigurationProvider extends HttpConfigurationProvider
@@ -33,8 +36,11 @@ public class GZipConfigurationProvider extends HttpConfigurationProvider
                 * Set up compression.
                 */
                .addRule()
-               .when(Header.matches("{Accept-Encoding}", "{gzip}"))
+               .when(Header.matches("{Accept-Encoding}", "{gzip}").
+                        andNot(RequestParameter.exists("nogzip")))
                .perform(Response.gzipStreamCompression())
+               .otherwise(Log.message(Level.INFO, "Gzip disabled on request."))
+
                .where("Accept-Encoding")
                .matches("(?i)Accept-Encoding")
                .where("gzip")
