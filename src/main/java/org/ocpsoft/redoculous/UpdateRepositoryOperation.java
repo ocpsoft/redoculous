@@ -1,8 +1,6 @@
 package org.ocpsoft.redoculous;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Map;
 
 import org.eclipse.jgit.api.Git;
@@ -10,6 +8,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
+import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.exception.RewriteException;
 import org.ocpsoft.rewrite.param.Transposition;
@@ -45,8 +44,10 @@ public final class UpdateRepositoryOperation extends HttpOperation
 
          File repoDir = new File(root, safeFileName.transpose(event, context, repo) + "/repo");
          File cacheDir = new File(root, safeFileName.transpose(event, context, repo) + "/caches");
+         File refsDir = new File(root, safeFileName.transpose(event, context, repo) + "/refs");
 
          try {
+            System.out.println("Handling GitHub web hook update for [" + repo + "]");
             Git git = Git.open(repoDir);
 
             git.fetch().setTagOpt(TagOpt.FETCH_TAGS)
@@ -66,7 +67,8 @@ public final class UpdateRepositoryOperation extends HttpOperation
                      .setProgressMonitor(new TextProgressMonitor())
                      .call();
 
-            deleteRecursively(cacheDir);
+            Files.delete(refsDir, true);
+            Files.delete(cacheDir, true);
             cacheDir.mkdirs();
          }
          catch (GitAPIException e) {
@@ -76,15 +78,5 @@ public final class UpdateRepositoryOperation extends HttpOperation
       catch (Exception e) {
          throw new RewriteException("Error parsing update hook", e);
       }
-   }
-
-   private void deleteRecursively(File f) throws IOException
-   {
-      if (f.isDirectory()) {
-         for (File c : f.listFiles())
-            deleteRecursively(c);
-      }
-      if (!f.delete())
-         throw new FileNotFoundException("Failed to delete file: " + f);
    }
 }

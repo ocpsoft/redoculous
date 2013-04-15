@@ -52,19 +52,28 @@ public final class CheckoutRefOperation extends HttpOperation implements Paramet
       File refDir = new File(refsDir, ref);
       File refCacheDir = new File(cacheDir, ref);
 
-      if (!refDir.exists() || true)
+      if (!refDir.exists())
       {
+         System.out.println("Creating ref copy [" + repo + "] [" + ref + "]");
          refDir.mkdirs();
          refCacheDir.mkdirs();
          try {
             Git git = Git.open(repoDir);
+
             git.fetch()
                      .setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
                      .setThin(false).setTimeout(10)
                      .setProgressMonitor(new TextProgressMonitor()).call();
+            git.reset()
+                     .setRef(ref)
+                     .setMode(ResetType.HARD).call();
+            git.pull()
+                     .setRebase(false)
+                     .setTimeout(10)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
 
-            git.reset().setRef(ref).setMode(ResetType.HARD).call();
-            git.pull().setRebase(false).setTimeout(10).setProgressMonitor(new TextProgressMonitor()).call();
+            System.out.println("Deleting cache for [" + repo + "] [" + ref + "]");
+            Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());

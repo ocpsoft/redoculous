@@ -53,6 +53,7 @@ public final class CloneRepositoryOperation extends HttpOperation implements Par
 
       if (!repoDir.exists())
       {
+         System.out.println("Cloning [" + repo + "] [" + ref + "]");
          try {
             repoDir.mkdirs();
             refsDir.mkdirs();
