@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous;
+package org.ocpsoft.redoculous.config.git;
 
 import java.io.File;
 import java.util.Map;
@@ -8,7 +8,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
-import org.ocpsoft.redoculous.util.Files;
+import org.ocpsoft.redoculous.config.util.Files;
+import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.exception.RewriteException;
 import org.ocpsoft.rewrite.param.Transposition;

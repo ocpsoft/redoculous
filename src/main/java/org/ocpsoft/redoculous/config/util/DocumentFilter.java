@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.util;
+package org.ocpsoft.redoculous.config.util;
 
 import java.io.File;
 import java.io.FileFilter;

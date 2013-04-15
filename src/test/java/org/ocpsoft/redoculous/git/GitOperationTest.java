@@ -11,7 +11,7 @@ import org.eclipse.jgit.storage.file.FileRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.ocpsoft.redoculous.util.Files;
+import org.ocpsoft.redoculous.config.util.Files;
 
 public class GitOperationTest
 {
