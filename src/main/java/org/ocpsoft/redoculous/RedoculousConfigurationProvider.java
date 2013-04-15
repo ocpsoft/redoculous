@@ -37,6 +37,7 @@ import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
+import org.ocpsoft.rewrite.servlet.config.SendStatus;
 import org.ocpsoft.rewrite.servlet.config.Stream;
 import org.ocpsoft.rewrite.servlet.config.rule.Join;
 import org.ocpsoft.rewrite.transform.Transform;
@@ -171,6 +172,9 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                                                                      "{repo}/refs/{ref}/{path}/index.asciidoc")))
                                           )))
                                  .and(Response.complete()))
+
+                        .addRule()
+                        .perform(SendStatus.error(404))
 
                         ))
                .where("path").matches(".*").transposedBy(new Transposition<String>() {
