@@ -96,6 +96,7 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
+                        .and(Path.matches("/serve"))
                         .and(Query.parameterExists("repo"))
                         .and(Query.parameterExists("ref"))
                         .and(Query.parameterExists("path"))
@@ -144,8 +145,7 @@ public class RedoculousConfigurationProvider extends HttpConfigurationProvider
                                                                      "{repo}/refs/{ref}/{path}.asciidoc")))
                                           )))
                                  .and(Response.complete()))
-                                 
-                                 
+
                         .addRule()
                         .when(Filesystem.fileExists(new File(root, "{repo}/refs/{ref}/{path}/index.asciidoc")))
                         .perform(Response
