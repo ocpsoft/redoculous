@@ -1,4 +1,4 @@
-== Test.asciidoc
+= Test.asciidoc
 
 link:/../../test[/../../test] +
 link:../../test[../../test] +

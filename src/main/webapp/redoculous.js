@@ -18,6 +18,7 @@ $.fn.redoculous = function()
 		History.log(State.data, State.title, State.url);
 
 		handle.html(State.data.html);
+
 		handle.find("a").each(
 				function()
 				{
@@ -85,9 +86,14 @@ $.fn.redoculous = function()
 		// Success
 		.done(function(html)
 		{
+			var title = $('<div/>').html(html).find("h1").filter(":first");
+			if (title)
+			{
+				title = title.text();
+			}
 			History.pushState({
 				"html" : html
-			}, "State 1", browserPath);
+			}, title, browserPath);
 		});
 	};
 
