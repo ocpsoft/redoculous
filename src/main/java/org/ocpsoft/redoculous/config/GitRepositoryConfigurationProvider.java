@@ -67,9 +67,11 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                         .and(DispatchType.isRequest())
                         .and(Method.isPost())
                         .and(Path.matches("/update")))
-               .perform(new UpdateRepositoryOperation(root)
-                        .and(Response.setStatus(200))
-                        .and(Response.complete()))
+               .perform(Log.message(Level.INFO, "Git post commit hook received.").and(
+                        new UpdateRepositoryOperation(root)
+                                 .and(Response.setStatus(200))
+                                 .and(Response.complete()))
+               )
 
                /*
                 * Don't do anything if we don't have required values.
