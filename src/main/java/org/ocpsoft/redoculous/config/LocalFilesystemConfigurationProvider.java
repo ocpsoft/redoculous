@@ -93,9 +93,13 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                                                      .perform(Response
                                                                               .withOutputInterceptedBy(new PreviewLinkInterceptor()))
                                                    )
-                                                   .and(Transform.with(Asciidoc.partialDocument())
-                                                            .and(Stream.from(new File(
-                                                                     "/{path}.asciidoc"))))
+                                                   .and(Transform
+                                                            .with(Asciidoc
+                                                                     .fullDocument()
+                                                                     .addStylesheet(context.getContextPath() +
+                                                                              "/common/asciidoctor.css")
+                                                                     .withTitle("Preview Mode"))
+                                                            .and(Stream.from(new File("/{path}.asciidoc"))))
                                           )
                                           .and(Response.complete()))
 
@@ -129,9 +133,13 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                                                               .withOutputInterceptedBy(new PreviewLinkInterceptor()))
                                                    )
                                                    .and(Transform
-                                                            .with(Asciidoc.partialDocument())
-                                                            .and(Stream.from(new File(
-                                                                     "/{path}/index.asciidoc"))))
+                                                            .with(Asciidoc
+                                                                     .fullDocument()
+                                                                     .addStylesheet(
+                                                                              context.getContextPath()
+                                                                                       + "/common/asciidoctor.css")
+                                                                     .withTitle("Preview Mode"))
+                                                            .and(Stream.from(new File("/{path}/index.asciidoc"))))
                                           )
                                           .and(Response.complete()))
 
