@@ -36,16 +36,16 @@ public final class UpdateRepositoryOperation extends HttpOperation
       Gson gson = new Gson();
       try {
          String jsonString = event.getRequest().getParameter("payload");
-         System.out.println(jsonString);
          Map json = gson.fromJson(jsonString, Map.class);
          StringMap repository = (StringMap) json.get("repository");
          String repo = (String) repository.get("url");
          if (!repo.endsWith(".git"))
             repo = repo + ".git";
 
-         File repoDir = new File(root, safeFileName.transpose(event, context, repo) + "/repo");
-         File cacheDir = new File(root, safeFileName.transpose(event, context, repo) + "/caches");
-         File refsDir = new File(root, safeFileName.transpose(event, context, repo) + "/refs");
+         String safeRepoName = safeFileName.transpose(event, context, repo);
+         File repoDir = new File(root, safeRepoName + "/repo");
+         File refsDir = new File(root, safeRepoName + "/refs");
+         File cacheDir = new File(root, safeRepoName + "/caches");
 
          try {
             System.out.println("Handling GitHub web hook update for [" + repo + "]");
