@@ -1,12 +1,13 @@
 package org.ocpsoft.redoculous.config;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
 import org.ocpsoft.rewrite.servlet.config.response.ResponseContent;
 import org.ocpsoft.rewrite.servlet.config.response.ResponseContentInterceptor;
 import org.ocpsoft.rewrite.servlet.config.response.ResponseContentInterceptorChain;
@@ -15,15 +16,10 @@ import org.ocpsoft.rewrite.servlet.util.QueryStringBuilder;
 import org.ocpsoft.rewrite.servlet.util.URLBuilder;
 import org.ocpsoft.urlbuilder.Address;
 
-public class PreviewCachedGitLinkInterceptor implements ResponseContentInterceptor
+public class PreviewLocalLinkInterceptor implements ResponseContentInterceptor
 {
-   private File root;
 
-   public PreviewCachedGitLinkInterceptor(File root)
-   {
-      this.root = root;
-   }
-
+   @SuppressWarnings("deprecation")
    @Override
    public void intercept(HttpServletRewrite event, ResponseContent buffer, ResponseContentInterceptorChain chain)
    {
@@ -39,19 +35,13 @@ public class PreviewCachedGitLinkInterceptor implements ResponseContentIntercept
          String linkPrefix = matcher.group(1);
          String url = matcher.group(2);
          String requestedPath = event.getRequest().getParameter("path");
-         String requestedRef = event.getRequest().getParameter("ref");
-         String requestedRepo = event.getRequest().getParameter("repo");
 
-         File refDir = new File(root, SafeFileNameTransposition.toSafeFilename(requestedRepo) + "/refs/" + requestedRef);
-
-         File requestedFile = new File(refDir, requestedPath);
-         if (requestedFile.isDirectory())
-         {
-            requestedFile = new File(requestedFile, "index");
-            if (!requestedPath.endsWith("/"))
-               requestedPath = requestedPath + "/";
-
-            requestedPath = requestedPath + "index";
+         File requestedFile;
+         try {
+            requestedFile = new File(new URI(requestedPath));
+         }
+         catch (URISyntaxException e) {
+            throw new RuntimeException(e);
          }
 
          if (!url.matches("^(\\w+://|www\\.|/).*"))
@@ -59,6 +49,7 @@ public class PreviewCachedGitLinkInterceptor implements ResponseContentIntercept
             URLBuilder urlBuilder = URLBuilder.createFrom(requestedPath);
             List<String> segments = new ArrayList<String>(urlBuilder.getSegments());
 
+            boolean directoryProcessed = false;
             if (url.startsWith("."))
             {
                while (!segments.isEmpty())
@@ -66,7 +57,10 @@ public class PreviewCachedGitLinkInterceptor implements ResponseContentIntercept
                   if (url.startsWith("../"))
                   {
                      url = url.substring(3);
-                     segments.remove(segments.size() - 1);
+                     if (!requestedFile.isDirectory() || directoryProcessed)
+                        segments.remove(segments.size() - 1);
+                     if (requestedFile.isDirectory() && !directoryProcessed)
+                        directoryProcessed = true;
                   }
                   else if (url.startsWith("./"))
                   {
@@ -77,7 +71,7 @@ public class PreviewCachedGitLinkInterceptor implements ResponseContentIntercept
                }
             }
 
-            if (!requestedFile.isDirectory() && !segments.isEmpty())
+            if (!requestedFile.isDirectory())
             {
                segments.remove(segments.size() - 1);
             }
@@ -89,12 +83,10 @@ public class PreviewCachedGitLinkInterceptor implements ResponseContentIntercept
                url = "/" + url;
             }
 
-            result = result + url;
-
             QueryStringBuilder query = QueryStringBuilder.createNew();
             query.addParameters(address.getQuery());
             query.removeParameter("path");
-            query.addParameter("path", result);
+            query.addParameter("path", result + url);
             matcher.appendReplacement(temp, linkPrefix + query.toQueryString());
          }
       }

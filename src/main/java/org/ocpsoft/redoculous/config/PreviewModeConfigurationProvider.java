@@ -19,10 +19,12 @@ import javax.servlet.ServletContext;
 
 import org.ocpsoft.logging.Logger.Level;
 import org.ocpsoft.redoculous.Redoculous;
+import org.ocpsoft.rewrite.config.And;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.config.Direction;
 import org.ocpsoft.rewrite.config.Log;
+import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.event.Rewrite;
 import org.ocpsoft.rewrite.param.Transposition;
@@ -48,16 +50,24 @@ public class PreviewModeConfigurationProvider extends HttpConfigurationProvider
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
                         .and(Path.matches("/preview"))
-                        .and(Query.parameterExists("repo"))
-                        .and(Query.parameterExists("ref"))
                         .and(Query.parameterExists("path"))
                         .and(URL.captureIn("url"))
                )
-               .perform(Log
-                        .message(Level.INFO, "Preview mode enabled.")
-                        .and(Response.setContentType("text/html"))
+               .perform(Response
+                        .setContentType("text/html")
                         .and(Response.addHeader("Charset", "UTF-8"))
-                        .and(Response.withOutputInterceptedBy(new PreviewCachedGitLinkInterceptor(Redoculous.getRoot())))
+                        .and(Subset.evaluate(ConfigurationBuilder
+                                 .begin()
+                                 .addRule()
+                                 .when(And.all(Query.parameterExists("repo"),
+                                          Query.parameterExists("ref")))
+                                 .perform(Log.message(Level.INFO, "Preview mode enabled: Git.").and(
+                                          Response.withOutputInterceptedBy(new PreviewGitLinkInterceptor(
+                                                   Redoculous.getRoot()))))
+                                 .otherwise(Log.message(Level.INFO, "Preview mode enabled: Local.")
+                                          .and(Response.withOutputInterceptedBy(new PreviewLocalLinkInterceptor()))
+                                 ))
+                        )
                         .and(Proxy.to("{url}&nogzip"))
                         .and(Response.complete()))
                .where("url")

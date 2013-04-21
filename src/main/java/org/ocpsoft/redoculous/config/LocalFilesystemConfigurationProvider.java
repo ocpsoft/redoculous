@@ -83,24 +83,10 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                                             "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
 
                                           .and(Response.setStatus(200))
-                                          .and(Subset
-                                                   .evaluate(
-                                                            ConfigurationBuilder
-                                                                     .begin()
-
-                                                                     .addRule()
-                                                                     .when(Query.parameterExists("preview"))
-                                                                     .perform(Response
-                                                                              .withOutputInterceptedBy(new PreviewLinkInterceptor()))
-                                                   )
-                                                   .and(Transform
-                                                            .with(Asciidoc
-                                                                     .fullDocument()
-                                                                     .addStylesheet(context.getContextPath() +
-                                                                              "/common/asciidoctor.css")
-                                                                     .withTitle("Preview Mode"))
-                                                            .and(Stream.from(new File("/{path}.asciidoc"))))
-                                          )
+                                          .and(Transform.with(Asciidoc.fullDocument()
+                                                   .addStylesheet(context.getContextPath() + "/common/asciidoctor.css")
+                                                   ))
+                                          .and(Stream.from(new File("/{path}.asciidoc")))
                                           .and(Response.complete()))
 
                                  /*
@@ -122,25 +108,10 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                                             "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
 
                                           .and(Response.setStatus(200))
-                                          .and(Subset
-                                                   .evaluate(
-                                                            ConfigurationBuilder
-                                                                     .begin()
-
-                                                                     .addRule()
-                                                                     .when(Query.parameterExists("preview"))
-                                                                     .perform(Response
-                                                                              .withOutputInterceptedBy(new PreviewLinkInterceptor()))
-                                                   )
-                                                   .and(Transform
-                                                            .with(Asciidoc
-                                                                     .fullDocument()
-                                                                     .addStylesheet(
-                                                                              context.getContextPath()
-                                                                                       + "/common/asciidoctor.css")
-                                                                     .withTitle("Preview Mode"))
-                                                            .and(Stream.from(new File("/{path}/index.asciidoc"))))
-                                          )
+                                          .and(Transform.with(Asciidoc.fullDocument()
+                                                   .addStylesheet(context.getContextPath() + "/common/asciidoctor.css")
+                                                   ))
+                                          .and(Stream.from(new File("/{path}/index.asciidoc")))
                                           .and(Response.complete()))
 
                                  .addRule()
