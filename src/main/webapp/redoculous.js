@@ -130,7 +130,7 @@ $.fn.redoculous = function()
 
 			}
 
-			var result = "/" + rootChunks.join("/") + "/" + linkChunks.join("/");
+			var result = "/" + locationChunks.join("/") + "/" + linkChunks.join("/");
 
 			if (locationChunks.length >= rootChunks.length) { return result; }
 		}
