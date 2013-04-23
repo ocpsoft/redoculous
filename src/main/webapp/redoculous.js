@@ -112,6 +112,10 @@ $.fn.redoculous = function()
 
 			if (currentPath.indexOf("/", 0) == 0) currentPath = currentPath.substring(1);
 			var locationChunks = currentPath.split("/");
+			while( locationChunks.length > 0 && locationChunks[locationChunks.length - 1] == "")
+			{
+				locationChunks.pop();
+			}
 
 			if (href.indexOf("/", 0) == 0) href = href.substring(1);
 			var linkChunks = href.split("/");
