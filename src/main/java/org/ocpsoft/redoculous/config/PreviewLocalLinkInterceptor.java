@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +50,6 @@ public class PreviewLocalLinkInterceptor implements ResponseContentInterceptor
             URLBuilder urlBuilder = URLBuilder.createFrom(requestedPath);
             List<String> segments = new ArrayList<String>(urlBuilder.getSegments());
 
-            boolean directoryProcessed = false;
             if (url.startsWith("."))
             {
                while (!segments.isEmpty())
@@ -57,10 +57,7 @@ public class PreviewLocalLinkInterceptor implements ResponseContentInterceptor
                   if (url.startsWith("../"))
                   {
                      url = url.substring(3);
-                     if (!requestedFile.isDirectory() || directoryProcessed)
-                        segments.remove(segments.size() - 1);
-                     if (requestedFile.isDirectory() && !directoryProcessed)
-                        directoryProcessed = true;
+                     segments.remove(segments.size() - 1);
                   }
                   else if (url.startsWith("./"))
                   {
