@@ -122,9 +122,7 @@ $.fn.redoculous = function()
 
 			while (linkChunks.length > 0 && locationChunks.length > 0)
 			{
-				if (linkChunks[0] === ".")
-					linkChunks.shift();
-				else if (linkChunks[0] === "..")
+				if (linkChunks[0] === "." || linkChunks[0] === "..")
 				{
 					linkChunks.shift();
 					locationChunks.pop();
