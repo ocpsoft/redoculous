@@ -101,11 +101,19 @@ $.fn.redoculous = function()
 
 	var getDocumentLink = function(root, href)
 	{
+	    String.prototype.endsWith = function(suffix) {
+            return this.indexOf(suffix, this.length - suffix.length) !== -1;
+        };
+
 		if (href)
 		{
 			if (href.match(/^(http|www|ftp|mailto|ssh|scp):.*/g) != null) { return null; }
 
 			var currentPath = window.location.pathname;
+			var directory = false;
+			
+			if(currentPath.endsWith("/"))
+			    directory = true;
 
 			if (root.indexOf("/", 0) == 0) root = root.substring(1);
 			var rootChunks = root.split("/");
@@ -122,7 +130,16 @@ $.fn.redoculous = function()
 
 			while (linkChunks.length > 0 && locationChunks.length > 0)
 			{
-				if (linkChunks[0] === "." || linkChunks[0] === "..")
+				if (linkChunks[0] === ".")
+				{
+					linkChunks.shift();
+					if(!directory)
+					{
+					    locationChunks.pop();
+					    directory = true;
+					}
+				}
+				else if (linkChunks[0] === "..")
 				{
 					linkChunks.shift();
 					locationChunks.pop();
