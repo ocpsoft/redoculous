@@ -2,7 +2,7 @@ $.support.cors = true;
 $.fn.redoculous = function()
 {
 	var handle = $(this);
-	var server = handle.attr("data-redoculous");
+	var server = handle.attr("data-redoculous") + "/serve";
 	var repo = handle.attr("data-repo");
 	var repoRoot = handle.attr("data-repo-root");
 	var ref = handle.attr("data-ref");

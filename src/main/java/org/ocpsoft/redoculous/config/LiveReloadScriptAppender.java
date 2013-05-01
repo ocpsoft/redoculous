@@ -33,6 +33,7 @@ public class LiveReloadScriptAppender implements ResponseContentInterceptor
       builder.append("<html>").append("\n");
       builder.append("  <head>").append("\n");
       builder.append("    <link rel='stylesheet' href='" + event.getContextPath() + "/css/asciidoctor.css'").append("\n");
+      builder.append("    <link rel='shortcut icon' href='" +event.getContextPath() + "/favicon.ico' />").append("\n");
       builder.append("    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=US-ASCII\">").append("\n");
       builder.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">").append("\n");
       builder.append("  </head>").append("\n");
