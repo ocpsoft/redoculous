@@ -28,7 +28,7 @@ $.fn.redoculousNow = function() {
 			var parsed = $('<div/>').html(html);
 			var title = parsed.find("h1, h2").filter(":first");
 			var content = parsed.find("[data-redoculous-now]").html();
-			if (content) {
+			if (content && !(html === handle.html())) {
 				handle.html(content);
 			}
 			if (title) {
