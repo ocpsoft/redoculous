@@ -80,7 +80,8 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
 
                                  .and(Response.setStatus(200))
                                  .and(Transform.with(Asciidoc.partialDocument()))
-                                 .and(Response.withOutputInterceptedBy(new LiveReloadScriptAppender()))
+                                 .and(Response.withOutputInterceptedBy(new WatermarkInterceptor(),
+                                          new LiveReloadScriptAppender()))
                                  .and(Stream.from(new File("/{path}.asciidoc")))
                                  .and(Response.complete()))
 
@@ -101,7 +102,8 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
 
                                  .and(Response.setStatus(200))
                                  .and(Transform.with(Asciidoc.partialDocument()))
-                                 .and(Response.withOutputInterceptedBy(new LiveReloadScriptAppender()))
+                                 .and(Response.withOutputInterceptedBy(new WatermarkInterceptor(),
+                                          new LiveReloadScriptAppender()))
                                  .and(Stream.from(new File("/{path}/index.asciidoc")))
                                  .and(Response.complete()))
 

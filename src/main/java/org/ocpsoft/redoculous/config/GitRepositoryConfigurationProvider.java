@@ -128,6 +128,7 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                                    .perform(Stream.from(new File(root,
                                                             "{repo}/caches/{ref}/{path}.html")))
                                                    .otherwise(Transform.with(Asciidoc.partialDocument())
+                                                   		.and(Response.withOutputInterceptedBy(new WatermarkInterceptor()))
                                                             .and(Stream.to(new File(root,
                                                                      "{repo}/caches/{ref}/{path}.html")))
                                                             .and(Stream.from(new File(root,
@@ -162,6 +163,7 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                                             "{repo}/caches/{ref}/{path}/index.html")))
                                                    .otherwise(
                                                             Transform.with(Asciidoc.partialDocument())
+                                                            		.and(Response.withOutputInterceptedBy(new WatermarkInterceptor()))
                                                                      .and(Stream.to(new File(root,
                                                                               "{repo}/caches/{ref}/{path}/index.html")))
                                                                      .and(Stream

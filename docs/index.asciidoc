@@ -9,12 +9,12 @@ to any web page, and include the required scripts to publish
 your documentation instantly.
 
 === Install Redoculous
-In order to set up a redoculous server, you must:
+In order to set up a Redoculous server, you must:
 
 1. Get a recent link:https://oss.sonatype.org/content/repositories/snapshots/org/ocpsoft/redoculous-server/[Snapshot] 
 or link:http://search.maven.org/#search%7Cga%7C1%7Credoculous-server[Release] of the application WAR file. 
 
-2. Deploy the packaged WAR file to a Java Servlet container of your 
+2. Deploy the packaged WAR file to a link:http://wildfly.org/[Java Server] of your 
 choice.
 
 3. Access either the link:#_local_preview_mode[Local Preview] or 
