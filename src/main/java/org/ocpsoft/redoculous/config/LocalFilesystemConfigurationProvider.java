@@ -19,7 +19,6 @@ import java.io.File;
 
 import javax.servlet.ServletContext;
 
-import org.ocpsoft.logging.Logger.Level;
 import org.ocpsoft.redoculous.config.util.CanonicalizeFileName;
 import org.ocpsoft.redoculous.config.util.RemoveFilePrefixTransposition;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
@@ -27,10 +26,10 @@ import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.config.Direction;
 import org.ocpsoft.rewrite.config.Filesystem;
-import org.ocpsoft.rewrite.config.Log;
 import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
+import org.ocpsoft.rewrite.servlet.config.Domain;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
 import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
@@ -56,68 +55,60 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                 */
                .addRule()
                .when(Direction.isInbound()
+                        .and(Domain.matches("localhost"))
                         .and(DispatchType.isRequest())
                         .and(Path.matches("/serve"))
                         .and(Query.parameterExists("path"))
                )
-               .perform(Log
-                        .message(Level.INFO, "File requested [{path}]")
-                        .and(Subset.evaluate(ConfigurationBuilder
-                                 .begin()
+               .perform(Subset.evaluate(ConfigurationBuilder
+                        .begin()
 
-                                 /*
-                                  * Serve, render, and cache the doc, or serve directly from file.
-                                  */
-                                 .addRule()
-                                 .when(Filesystem.fileExists(new File("/{path}.asciidoc")))
-                                 .perform(Log
-                                          .message(Level.INFO, "Serving file [{path}]")
-                                          .and(Response.setContentType("text/html")
-                                                   .and(Response.addHeader("Charset", "UTF-8")))
+                        /*
+                         * Serve, render, and cache the doc, or serve directly from file.
+                         */
+                        .addRule()
+                        .when(Filesystem.fileExists(new File("/{path}.asciidoc")))
+                        .perform(Response
+                                 .setContentType("text/html")
+                                 .and(Response.addHeader("Charset", "UTF-8"))
+                                 .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
+                                 .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
+                                 .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
+                                 .and(Response
+                                          .addHeader("Access-Control-Allow-Headers",
+                                                   "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
 
-                                          .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
-                                          .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
-                                          .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
-                                          .and(Response
-                                                   .addHeader("Access-Control-Allow-Headers",
-                                                            "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
+                                 .and(Response.setStatus(200))
+                                 .and(Transform.with(Asciidoc.partialDocument()))
+                                 .and(Response.withOutputInterceptedBy(new LiveReloadScriptAppender()))
+                                 .and(Stream.from(new File("/{path}.asciidoc")))
+                                 .and(Response.complete()))
 
-                                          .and(Response.setStatus(200))
-                                          .and(Transform.with(Asciidoc.fullDocument()
-                                                   .addStylesheet(context.getContextPath() + "/common/asciidoctor.css")
-                                                   ))
-                                          .and(Stream.from(new File("/{path}.asciidoc")))
-                                          .and(Response.complete()))
+                        /*
+                         * Serve from directory index file.
+                         */
+                        .addRule()
+                        .when(Filesystem.fileExists(new File("/{path}/index.asciidoc")))
+                        .perform(Response
+                                 .setContentType("text/html")
+                                 .and(Response.addHeader("Charset", "UTF-8"))
+                                 .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
+                                 .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
+                                 .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
+                                 .and(Response
+                                          .addHeader("Access-Control-Allow-Headers",
+                                                   "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
 
-                                 /*
-                                  * Serve from directory index file.
-                                  */
-                                 .addRule()
-                                 .when(Filesystem.fileExists(new File("/{path}/index.asciidoc")))
-                                 .perform(Log
-                                          .message(Level.INFO, "Serving index file [{path}/index.asciidoc]")
-                                          .and(Response
-                                                   .setContentType("text/html")
-                                                   .and(Response.addHeader("Charset", "UTF-8")))
+                                 .and(Response.setStatus(200))
+                                 .and(Transform.with(Asciidoc.partialDocument()))
+                                 .and(Response.withOutputInterceptedBy(new LiveReloadScriptAppender()))
+                                 .and(Stream.from(new File("/{path}/index.asciidoc")))
+                                 .and(Response.complete()))
 
-                                          .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
-                                          .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
-                                          .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
-                                          .and(Response
-                                                   .addHeader("Access-Control-Allow-Headers",
-                                                            "Content-Type, User-Agent, X-Requested-With, X-Requested-By, Cache-Control"))
+                        .addRule()
+                        .perform(SendStatus.error(404))
 
-                                          .and(Response.setStatus(200))
-                                          .and(Transform.with(Asciidoc.fullDocument()
-                                                   .addStylesheet(context.getContextPath() + "/common/asciidoctor.css")
-                                                   ))
-                                          .and(Stream.from(new File("/{path}/index.asciidoc")))
-                                          .and(Response.complete()))
-
-                                 .addRule()
-                                 .perform(SendStatus.error(404))
-
-                                 )))
+                        ))
                .where("path").matches("file:///.*")
                .transposedBy(new RemoveFilePrefixTransposition())
                .transposedBy(canonicalizeFilename);
