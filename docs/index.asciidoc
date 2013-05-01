@@ -99,7 +99,16 @@ making sure to use the full path -- excluding query-parameters.
 <div ... data-root="/project/docs/" ... >
 ----
 
-data-onload::
+data-onload:: Specifies a fragment of JavaScript to execute after each document has
+loaded.
++
+For example, if you wish to call a JavaScript function after displaying each document,
+simply pass the function you wish to call in the +data-onload+ configuration. 
++
+[source,html]
+----
+<div ... data-onload="alert('Document loaded!');" ... >
+----
 
 That's it! You should now see your documents rendered in place of the +data-redoculous+
  element.
