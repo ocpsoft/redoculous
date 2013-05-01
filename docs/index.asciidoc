@@ -18,6 +18,7 @@ install+
 choice.
 4. Access either the link:#_local_preview_mode[Local Preview] or 
 link:#_published_mode[Published] modes. 
+5. Check out the Redoculous link:#_redoculous_rest_api[REST API]
 
 === Local Preview Mode
 
@@ -174,8 +175,10 @@ simply pass the function you wish to call in the +data-onload+ configuration.
 
 That's it! You should now see your documents rendered in place of the +data-redoculous+
  element.
- 
-== Update the published documentation
+
+== Redoculous REST API
+
+=== POST /update
 
 There are 'two ways' to update published documentation once it has been rendered. The first
 approach is to simply restart the Redoculous server, which will cause the cache to be
@@ -183,7 +186,8 @@ cleared. The second approach is to submit a JSON payload to the +POST /update+ U
 on which Redoculous listens for updates.
 
 This can be done either using a web-service client, a REST browser client, or
-using link:https://help.github.com/articles/post-receive-hooks[GitHub web-hook URLs].
+using link:https://help.github.com/articles/post-receive-hooks[GitHub web-hook URLs],
+which would ensure that your documentation is updated automatically.
 
 The update payload should be in the following format '(ensure that your POST URL is
 the URL at which your Redoculous server is published)':
