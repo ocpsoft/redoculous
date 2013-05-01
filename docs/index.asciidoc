@@ -20,7 +20,7 @@ choice.
 3. Access either the link:#_local_preview_mode[Local Preview] or 
 link:#_published_mode[Published] modes. 
 
-3. Check out the Redoculous link:#_redoculous_rest_api[REST API].
+4. Check out the Redoculous link:#_redoculous_rest_api[REST API].
 
 === Local Preview Mode
 
