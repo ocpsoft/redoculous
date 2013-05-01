@@ -1,11 +1,13 @@
-== Index.asciidoc
+== Redoculous Server
+
+Getting started with Redoculous is easy. 
 
 [source,html]
 ----
 <!DOCTYPE html>
 <html>
 <head>
-<title>Rewrite Documentation</title>
+<title>Redoculous Example</title>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/bootstrap.css">
