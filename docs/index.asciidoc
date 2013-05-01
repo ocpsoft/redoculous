@@ -11,14 +11,16 @@ your documentation instantly.
 === Install Redoculous
 In order to set up a redoculous server, you must:
 
-1. Get the code from link:http://github.com/ocpsoft/redoculous[GitHub]
-2. Run a build via +mvn clean 
-install+
-3. Deploy the packaged +war+ file to a Java Servlet container of your 
+1. Get a recent link:https://oss.sonatype.org/content/repositories/snapshots/org/ocpsoft/redoculous-server/[Snapshot] 
+or link:http://search.maven.org/#search%7Cga%7C1%7Credoculous-server[Release] of the application WAR file. 
+
+2. Deploy the packaged WAR file to a Java Servlet container of your 
 choice.
-4. Access either the link:#_local_preview_mode[Local Preview] or 
+
+3. Access either the link:#_local_preview_mode[Local Preview] or 
 link:#_published_mode[Published] modes. 
-5. Check out the Redoculous link:#_redoculous_rest_api[REST API]
+
+3. Check out the Redoculous link:#_redoculous_rest_api[REST API].
 
 === Local Preview Mode
 
