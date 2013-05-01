@@ -8,6 +8,63 @@ been easier. Just use a little basic HTML to add a Redoculous pane
 to any web page, and include the required scripts to publish
 your documentation instantly.
 
+=== Install Redoculous
+In order to set up a redoculous server, you must:
+
+1. Get the code from link:http://github.com/ocpsoft/redoculous[GitHub]
+2. Run a build via +mvn clean 
+install+
+3. Deploy the packaged +war+ file to a Java Servlet container of your 
+choice.
+4. Access either the link:#_local_preview_mode[Local Preview] or 
+link:#_published_mode[Published] modes. 
+
+=== Local Preview Mode
+
+If you have deployed Redoculous to a local server, you may now preview documents from
+the local file-system in real time; each time Redoculous detects a file, the document
+will be updated in the browser.
+
+To begin, simply direct your browser the local server where you have deployed
+Redoculous, and provide the path to the file you wish to preview.
+
+[source,url]
+.Linux and OSX URL
+----
+http://localhost:8080/redoculous/preview?
+   path=file:///home/username/projects/docs/index.asciidoc
+----
+
+Note, make sure to use the appropriate +file://+ path for your operating system. On
+Windows, this would look like the URL below
+
+[source,url]
+.Windows URL
+----
+http://localhost:8080/redoculous/preview?
+   path=file://c:/Documents+and+Settings/username/projects/docs/index.asciidoc
+----
+
+TIP: When using Local Preview Mode, HTML links are updated to ensure that related 
+documents can be accessed from the same Local Preview window. Just click a link
+to preview the next document.
+
+=== Published Mode
+
+Once you are ready to publish your documentation, you can do so using Publish Mode,
+which is the primary method for displaying fully rendered documents on your website.
+
+First, you will need to deploy redoculous to a public server, such as the 
+link:http://www.openshift.com[OpenShift] cloud, which offers free hosting that far
+exceeds the minimum requirements to run Redoculous.
+
+Once you have deployed Redoculous, you now need to display your documents in the
+target website. This is done using standard HTML and a few JavaScript includes.
+
+TIP: Required JavaScript files are provided by the Redoculous server in the +js/+, 
+directory, so look there before attempting to download any scripts. You may also
+provide your own copies of the script files if desired. 
+
 [source,html]
 .Using Redoculous.js and a DIV element:
 ----
@@ -19,7 +76,7 @@ your documentation instantly.
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/asciidoctor.css">
 <script src="js/jquery.min.js"></script>
-<script src="js/jquery.history.js"></script>
+<script src="js/jquery.history.min.js"></script>
 <script src="js/redoculous.js"></script>
 </head>
 <body>
@@ -33,6 +90,11 @@ your documentation instantly.
 </body>
 </html>
 ----
+
+Now that you have the basic HTML and JavaScript set up, you should review the attributes
+below to make sure that your configuration is correct. If you have set up the page
+correctly, your documents will appear after a brief initial delay. (Caching is provided,
+so once a page has loaded, it will be served much more quickly on subsequent requests.)
 
 == Configuration attributes
 
@@ -113,13 +175,44 @@ simply pass the function you wish to call in the +data-onload+ configuration.
 That's it! You should now see your documents rendered in place of the +data-redoculous+
  element.
  
+== Update the published documentation
+
+There are 'two ways' to update published documentation once it has been rendered. The first
+approach is to simply restart the Redoculous server, which will cause the cache to be
+cleared. The second approach is to submit a JSON payload to the +POST /update+ URL
+on which Redoculous listens for updates.
+
+This can be done either using a web-service client, a REST browser client, or
+using link:https://help.github.com/articles/post-receive-hooks[GitHub web-hook URLs].
+
+The update payload should be in the following format '(ensure that your POST URL is
+the URL at which your Redoculous server is published)':
+
+[source,text]
+----
+HTTP/1.1 POST http://localhost:8080/redoculous/update
+---
+payload={ "repository" : { 
+             "url" : "https://github.com/ocpsoft/redoculous.git" 
+          }
+}
+----
+
+This will cause Redoculous to pull all new changes from the repository URL, and clear
+the document cache so that new versions of documents will be served. 
+
+TIP: You so not need to update your website or HTML, as the latest content is always
+requested from the Redoculous cache. 
+ 
 == Support
-If you are having difficulty with Redoculous, please visit http://ocpsoft.org/support/redoculous-users/
+If you are having difficulty with Redoculous, please visit the
+link:http://ocpsoft.org/support/redoculous-users/[Redoculous Users Forum]
 and post a question. We will respond as quickly as possible.
  
 == Get involved
-To learn more and get involved, visit the project homepage at http://ocpsoft.org/redoculous/,
-also, get the source-code at http://github.com/ocpsoft/redoculous
+Project homepage:: http://ocpsoft.org/redoculous/
+Source-code:: http://github.com/ocpsoft/redoculous
+Twitter:: http://twitter.com/ocpsoft
 
 
 
