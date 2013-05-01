@@ -42,7 +42,7 @@ $.fn.redoculousNow = function() {
 	});
 
 	function reload() {
-		setTimeout(reload, 100);
+		setTimeout(reload, 500);
 		ajaxCall();
 	}
 
