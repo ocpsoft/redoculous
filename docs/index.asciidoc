@@ -1,15 +1,11 @@
-== Redoculous Server
-
-*Skip the build!*
+== Redoculous Server - "Skip the build!"
 
 Redoculous is a simple Markup language preview and publishing server - edit 
 documents locally in real-time, and publish instantly to the web
 with a few small snippits of HTML. Designed for handling multiple
 versions of documents, publishing directly from source has never 
-been easier.
-
-Getting started with Redoculous is easy; it's just JavaScript and HTML - add a
-Redoculous pane to any HTML page, and include the required scripts to publish
+been easier. Just use a little basic HTML to add a Redoculous pane
+to any web page, and include the required scripts to publish
 your documentation instantly.
 
 [source,html]
