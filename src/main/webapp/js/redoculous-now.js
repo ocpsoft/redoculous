@@ -20,6 +20,8 @@ $.fn.redoculousNow = function() {
 				function(xhr, status, error) {
 					console.log("Error fetching document [" + url + "] - ["
 							+ status + "-" + error + "]");
+
+					setTimeout(reload, 1000);
 				})
 		// Success
 		.done(function(html) {
@@ -33,7 +35,7 @@ $.fn.redoculousNow = function() {
 				title = title.text();
 				document.title = titlePattern.replace("%TITLE%", title);
 			}
-
+			setTimeout(reload, 500);
 		});
 	};
 
@@ -42,7 +44,6 @@ $.fn.redoculousNow = function() {
 	});
 
 	function reload() {
-		setTimeout(reload, 500);
 		ajaxCall();
 	}
 

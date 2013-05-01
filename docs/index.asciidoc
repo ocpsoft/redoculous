@@ -1,4 +1,28 @@
 == Index.asciidoc
 
-link:test[test] +
-link:test2[test2] +
+[source,html]
+----
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rewrite Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/bootstrap.css">
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script
+	src="https://raw.github.com/browserstate/history.js/master/scripts/bundled/html4+html5/jquery.history.js"></script>
+<script src="/redoculous/js/redoculous.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div data-redoculous="http://localhost:8080/redoculous/serve"
+			data-repo="https://github.com/ocpsoft/redoculous.git"
+			data-ref="master" data-repo-root="/docs" data-root="/redoculous/docs"></div>
+	</div>
+	<footer>
+		<p>&copy; ocpsoft.org</p>
+	</footer>
+</body>
+</html>
+----
