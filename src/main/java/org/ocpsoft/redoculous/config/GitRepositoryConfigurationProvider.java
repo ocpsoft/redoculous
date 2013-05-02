@@ -35,7 +35,6 @@ import org.ocpsoft.rewrite.config.Not;
 import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
-import org.ocpsoft.rewrite.servlet.config.Forward;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
 import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
@@ -72,12 +71,6 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                  .and(Response.setStatus(200))
                                  .and(Response.complete()))
                )
-
-               .addRule()
-               .when(Direction.isInbound()
-                        .and(Path.matches("getting_started.html"))
-                        .and(Method.isPost()))
-               .perform(Forward.to("/update"))
 
                /*
                 * Don't do anything if we don't have required values.
