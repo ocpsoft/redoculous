@@ -35,6 +35,7 @@ import org.ocpsoft.rewrite.config.Not;
 import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
+import org.ocpsoft.rewrite.servlet.config.Forward;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
 import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
@@ -64,7 +65,6 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                 */
                .addRule()
                .when(Direction.isInbound()
-                        .and(DispatchType.isRequest())
                         .and(Method.isPost())
                         .and(Path.matches("/update")))
                .perform(Log.message(Level.INFO, "Git post commit hook received.").and(
@@ -72,6 +72,12 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                  .and(Response.setStatus(200))
                                  .and(Response.complete()))
                )
+
+               .addRule()
+               .when(Direction.isInbound()
+                        .and(Path.matches("getting_started.html"))
+                        .and(Method.isPost()))
+               .perform(Forward.to("/update"))
 
                /*
                 * Don't do anything if we don't have required values.
@@ -127,12 +133,14 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                                                      "{repo}/caches/{ref}/{path}.html")))
                                                    .perform(Stream.from(new File(root,
                                                             "{repo}/caches/{ref}/{path}.html")))
-                                                   .otherwise(Transform.with(Asciidoc.partialDocument())
-                                                   		.and(Response.withOutputInterceptedBy(new WatermarkInterceptor()))
-                                                            .and(Stream.to(new File(root,
-                                                                     "{repo}/caches/{ref}/{path}.html")))
-                                                            .and(Stream.from(new File(root,
-                                                                     "{repo}/refs/{ref}/{path}.asciidoc")))
+                                                   .otherwise(
+                                                            Transform.with(Asciidoc.partialDocument())
+                                                                     .and(Response
+                                                                              .withOutputInterceptedBy(new WatermarkInterceptor()))
+                                                                     .and(Stream.to(new File(root,
+                                                                              "{repo}/caches/{ref}/{path}.html")))
+                                                                     .and(Stream.from(new File(root,
+                                                                              "{repo}/refs/{ref}/{path}.asciidoc")))
                                                    )))
                                           .and(Response.complete()))
 
@@ -163,7 +171,8 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                                             "{repo}/caches/{ref}/{path}/index.html")))
                                                    .otherwise(
                                                             Transform.with(Asciidoc.partialDocument())
-                                                            		.and(Response.withOutputInterceptedBy(new WatermarkInterceptor()))
+                                                                     .and(Response
+                                                                              .withOutputInterceptedBy(new WatermarkInterceptor()))
                                                                      .and(Stream.to(new File(root,
                                                                               "{repo}/caches/{ref}/{path}/index.html")))
                                                                      .and(Stream
