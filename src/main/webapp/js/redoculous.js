@@ -108,6 +108,7 @@ $.fn.redoculous = function()
 		if (href)
 		{
 			if (href.match(/^(http|www|ftp|mailto|ssh|scp):.*/g) != null) { return null; }
+			if (href.match(/.*#.*/g) != null) { return null; }
 
 			var currentPath = window.location.pathname;
 			var directory = false;
