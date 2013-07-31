@@ -1,4 +1,3 @@
-== Redoculous Server - "Skip the build!"
 
 Redoculous is a simple Markup language preview and publishing server - edit 
 documents locally in real-time, and publish instantly to the web
@@ -11,10 +10,10 @@ your documentation instantly.
 === Install Redoculous
 In order to set up a Redoculous server, you must:
 
-1. Get a recent link:https://oss.sonatype.org/content/repositories/snapshots/org/ocpsoft/redoculous-server/[Snapshot] 
-or link:http://search.maven.org/#search%7Cga%7C1%7Credoculous-server[Release] of the application WAR file. 
+1. Get a recent https://oss.sonatype.org/content/repositories/snapshots/org/ocpsoft/redoculous-server/[Snapshot] 
+or http://search.maven.org/#search%7Cga%7C1%7Credoculous-server[Release] of the application WAR file. 
 
-2. Deploy the packaged WAR file to a link:http://wildfly.org/[Java Server] of your 
+2. Deploy the packaged WAR file to a Java Servlet Container or Application Server of your 
 choice.
 
 3. Access either the link:#_local_preview_mode[Local Preview] or 
