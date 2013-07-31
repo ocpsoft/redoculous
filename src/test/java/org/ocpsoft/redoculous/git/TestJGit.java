@@ -14,9 +14,11 @@ import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.ocpsoft.redoculous.config.util.Files;
 
+@Ignore
 public class TestJGit
 {
 

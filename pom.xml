@@ -139,6 +139,39 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+
+
+   <developers>
+      <developer>
+         <id>lincolnbaxter</id>
+         <name>Lincoln Baxter, III</name>
+         <email>lincoln@ocpsoft.org</email>
+         <timezone>-5</timezone>
+      </developer>
+   </developers>
+
+   <url>http://ocpsoft.org/redoculous/</url>
+
+   <licenses>
+      <license>
+         <name>Apache License</name>
+         <url>http://www.apache.org/licenses/</url>
+         <distribution>repo</distribution>
+      </license>
+   </licenses>
+
+   <scm>
+      <connection>scm:git:git://github.com/ocpsoft/redoculous.git</connection>
+      <developerConnection>scm:git:git@github.com:ocpsoft/redoculous.git</developerConnection>
+      <url>http://github.com/ocpsoft/redoculous</url>
+      <tag>HEAD</tag>
+   </scm>
+
+   <issueManagement>
+      <system>GitHub</system>
+      <url>https://github.com/ocpsoft/redoculous/issues</url>
+   </issueManagement>
+
 </project>
 
 
