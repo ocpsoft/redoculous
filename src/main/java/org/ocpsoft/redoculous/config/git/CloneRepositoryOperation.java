@@ -21,69 +21,65 @@ import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.HttpOperation;
 import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
 
-public final class CloneRepositoryOperation extends HttpOperation implements Parameterized
-{
-   Transposition<String> safeFileName = new SafeFileNameTransposition();
+public final class CloneRepositoryOperation extends HttpOperation implements
+		Parameterized {
+	Transposition<String> safeFileName = new SafeFileNameTransposition();
 
-   private final File root;
+	private final File root;
 
-   private String repoParam;
-   private String refParam;
+	private String repoParam;
+	private String refParam;
 
-   private ParameterStore store;
+	private ParameterStore store;
 
-   public CloneRepositoryOperation(File root, String repoParam, String refParam)
-   {
-      this.root = root;
-      this.repoParam = repoParam;
-      this.refParam = refParam;
-   }
+	public CloneRepositoryOperation(File root, String repoParam, String refParam) {
+		this.root = root;
+		this.repoParam = repoParam;
+		this.refParam = refParam;
+	}
 
-   @Override
-   public void performHttp(HttpServletRewrite event, EvaluationContext context)
-   {
-      ParameterValueStore values = (ParameterValueStore) context.get(ParameterValueStore.class);
-      String ref = values.retrieve(store.get(refParam));
-      String repo = event.getRequest().getParameter(repoParam);
+	@Override
+	public void performHttp(HttpServletRewrite event, EvaluationContext context) {
+		ParameterValueStore values = (ParameterValueStore) context
+				.get(ParameterValueStore.class);
+		String ref = values.retrieve(store.get(refParam));
+		String repo = event.getRequest().getParameter(repoParam);
 
-      String safeRepoName = safeFileName.transpose(event, context, repo);
-      File repoDir = new File(root, safeRepoName + "/repo");
-      File refsDir = new File(root, safeRepoName + "/refs");
-      File cacheDir = new File(root, safeRepoName + "/caches");
-      File refDir = new File(refsDir, ref);
+		String safeRepoName = safeFileName.transpose(event, context, repo);
+		File repoDir = new File(root, safeRepoName + "/repo");
+		File refsDir = new File(root, safeRepoName + "/refs");
+		File cacheDir = new File(root, safeRepoName + "/caches");
+		File refDir = new File(refsDir, ref);
 
-      if (!repoDir.exists())
-      {
-         System.out.println("Cloning [" + repo + "] [" + ref + "]");
-         try {
-            repoDir.mkdirs();
-            refsDir.mkdirs();
-            cacheDir.mkdirs();
+		if (!repoDir.exists()) {
+			System.out.println("Cloning [" + repo + "] [" + ref + "]");
+			try {
+				repoDir.mkdirs();
+				refsDir.mkdirs();
+				cacheDir.mkdirs();
 
-            Git.cloneRepository().setURI(repo).setRemote("origin")
-                     .setCloneAllBranches(true).setDirectory(repoDir)
-                     .setProgressMonitor(new TextProgressMonitor()).call();
+				GitUtils.close(Git.cloneRepository().setURI(repo)
+						.setRemote("origin").setCloneAllBranches(true)
+						.setDirectory(repoDir)
+						.setProgressMonitor(new TextProgressMonitor()).call());
 
-            Files.copyDirectory(repoDir, refDir, new DocumentFilter());
-         }
-         catch (GitAPIException e) {
-            throw new RewriteException("Could not clone git repository.", e);
-         }
-         catch (IOException e) {
-            throw new RewriteException("Could not copy repository to ref dir.", e);
-         }
-      }
-   }
+				Files.copyDirectory(repoDir, refDir, new DocumentFilter());
+			} catch (GitAPIException e) {
+				throw new RewriteException("Could not clone git repository.", e);
+			} catch (IOException e) {
+				throw new RewriteException(
+						"Could not copy repository to ref dir.", e);
+			}
+		}
+	}
 
-   @Override
-   public Set<String> getRequiredParameterNames()
-   {
-      return new HashSet<String>(Arrays.asList(repoParam, refParam));
-   }
+	@Override
+	public Set<String> getRequiredParameterNames() {
+		return new HashSet<String>(Arrays.asList(repoParam, refParam));
+	}
 
-   @Override
-   public void setParameterStore(ParameterStore store)
-   {
-      this.store = store;
-   }
+	@Override
+	public void setParameterStore(ParameterStore store) {
+		this.store = store;
+	}
 }
