@@ -5,9 +5,9 @@ import java.io.IOException;
 
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.storage.file.FileRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
