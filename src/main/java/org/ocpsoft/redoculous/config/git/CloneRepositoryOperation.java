@@ -9,6 +9,7 @@ import java.util.Set;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.config.util.DocumentFilter;
 import org.ocpsoft.redoculous.config.util.Files;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
@@ -61,10 +62,16 @@ public final class CloneRepositoryOperation extends HttpOperation implements
             refsDir.mkdirs();
             cacheDir.mkdirs();
 
-            GitUtils.close(Git.cloneRepository().setURI(repo)
+            Git git = Git.cloneRepository().setURI(repo)
                      .setRemote("origin").setCloneAllBranches(true)
                      .setDirectory(repoDir)
-                     .setProgressMonitor(new TextProgressMonitor()).call());
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
+            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
+                     .setThin(false).setTimeout(10)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
+            GitUtils.close(git);
 
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());
          }

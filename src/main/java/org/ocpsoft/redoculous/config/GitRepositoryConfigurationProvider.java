@@ -23,7 +23,6 @@ import org.ocpsoft.logging.Logger.Level;
 import org.ocpsoft.redoculous.Redoculous;
 import org.ocpsoft.redoculous.config.git.CheckoutRefOperation;
 import org.ocpsoft.redoculous.config.git.CloneRepositoryOperation;
-import org.ocpsoft.redoculous.config.git.UpdateRepositoryOperation;
 import org.ocpsoft.redoculous.config.util.CanonicalizeFileName;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
 import org.ocpsoft.rewrite.config.Configuration;
@@ -36,7 +35,6 @@ import org.ocpsoft.rewrite.config.Subset;
 import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
-import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
@@ -58,19 +56,6 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
 
       return ConfigurationBuilder
                .begin()
-
-               /*
-                * Clear the cache and or re-clone when github says so:
-                */
-               .addRule()
-               .when(Direction.isInbound()
-                        .and(Method.isPost())
-                        .and(Path.matches("/update")))
-               .perform(Log.message(Level.INFO, "Git post commit hook received.").and(
-                        new UpdateRepositoryOperation(root)
-                                 .and(Response.setStatus(200))
-                                 .and(Response.complete()))
-               )
 
                /*
                 * Don't do anything if we don't have required values.

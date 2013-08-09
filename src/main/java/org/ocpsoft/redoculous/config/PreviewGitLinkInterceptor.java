@@ -15,6 +15,7 @@ import org.ocpsoft.rewrite.servlet.util.QueryStringBuilder;
 import org.ocpsoft.rewrite.servlet.util.URLBuilder;
 import org.ocpsoft.urlbuilder.Address;
 
+@SuppressWarnings("deprecation")
 public class PreviewGitLinkInterceptor implements ResponseContentInterceptor
 {
    private File root;

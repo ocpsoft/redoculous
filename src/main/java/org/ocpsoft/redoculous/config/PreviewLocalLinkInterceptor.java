@@ -4,7 +4,6 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,10 +16,9 @@ import org.ocpsoft.rewrite.servlet.util.QueryStringBuilder;
 import org.ocpsoft.rewrite.servlet.util.URLBuilder;
 import org.ocpsoft.urlbuilder.Address;
 
+@SuppressWarnings("deprecation")
 public class PreviewLocalLinkInterceptor implements ResponseContentInterceptor
 {
-
-   @SuppressWarnings("deprecation")
    @Override
    public void intercept(HttpServletRewrite event, ResponseContent buffer, ResponseContentInterceptorChain chain)
    {

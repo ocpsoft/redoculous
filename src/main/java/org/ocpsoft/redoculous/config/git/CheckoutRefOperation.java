@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
-import org.eclipse.jgit.lib.TextProgressMonitor;
-import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.config.util.DocumentFilter;
 import org.ocpsoft.redoculous.config.util.Files;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
@@ -46,6 +43,12 @@ public final class CheckoutRefOperation extends HttpOperation implements
       ParameterValueStore values = (ParameterValueStore) context
                .get(ParameterValueStore.class);
       String ref = values.retrieve(store.get(refParam));
+
+      if (!ref.startsWith("refs/"))
+      {
+         ref = "refs/remotes/origin/" + ref;
+      }
+
       String repo = event.getRequest().getParameter(repoParam);
 
       String safeRepoName = safeFileName.transpose(event, context, repo);
@@ -56,25 +59,16 @@ public final class CheckoutRefOperation extends HttpOperation implements
       File refCacheDir = new File(cacheDir, ref);
 
       if (!refDir.exists()) {
-         System.out
-                  .println("Creating ref copy [" + repo + "] [" + ref + "]");
+         System.out.println("Creating ref copy [" + repo + "] [" + ref + "]");
          refDir.mkdirs();
          refCacheDir.mkdirs();
          Git git = null;
          try {
             git = Git.open(repoDir);
 
-            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
-                     .setThin(false).setTimeout(10)
-                     .setProgressMonitor(new TextProgressMonitor()).call();
-            git.reset().setRef(git.getRepository().getBranch()).setMode(ResetType.HARD).call();
-            git.pull().setRebase(false).setTimeout(10)
-                     .setProgressMonitor(new TextProgressMonitor()).call();
-            git.clean().setCleanDirectories(true).call();
             git.checkout().setName(ref).call();
 
-            System.out.println("Deleting cache for [" + repo + "] [" + ref
-                     + "]");
+            System.out.println("Deleting cache for [" + repo + "] [" + ref + "]");
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
