@@ -84,7 +84,7 @@ public class GitRepositoryConfigurationProvider extends HttpConfigurationProvide
                                   */
                                  .addRule()
                                  .when(Not.any(Filesystem.directoryExists(new File(root, "{repo}/refs/{ref}"))))
-                                 .perform(new CheckoutRefOperation(root, "repo", "ref"))
+                                 .perform(new CheckoutRefOperation("repo", "ref"))
 
                                  /*
                                   * Serve, render, and cache, or serve directly from cache the requested doc.

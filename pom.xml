@@ -8,6 +8,7 @@
 		<version>9</version>
 	</parent>
 
+	<groupId>org.ocpsoft.redoculous</groupId>
 	<artifactId>redoculous-server</artifactId>
 	<packaging>war</packaging>
 
