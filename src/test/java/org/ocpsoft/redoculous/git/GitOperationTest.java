@@ -12,7 +12,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.ocpsoft.redoculous.config.util.Files;
+import org.ocpsoft.redoculous.util.Files;
 
 @Ignore
 public class GitOperationTest

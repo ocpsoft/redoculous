@@ -1,11 +1,14 @@
-package org.ocpsoft.redoculous.config.util;
+package org.ocpsoft.redoculous.util;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,7 +137,7 @@ public final class Files
 
    public static File getWorkingDirectory()
    {
-      return new File("").getAbsoluteFile();
+      return new File(System.getProperty("user.dir")).getAbsoluteFile();
    }
 
    /**
@@ -432,6 +435,25 @@ public final class Files
                doCopyFile(srcFile, dstFile);
             }
          }
+      }
+   }
+
+   public static void write(File file, String content) throws IOException
+   {
+      write(file, new ByteArrayInputStream(content.getBytes()));
+   }
+
+   public static void write(File file, InputStream stream) throws IOException
+   {
+      BufferedOutputStream outputStream = null;
+      try
+      {
+         outputStream = new BufferedOutputStream(new FileOutputStream(file));
+         Streams.copy(stream, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
       }
    }
 

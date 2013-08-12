@@ -16,9 +16,9 @@ import org.eclipse.jgit.api.Git;
 import org.ocpsoft.redoculous.Redoculous;
 import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.config.util.DocumentFilter;
-import org.ocpsoft.redoculous.config.util.Files;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
 import org.ocpsoft.redoculous.render.Renderer;
+import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 public class RepositoryUtils
@@ -65,19 +65,18 @@ public class RepositoryUtils
    {
       File repoDir = getRepoDir(repo);
 
-      if (!ref.startsWith("refs/"))
-      {
-         ref = "refs/remotes/origin/" + ref;
-      }
+      ref = resolveRef(ref);
 
       File refDir = getRefDir(repo, ref);
       File refCacheDir = getRefCacheDir(repo, ref);
-      if (!refDir.exists()) {
+      if (!refDir.exists())
+      {
          System.out.println("Creating ref copy [" + repo + "] [" + ref + "]");
          refDir.mkdirs();
          refCacheDir.mkdirs();
          Git git = null;
-         try {
+         try
+         {
             git = Git.open(repoDir);
 
             git.checkout().setName(ref).call();
@@ -88,8 +87,10 @@ public class RepositoryUtils
             refCacheDir.mkdirs();
             Files.copyDirectory(repoDir, refDir, new DocumentFilter());
          }
-         catch (Exception e) {
-            if (git != null) {
+         catch (Exception e)
+         {
+            if (git != null)
+            {
                GitUtils.close(git);
                git = null;
             }
@@ -98,8 +99,10 @@ public class RepositoryUtils
             throw new RewriteException("Could checkout ref [" + ref
                      + "] from repository [" + repo + "].", e);
          }
-         finally {
-            if (git != null) {
+         finally
+         {
+            if (git != null)
+            {
                GitUtils.close(git);
             }
          }
@@ -108,12 +111,12 @@ public class RepositoryUtils
 
    public File getRefDir(String repo, String ref)
    {
-      return new File(getRepoDir(repo), SafeFileNameTransposition.toSafeFilename(ref));
+      return new File(getRepoDir(repo), SafeFileNameTransposition.toSafeFilename(resolveRef(ref)));
    }
 
    public File getRefCacheDir(String repo, String ref)
    {
-      return new File(getCacheDir(repo), SafeFileNameTransposition.toSafeFilename(ref));
+      return new File(getCacheDir(repo), SafeFileNameTransposition.toSafeFilename(resolveRef(ref)));
    }
 
    public File resolvePath(String repo, String ref, String path)
@@ -138,8 +141,10 @@ public class RepositoryUtils
          File source = resolvePath(repo, ref, path);
          if (source.exists())
          {
-            LOOP: for (Renderer renderer : renderers) {
-               for (String extension : renderer.getSupportedExtensions()) {
+            LOOP: for (Renderer renderer : renderers)
+            {
+               for (String extension : renderer.getSupportedExtensions())
+               {
                   if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
                   {
                      render(renderer, source, result);
@@ -155,23 +160,37 @@ public class RepositoryUtils
    private void render(Renderer renderer, File source, File result)
    {
       InputStream input = null;
-      try {
+      try
+      {
          result.createNewFile();
          input = new BufferedInputStream(new FileInputStream(source));
          renderer.render(input, new BufferedOutputStream(new FileOutputStream(result)));
       }
-      catch (Exception e) {
+      catch (Exception e)
+      {
          throw new RuntimeException(e);
       }
-      finally {
+      finally
+      {
          if (input != null)
-            try {
+            try
+            {
                input.close();
             }
-            catch (IOException e) {
+            catch (IOException e)
+            {
                throw new RuntimeException(e);
             }
       }
+   }
+
+   private String resolveRef(String ref)
+   {
+      if (!ref.startsWith("refs/"))
+      {
+         ref = "refs/remotes/origin/" + ref;
+      }
+      return ref;
    }
 
    private File resolvePath(String path, File refDir)
@@ -179,8 +198,10 @@ public class RepositoryUtils
       File pathFile = new File(refDir, path);
       if (path.endsWith("/") && pathFile.isDirectory())
       {
-         LOOP: for (Renderer renderer : renderers) {
-            for (String extension : renderer.getSupportedExtensions()) {
+         LOOP: for (Renderer renderer : renderers)
+         {
+            for (String extension : renderer.getSupportedExtensions())
+            {
                pathFile = new File(refDir, path + "/index." + extension);
                if (pathFile.isFile())
                   break LOOP;
@@ -190,8 +211,10 @@ public class RepositoryUtils
 
       if (!pathFile.exists())
       {
-         LOOP: for (Renderer renderer : renderers) {
-            for (String extension : renderer.getSupportedExtensions()) {
+         LOOP: for (Renderer renderer : renderers)
+         {
+            for (String extension : renderer.getSupportedExtensions())
+            {
                pathFile = new File(refDir, path + "." + extension);
                if (pathFile.isFile())
                   break LOOP;

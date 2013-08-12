@@ -1,6 +1,7 @@
 package org.ocpsoft.redoculous.rest;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.repositories.RepositoryUtils;
 
@@ -41,8 +43,8 @@ public class DocumentService
    {
       repositories.initRef(repo, ref);
       File document = repositories.resolveRendered(repo, ref, path);
-      Document parsed = Jsoup.parse(document, UTF8);
-      return Response.ok(parsed.toString()).build();
+      String content = Streams.toString(new FileInputStream(document));
+      return Response.ok(content).build();
    }
 
    @GET

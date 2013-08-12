@@ -20,8 +20,8 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.config.util.DocumentFilter;
-import org.ocpsoft.redoculous.config.util.Files;
 import org.ocpsoft.redoculous.repositories.RepositoryUtils;
+import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 import com.google.gson.Gson;

@@ -5,7 +5,7 @@ import java.io.File;
 import javax.servlet.ServletContextEvent;
 
 import org.ocpsoft.redoculous.Redoculous;
-import org.ocpsoft.redoculous.config.util.Files;
+import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.servlet.spi.ContextListener;
 
 public class TempStorageContextListener implements ContextListener
