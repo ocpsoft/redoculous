@@ -25,9 +25,9 @@ import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.repositories.RepositoryUtils;
 
-@Path("/1/serve")
+@Path("/serve")
 @Produces({ "text/html" })
-public class DocumentService
+public class DocumentServiceCompat
 {
    private static final String UTF8 = "UTF8";
 
@@ -41,6 +41,7 @@ public class DocumentService
             @QueryParam("path") String path)
             throws Exception
    {
+      repositories.clone(repo);
       repositories.initRef(repo, ref);
       File document = repositories.resolveRendered(repo, ref, path);
       String content = Streams.toString(new FileInputStream(document));

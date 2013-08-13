@@ -13,6 +13,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.Redoculous;
 import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.config.util.DocumentFilter;
@@ -222,6 +224,44 @@ public class RepositoryUtils
          }
       }
       return pathFile;
+   }
+
+   public void clone(String repo)
+   {
+      File repoDir = getRepoDir(repo);
+      File refsDir = getRefsDir(repo);
+      File cacheDir = getCacheDir(repo);
+
+      if (!repoDir.exists())
+      {
+         try
+         {
+            repoDir.mkdirs();
+            refsDir.mkdirs();
+            cacheDir.mkdirs();
+
+            Git git = Git.cloneRepository().setURI(repo)
+                     .setRemote("origin").setCloneAllBranches(true)
+                     .setDirectory(repoDir)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
+            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
+                     .setThin(false).setTimeout(10)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
+            String ref = git.getRepository().getBranch();
+
+            GitUtils.close(git);
+
+            File refDir = new File(refsDir, ref);
+            System.out.println("Initialized [" + repo + "] [" + ref + "] at");
+            Files.copyDirectory(repoDir, refDir, new DocumentFilter());
+         }
+         catch (Exception e)
+         {
+            throw new RuntimeException("Could not clone repository [" + repo + "]", e);
+         }
+      }
    }
 
 }

@@ -16,11 +16,11 @@ import org.ocpsoft.rewrite.servlet.util.URLBuilder;
 import org.ocpsoft.urlbuilder.Address;
 
 @SuppressWarnings("deprecation")
-public class PreviewGitLinkInterceptor implements ResponseContentInterceptor
+public class PreviewLinkInterceptor implements ResponseContentInterceptor
 {
    private File root;
 
-   public PreviewGitLinkInterceptor(File root)
+   public PreviewLinkInterceptor(File root)
    {
       this.root = root;
    }

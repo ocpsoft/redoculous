@@ -19,15 +19,13 @@ import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.config.git.GitUtils;
-import org.ocpsoft.redoculous.config.util.DocumentFilter;
 import org.ocpsoft.redoculous.repositories.RepositoryUtils;
-import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.StringMap;
 
-@Path("/manage")
+@Path("/1/manage")
 @Produces({ "application/xml", "application/json" })
 public class ManagementService
 {
@@ -38,37 +36,7 @@ public class ManagementService
    @Path("/init")
    public Response init(@QueryParam("repo") String repo)
    {
-      File repoDir = repositories.getRepoDir(repo);
-      File refsDir = repositories.getRefsDir(repo);
-      File cacheDir = repositories.getCacheDir(repo);
-
-      if (!repoDir.exists()) {
-         try {
-            repoDir.mkdirs();
-            refsDir.mkdirs();
-            cacheDir.mkdirs();
-
-            Git git = Git.cloneRepository().setURI(repo)
-                     .setRemote("origin").setCloneAllBranches(true)
-                     .setDirectory(repoDir)
-                     .setProgressMonitor(new TextProgressMonitor()).call();
-
-            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
-                     .setThin(false).setTimeout(10)
-                     .setProgressMonitor(new TextProgressMonitor()).call();
-
-            String ref = git.getRepository().getBranch();
-
-            GitUtils.close(git);
-
-            File refDir = new File(refsDir, ref);
-            System.out.println("Initialized [" + repo + "] [" + ref + "] at");
-            Files.copyDirectory(repoDir, refDir, new DocumentFilter());
-         }
-         catch (Exception e) {
-            throw new RuntimeException("Could not clone repository [" + repo + "]", e);
-         }
-      }
+      repositories.clone(repo);
 
       return Response.created(UriBuilder.fromPath("/serve").queryParam("repo", repo).build()).build();
    }

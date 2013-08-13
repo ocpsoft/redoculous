@@ -1,4 +1,4 @@
-org.ocpsoft.redoculous.config.GitRepositoryConfigurationProvider
+org.ocpsoft.redoculous.config.ResponseConfigurationProvider
 org.ocpsoft.redoculous.config.GZipConfigurationProvider
 org.ocpsoft.redoculous.config.LocalFilesystemConfigurationProvider
 org.ocpsoft.redoculous.config.PreviewModeConfigurationProvider

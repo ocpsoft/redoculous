@@ -59,7 +59,7 @@ public class PreviewModeConfigurationProvider extends HttpConfigurationProvider
                                  .addRule()
                                  .when(And.all(Query.parameterExists("repo"),
                                           Query.parameterExists("ref")))
-                                 .perform(Response.withOutputInterceptedBy(new PreviewGitLinkInterceptor(
+                                 .perform(Response.withOutputInterceptedBy(new PreviewLinkInterceptor(
                                           Redoculous.getRoot())))
                                  .otherwise(Response.withOutputInterceptedBy(new PreviewLocalLinkInterceptor())
                                  ))
