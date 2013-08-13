@@ -37,8 +37,7 @@ public class ManagementService
    public Response init(@QueryParam("repo") String repo)
    {
       repositories.clone(repo);
-
-      return Response.created(UriBuilder.fromPath("/serve").queryParam("repo", repo).build()).build();
+      return Response.created(UriBuilder.fromPath("/1/serve").queryParam("repo", repo).build()).build();
    }
 
    @POST
@@ -58,7 +57,8 @@ public class ManagementService
       File repoDir = repositories.getRepoDir(repo);
 
       Git git = null;
-      try {
+      try
+      {
          System.out.println("Handling update request for [" + repo + "]");
          git = Git.open(repoDir);
 
@@ -82,12 +82,15 @@ public class ManagementService
 
          repositories.invalidate(repo);
       }
-      catch (GitAPIException e) {
+      catch (GitAPIException e)
+      {
          throw new RewriteException(
                   "Could not pull from git repository.", e);
       }
-      finally {
-         if (git != null) {
+      finally
+      {
+         if (git != null)
+         {
             GitUtils.close(git);
 
          }
