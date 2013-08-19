@@ -15,36 +15,36 @@ import org.jruby.embed.ScriptingContainer;
 import org.ocpsoft.common.util.Streams;
 
 @ApplicationScoped
-public class AsciidocRenderer implements Renderer
+public class TextileRenderer implements Renderer
 {
    private static final Charset UTF8 = Charset.forName("UTF8");
-   private final static String SCRIPT = "require 'asciidoctor'\n" +
-            "Asciidoctor.render(input)\n";
+   private static final String SCRIPT = "require 'redcloth'\n" +
+            "RedCloth.new(input).to_html\n";
 
    private ScriptingContainer container;
 
-   public AsciidocRenderer()
+   public TextileRenderer()
    {
    }
 
    @Inject
-   public AsciidocRenderer(ScriptingContainer container)
+   public TextileRenderer(ScriptingContainer container)
    {
       this.container = container;
-      List<String> loadPaths = Arrays.asList("ruby/asciidoctor/lib");
+      List<String> loadPaths = Arrays.asList("ruby/redcloth/lib");
       container.getLoadPaths().addAll(loadPaths);
    }
 
    @Override
    public Iterable<String> getSupportedExtensions()
    {
-      return Arrays.asList("ad", "adoc", "asciidoc");
+      return Arrays.asList("textile");
    }
 
    @Override
    public String getName()
    {
-      return "asciidoc";
+      return "textile";
    }
 
    @Override

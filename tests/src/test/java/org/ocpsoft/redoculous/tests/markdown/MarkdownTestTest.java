@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.tests;
+package org.ocpsoft.redoculous.tests.markdown;
 
 /*
  * Copyright 2011 <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -37,13 +37,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.ocpsoft.redoculous.tests.HttpAction;
+import org.ocpsoft.redoculous.tests.TransitiveOnlyStrategy;
+import org.ocpsoft.redoculous.tests.WebTest;
 import org.ocpsoft.redoculous.util.Files;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @RunWith(Arquillian.class)
-public class RedoculousInitTest
+public class MarkdownTestTest
 {
    private static final File CURRENT_DIR = Files.getWorkingDirectory();
 
@@ -74,13 +77,13 @@ public class RedoculousInitTest
       repository = File.createTempFile("redoc", "ulous-test");
       repository.delete();
       repository.mkdirs();
-      File document = new File(repository, "document.asciidoc");
+      File document = new File(repository, "document.markdown");
       document.createNewFile();
 
-      Files.write(document, getClass().getClassLoader().getResourceAsStream("asciidoc/toc.asciidoc"));
+      Files.write(document, getClass().getClassLoader().getResourceAsStream("markdown/document.markdown"));
 
       Git repo = Git.init().setDirectory(repository).call();
-      repo.add().addFilepattern("document.asciidoc").call();
+      repo.add().addFilepattern("document.markdown").call();
       repo.commit().setMessage("Initial commit.").call();
    }
 
@@ -91,7 +94,7 @@ public class RedoculousInitTest
    }
 
    @Test
-   public void testConfigurationProviderForward() throws Exception
+   public void testServeMarkdown() throws Exception
    {
       WebTest test = new WebTest(baseUrl);
       String repositoryURL = "file://" + repository.getAbsolutePath();

@@ -15,36 +15,36 @@ import org.jruby.embed.ScriptingContainer;
 import org.ocpsoft.common.util.Streams;
 
 @ApplicationScoped
-public class AsciidocRenderer implements Renderer
+public class MarkdownRenderer implements Renderer
 {
    private static final Charset UTF8 = Charset.forName("UTF8");
-   private final static String SCRIPT = "require 'asciidoctor'\n" +
-            "Asciidoctor.render(input)\n";
+   private final static String SCRIPT = "require 'maruku'\n" +
+            "Maruku.new(input).to_html";
 
    private ScriptingContainer container;
 
-   public AsciidocRenderer()
+   public MarkdownRenderer()
    {
    }
 
    @Inject
-   public AsciidocRenderer(ScriptingContainer container)
+   public MarkdownRenderer(ScriptingContainer container)
    {
       this.container = container;
-      List<String> loadPaths = Arrays.asList("ruby/asciidoctor/lib");
+      List<String> loadPaths = Arrays.asList("ruby/maruku/lib");
       container.getLoadPaths().addAll(loadPaths);
    }
 
    @Override
    public Iterable<String> getSupportedExtensions()
    {
-      return Arrays.asList("ad", "adoc", "asciidoc");
+      return Arrays.asList("md", "mkd", "mkdn", "mdwn", "mdown", "mdtxt", "mdtext", "markdown");
    }
 
    @Override
    public String getName()
    {
-      return "asciidoc";
+      return "markdown";
    }
 
    @Override

@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
@@ -27,7 +28,7 @@ public class RepositoryUtils
 {
    @Inject
    @Any
-   Instance<Renderer> renderers;
+   private Instance<Renderer> renderers;
 
    public File getRepoDir(String repo)
    {
@@ -87,7 +88,7 @@ public class RepositoryUtils
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
-            Files.copyDirectory(repoDir, refDir, new DocumentFilter());
+            Files.copyDirectory(repoDir, refDir, new DocumentFilter(renderers));
          }
          catch (Exception e)
          {
@@ -113,7 +114,7 @@ public class RepositoryUtils
 
    public File getRefDir(String repo, String ref)
    {
-      return new File(getRepoDir(repo), SafeFileNameTransposition.toSafeFilename(resolveRef(ref)));
+      return new File(getRefsDir(repo), SafeFileNameTransposition.toSafeFilename(resolveRef(ref)));
    }
 
    public File getRefCacheDir(String repo, String ref)
@@ -143,6 +144,7 @@ public class RepositoryUtils
          File source = resolvePath(repo, ref, path);
          if (source.exists())
          {
+            result = new File(getRefCacheDir(repo, ref), source.getName());
             LOOP: for (Renderer renderer : renderers)
             {
                for (String extension : renderer.getSupportedExtensions())
@@ -162,11 +164,13 @@ public class RepositoryUtils
    private void render(Renderer renderer, File source, File result)
    {
       InputStream input = null;
+      OutputStream output = null;
       try
       {
          result.createNewFile();
          input = new BufferedInputStream(new FileInputStream(source));
-         renderer.render(input, new BufferedOutputStream(new FileOutputStream(result)));
+         output = new BufferedOutputStream(new FileOutputStream(result));
+         renderer.render(input, output);
       }
       catch (Exception e)
       {
@@ -180,6 +184,15 @@ public class RepositoryUtils
                input.close();
             }
             catch (IOException e)
+            {
+               throw new RuntimeException(e);
+            }
+         if (output != null)
+            try
+            {
+               output.close();
+            }
+            catch (Exception e)
             {
                throw new RuntimeException(e);
             }
@@ -249,13 +262,7 @@ public class RepositoryUtils
                      .setThin(false).setTimeout(10)
                      .setProgressMonitor(new TextProgressMonitor()).call();
 
-            String ref = git.getRepository().getBranch();
-
             GitUtils.close(git);
-
-            File refDir = new File(refsDir, ref);
-            System.out.println("Initialized [" + repo + "] [" + ref + "] at");
-            Files.copyDirectory(repoDir, refDir, new DocumentFilter());
          }
          catch (Exception e)
          {

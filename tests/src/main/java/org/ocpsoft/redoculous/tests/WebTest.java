@@ -49,13 +49,13 @@ public final class WebTest
       this.baseUrl = baseUrl;
    }
 
-   protected String getBaseURL()
+   public String getBaseURL()
    {
       return baseUrl.getProtocol() + "://" + baseUrl.getHost()
                + (baseUrl.getPort() == -1 ? "" : ":" + baseUrl.getPort());
    }
 
-   protected String getContextPath()
+   public String getContextPath()
    {
       String contextPath = baseUrl.getPath();
       if (!"/".equals(contextPath))
@@ -71,7 +71,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   protected HttpAction<HttpPost> post(final String path) throws Exception
+   public HttpAction<HttpPost> post(final String path) throws Exception
    {
       DefaultHttpClient client = new DefaultHttpClient();
       return post(client, path, new HashMap<String, String>());
@@ -85,7 +85,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   protected HttpAction<HttpPost> post(HttpClient client, String path, Map<String, String> parameters) throws Exception
+   public HttpAction<HttpPost> post(HttpClient client, String path, Map<String, String> parameters) throws Exception
    {
       return post(client, path, parameters, new Header[0]);
    }
@@ -98,7 +98,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   protected HttpAction<HttpPost> post(HttpClient client, String path, Map<String, String> parameters,
+   public HttpAction<HttpPost> post(HttpClient client, String path, Map<String, String> parameters,
             Header... headers)
             throws Exception
    {
@@ -121,7 +121,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   protected HttpAction<HttpGet> get(final String path) throws Exception
+   public HttpAction<HttpGet> get(final String path) throws Exception
    {
       DefaultHttpClient client = new DefaultHttpClient();
       return get(client, path);
@@ -135,7 +135,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   protected HttpAction<HttpGet> get(HttpClient client, String path) throws Exception
+   public HttpAction<HttpGet> get(HttpClient client, String path) throws Exception
    {
       return get(client, path, new Header[0]);
    }
@@ -148,7 +148,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   protected HttpAction<HttpGet> get(HttpClient client, String path, Header... headers) throws Exception
+   public HttpAction<HttpGet> get(HttpClient client, String path, Header... headers) throws Exception
    {
       String targetURL = path;
       if (!targetURL.startsWith("\\w+://"))
@@ -172,7 +172,7 @@ public final class WebTest
     * <p>
     * E.g: A path of '/example' will be sent as '/rewrite-test/example'
     */
-   protected HttpAction<HttpHead> head(final String path)
+   public HttpAction<HttpHead> head(final String path)
    {
       DefaultHttpClient client = new DefaultHttpClient();
       try
@@ -189,7 +189,7 @@ public final class WebTest
       }
    }
 
-   protected HtmlAction getWebClient(String path) throws FailingHttpStatusCodeException, IOException
+   public HtmlAction getWebClient(String path) throws FailingHttpStatusCodeException, IOException
    {
       try
       {
@@ -205,7 +205,7 @@ public final class WebTest
    /**
     * Verifies that the given text contains the given string.
     */
-   protected static void assertContains(String text, String s)
+   public static void assertContains(String text, String s)
    {
       if (text == null || s == null || !text.contains(s))
       {
