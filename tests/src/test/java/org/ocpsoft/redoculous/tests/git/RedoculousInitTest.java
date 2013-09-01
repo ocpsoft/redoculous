@@ -66,7 +66,7 @@ public class RedoculousInitTest extends RedoculousTestBase
       File document = new File(repository, "document.asciidoc");
       document.createNewFile();
 
-      Files.write(document, getClass().getClassLoader().getResourceAsStream("/asciidoc/toc.asciidoc"));
+      Files.write(document, getClass().getClassLoader().getResourceAsStream("asciidoc/toc.asciidoc"));
 
       Git repo = Git.init().setDirectory(repository).call();
       repo.add().addFilepattern("document.asciidoc").call();
