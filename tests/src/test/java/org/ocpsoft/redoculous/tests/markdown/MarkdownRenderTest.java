@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.tests.git;
+package org.ocpsoft.redoculous.tests.markdown;
 
 /*
  * Copyright 2011 <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -30,13 +30,15 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ocpsoft.redoculous.tests.HttpAction;
-import org.ocpsoft.redoculous.tests.RedoculousTestBase;
+import org.ocpsoft.redoculous.tests.TransitiveOnlyStrategy;
 import org.ocpsoft.redoculous.tests.WebTest;
 import org.ocpsoft.redoculous.util.Files;
 
@@ -44,13 +46,25 @@ import org.ocpsoft.redoculous.util.Files;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @RunWith(Arquillian.class)
-public class RedoculousInitTest extends RedoculousTestBase
+public class MarkdownRenderTest
 {
+   private static final File CURRENT_DIR = Files.getWorkingDirectory();
 
    @Deployment(testable = false)
    public static WebArchive getDeployment()
    {
-      return RedoculousTestBase.getDeployment();
+      WebArchive deployment = ShrinkWrap.create(WebArchive.class)
+               .addAsWebInfResource(new File(CURRENT_DIR.getParent(), "/app/src/main/webapp/WEB-INF/beans.xml"))
+               .addAsWebInfResource(new File(CURRENT_DIR.getParent(), "/app/src/main/webapp/WEB-INF/web.xml"))
+               .addAsResource(new File(CURRENT_DIR.getParent(), "/app/target/classes/org"))
+               .addAsResource(new File(CURRENT_DIR.getParent(), "/app/target/classes/META-INF"))
+               .addAsLibraries(Maven.resolver()
+                        .loadPomFromFile("pom.xml")
+                        .resolve("org.ocpsoft.redoculous:redoculous-server:war:1.0.0-SNAPSHOT")
+                        .using(new TransitiveOnlyStrategy())
+                        .asFile());
+
+      return deployment;
    }
 
    @ArquillianResource
@@ -63,13 +77,13 @@ public class RedoculousInitTest extends RedoculousTestBase
       repository = File.createTempFile("redoc", "ulous-test");
       repository.delete();
       repository.mkdirs();
-      File document = new File(repository, "document.asciidoc");
+      File document = new File(repository, "document.markdown");
       document.createNewFile();
 
-      Files.write(document, getClass().getClassLoader().getResourceAsStream("asciidoc/toc.asciidoc"));
+      Files.write(document, getClass().getClassLoader().getResourceAsStream("markdown/document.markdown"));
 
       Git repo = Git.init().setDirectory(repository).call();
-      repo.add().addFilepattern("document.asciidoc").call();
+      repo.add().addFilepattern("document.markdown").call();
       repo.commit().setMessage("Initial commit.").call();
    }
 
@@ -80,7 +94,7 @@ public class RedoculousInitTest extends RedoculousTestBase
    }
 
    @Test
-   public void testInitializeRepositoryAndServeAsciidoc() throws Exception
+   public void testServeMarkdown() throws Exception
    {
       WebTest test = new WebTest(baseUrl);
       String repositoryURL = "file://" + repository.getAbsolutePath();
