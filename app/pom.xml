@@ -15,6 +15,7 @@
 
    <properties>
       <main.basedir>${project.parent.basedir}</main.basedir>
+      <version.infinispan>5.1.4.FINAL</version.infinispan>
    </properties>
 
    <dependencies>
@@ -25,6 +26,7 @@
          <type>pom</type>
       </dependency>
 
+      <!-- Rewrite -->
       <dependency>
          <groupId>org.ocpsoft.rewrite</groupId>
          <artifactId>rewrite-servlet</artifactId>
@@ -42,11 +44,13 @@
          <artifactId>rewrite-transform-minify</artifactId>
       </dependency>
 
-
+      <!-- Git -->
       <dependency>
          <groupId>org.eclipse.jgit</groupId>
          <artifactId>org.eclipse.jgit</artifactId>
       </dependency>
+
+      <!-- GitHub -->
       <dependency>
          <groupId>com.google.code.gson</groupId>
          <artifactId>gson</artifactId>
@@ -54,6 +58,26 @@
       <dependency>
          <groupId>org.jsoup</groupId>
          <artifactId>jsoup</artifactId>
+      </dependency>
+
+      <!-- Infinispan -->
+      <dependency>
+         <groupId>org.infinispan</groupId>
+         <artifactId>infinispan-core</artifactId>
+         <version>${version.infinispan}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.infinispan</groupId>
+         <artifactId>infinispan-cdi</artifactId>
+         <version>${version.infinispan}</version>
+      </dependency>
+
+      <!-- Hibernate OGM -->
+      <dependency>
+         <groupId>org.hibernate.ogm</groupId>
+         <artifactId>hibernate-ogm-infinispan</artifactId>
+         <version>4.0.0.Beta2</version>
       </dependency>
 
       <!-- Test Dependencies -->
@@ -78,8 +102,9 @@
                   <artifactId>maven-war-plugin</artifactId>
                   <version>2.1.1</version>
                   <configuration>
-                     <outputDirectory>${main.basedir}/deployments</outputDirectory>
                      <warName>ROOT</warName>
+                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                     <outputDirectory>${main.basedir}/deployments</outputDirectory>
                   </configuration>
                </plugin>
             </plugins>
