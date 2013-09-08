@@ -1,9 +1,8 @@
 package org.ocpsoft.redoculous.rest;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -15,49 +14,47 @@ import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand.ListMode;
-import org.eclipse.jgit.lib.Ref;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.ocpsoft.common.util.Streams;
-import org.ocpsoft.redoculous.config.git.GitUtils;
-import org.ocpsoft.redoculous.repositories.RepositoryUtils;
+import org.ocpsoft.redoculous.model.Ref;
+import org.ocpsoft.redoculous.model.Repository;
+import org.ocpsoft.redoculous.service.RepositoryService;
 
-@Path("/1/serve")
+@Path("/v1/serve")
 @Produces({ "text/html" })
 public class DocumentService
 {
    private static final String UTF8 = "UTF8";
 
    @Inject
-   private RepositoryUtils repositories;
+   private RepositoryService rs;
 
    @GET
    public Response serve(
-            @QueryParam("repo") String repo,
-            @QueryParam("ref") String ref,
+            @QueryParam("repo") String repoName,
+            @QueryParam("ref") String refName,
             @QueryParam("path") String path)
             throws Exception
    {
-      repositories.initRef(repo, ref);
-      File document = repositories.resolveRendered(repo, ref, path);
-      String content = Streams.toString(new FileInputStream(document));
+      Repository repository = rs.getRepository(repoName);
+      Ref ref = rs.getRef(repository, refName);
+      String content = rs.getRenderedPath(ref, path);
       return Response.ok(content).build();
    }
 
    @GET
    @Path("/toc")
    public Response getTableOfContents(
-            @QueryParam("repo") String repo,
-            @QueryParam("ref") String ref,
+            @QueryParam("repo") String repoName,
+            @QueryParam("ref") String refName,
             @QueryParam("path") String path)
             throws Exception
    {
-      repositories.initRef(repo, ref);
-      File file = repositories.resolveRendered(repo, ref, path);
-      Document document = Jsoup.parse(file, UTF8);
+      Repository repository = rs.getRepository(repoName);
+      Ref ref = rs.getRef(repository, refName);
+      String content = rs.getRenderedPath(ref, path);
+      Document document = Jsoup.parse(content, UTF8);
       Element toc = document.getElementById("toc");
       if (toc != null)
          return Response.ok(toc.toString()).build();
@@ -67,30 +64,26 @@ public class DocumentService
    @GET
    @Path("/versions")
    @Produces({ "application/xml", "application/json" })
-   public VersionResult getAvailableVersions(@QueryParam("repo") String repo,
+   public VersionResult getAvailableVersions(@QueryParam("repo") String repoName,
             @QueryParam("filter") @DefaultValue(".*") String filter)
             throws Exception
    {
+      Repository repository = rs.getRepository(repoName);
+      Set<Ref> refs = rs.getRefs(repository);
+      List<String> result = processRefs(refs, filter);
+      return new VersionResult(result);
+   }
+
+   private List<String> processRefs(Iterable<Ref> refs, String filter)
+   {
       List<String> result = new ArrayList<String>();
-
-      File repoDir = repositories.getRepoDir(repo);
-
-      Git git = null;
-      try {
-         git = Git.open(repoDir);
-         List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
-         result.addAll(processRefs(branches, filter));
-         List<Ref> tags = git.tagList().call();
-         result.addAll(processRefs(tags, filter));
+      for (Ref ref : refs)
+      {
+         String name = ref.getName();
+         if (filter == null || filter.isEmpty() || name.matches(filter))
+            result.add(name);
       }
-      finally {
-         if (git != null) {
-            GitUtils.close(git);
-         }
-      }
-
-      VersionResult versions = new VersionResult(result);
-      return versions;
+      return result;
    }
 
    @XmlRootElement(name = "versions")
@@ -99,7 +92,8 @@ public class DocumentService
       private List<String> versions;
 
       public VersionResult()
-      {}
+      {
+      }
 
       public VersionResult(List<String> versions)
       {
@@ -111,17 +105,6 @@ public class DocumentService
       {
          return versions;
       }
-   }
-
-   private List<String> processRefs(List<Ref> refs, String filter)
-   {
-      List<String> result = new ArrayList<String>();
-      for (Ref ref : refs) {
-         String name = ref.getName();
-         if (filter == null || filter.isEmpty() || name.matches(filter))
-            result.add(name);
-      }
-      return result;
    }
 
 }

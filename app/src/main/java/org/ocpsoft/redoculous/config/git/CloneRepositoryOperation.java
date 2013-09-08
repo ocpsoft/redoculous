@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
-import org.ocpsoft.redoculous.repositories.RepositoryUtils;
+import org.ocpsoft.redoculous.util.GitRepositoryUtils;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.param.ParameterStore;
 import org.ocpsoft.rewrite.param.Parameterized;
@@ -35,7 +35,7 @@ public final class CloneRepositoryOperation extends HttpOperation implements
    {
       String repo = event.getRequest().getParameter(repoParam);
 
-      new RepositoryUtils().clone(repo);
+      new GitRepositoryUtils().clone(repo);
    }
 
    @Override

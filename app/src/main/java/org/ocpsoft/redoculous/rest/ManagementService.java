@@ -19,25 +19,25 @@ import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.config.git.GitUtils;
-import org.ocpsoft.redoculous.repositories.RepositoryUtils;
+import org.ocpsoft.redoculous.util.GitRepositoryUtils;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.StringMap;
 
-@Path("/1/manage")
+@Path("/v1/manage")
 @Produces({ "application/xml", "application/json" })
 public class ManagementService
 {
    @Inject
-   private RepositoryUtils repositories;
+   private GitRepositoryUtils repositories;
 
    @POST
    @Path("/init")
    public Response init(@QueryParam("repo") String repo)
    {
       repositories.clone(repo);
-      return Response.created(UriBuilder.fromPath("/1/serve").queryParam("repo", repo).build()).build();
+      return Response.created(UriBuilder.fromPath("/v1/serve").queryParam("repo", repo).build()).build();
    }
 
    @POST

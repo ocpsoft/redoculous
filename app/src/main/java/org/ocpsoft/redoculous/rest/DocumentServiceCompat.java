@@ -23,7 +23,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.redoculous.config.git.GitUtils;
-import org.ocpsoft.redoculous.repositories.RepositoryUtils;
+import org.ocpsoft.redoculous.util.GitRepositoryUtils;
 
 @Path("/serve")
 @Produces({ "text/html" })
@@ -32,7 +32,7 @@ public class DocumentServiceCompat
    private static final String UTF8 = "UTF8";
 
    @Inject
-   private RepositoryUtils repositories;
+   private GitRepositoryUtils repositories;
 
    @GET
    public Response serve(
@@ -74,18 +74,22 @@ public class DocumentServiceCompat
    {
       List<String> result = new ArrayList<String>();
 
+      repositories.clone(repo);
       File repoDir = repositories.getRepoDir(repo);
 
       Git git = null;
-      try {
+      try
+      {
          git = Git.open(repoDir);
          List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
          result.addAll(processRefs(branches, filter));
          List<Ref> tags = git.tagList().call();
          result.addAll(processRefs(tags, filter));
       }
-      finally {
-         if (git != null) {
+      finally
+      {
+         if (git != null)
+         {
             GitUtils.close(git);
          }
       }
@@ -100,7 +104,8 @@ public class DocumentServiceCompat
       private List<String> versions;
 
       public VersionResult()
-      {}
+      {
+      }
 
       public VersionResult(List<String> versions)
       {
@@ -117,7 +122,8 @@ public class DocumentServiceCompat
    private List<String> processRefs(List<Ref> refs, String filter)
    {
       List<String> result = new ArrayList<String>();
-      for (Ref ref : refs) {
+      for (Ref ref : refs)
+      {
          String name = ref.getName();
          if (filter == null || filter.isEmpty() || name.matches(filter))
             result.add(name);

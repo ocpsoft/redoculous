@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.repositories;
+package org.ocpsoft.redoculous.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,10 +21,9 @@ import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.config.util.DocumentFilter;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
 import org.ocpsoft.redoculous.render.Renderer;
-import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
-public class RepositoryUtils
+public class GitRepositoryUtils
 {
    @Inject
    @Any
@@ -64,7 +63,7 @@ public class RepositoryUtils
       cacheDir.mkdirs();
    }
 
-   public void initRef(String repo, String ref) throws IOException
+   public void initRef(String repo, String ref)
    {
       File repoDir = getRepoDir(repo);
 

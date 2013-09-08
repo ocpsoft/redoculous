@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
-import org.ocpsoft.redoculous.repositories.RepositoryUtils;
+import org.ocpsoft.redoculous.util.GitRepositoryUtils;
 import org.ocpsoft.rewrite.context.EvaluationContext;
 import org.ocpsoft.rewrite.param.ParameterStore;
 import org.ocpsoft.rewrite.param.ParameterValueStore;
@@ -40,7 +40,7 @@ public final class CheckoutRefOperation extends HttpOperation implements
       String repo = event.getRequest().getParameter(repoParam);
 
       try {
-         new RepositoryUtils().initRef(repo, ref);
+         new GitRepositoryUtils().initRef(repo, ref);
       }
       catch (IOException e) {
          throw new RuntimeException(e);

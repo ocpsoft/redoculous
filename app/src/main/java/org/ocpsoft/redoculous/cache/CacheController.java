@@ -7,6 +7,7 @@ import java.util.List;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.transaction.TransactionManager;
 
 import org.infinispan.AdvancedCache;
 import org.infinispan.configuration.cache.CacheMode;
@@ -20,14 +21,15 @@ public class CacheController implements Serializable
    @Inject
    transient AdvancedCache<Object, Object> cache;
 
-   public Object query(Object key)
+   @SuppressWarnings("unchecked")
+   public <T> T query(Object key)
    {
-      return cache.get(key);
+      return (T) cache.get(key);
    }
 
    public void add(Object key, Object value)
    {
-      cache.put(key, value);
+      cache.putIfAbsentAsync(key, value);
    }
 
    public List<?> locate(Object key)
@@ -48,6 +50,11 @@ public class CacheController implements Serializable
          return cache.getCacheManager().getAddress().toString();
       else
          return "local cache";
+   }
+
+   public TransactionManager getTransactionManager()
+   {
+      return cache.getTransactionManager();
    }
 
 }
