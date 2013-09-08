@@ -73,13 +73,6 @@
          <version>${version.infinispan}</version>
       </dependency>
 
-      <!-- Hibernate OGM -->
-      <dependency>
-         <groupId>org.hibernate.ogm</groupId>
-         <artifactId>hibernate-ogm-infinispan</artifactId>
-         <version>4.0.0.Beta2</version>
-      </dependency>
-
       <!-- Test Dependencies -->
       <dependency>
          <groupId>junit</groupId>
