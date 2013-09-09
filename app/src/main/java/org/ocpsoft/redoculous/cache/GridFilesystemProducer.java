@@ -11,8 +11,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.infinispan.Cache;
-import org.infinispan.configuration.cache.CacheMode;
-import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.io.GridFile.Metadata;
 import org.infinispan.io.GridFilesystem;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -33,19 +31,8 @@ public class GridFilesystemProducer
    @Singleton
    public GridFilesystem getGridFilesystem()
    {
-      if (!cacheManager.cacheExists(REPO_CACHE_FILESYSTEM))
-      {
-         cacheManager.defineConfiguration(REPO_CACHE_FILESYSTEM, new ConfigurationBuilder()
-                  .clustering().cacheMode(CacheMode.DIST_ASYNC).build());
-      }
-      if (!cacheManager.cacheExists(REPO_CACHE_METADATA))
-      {
-         cacheManager.defineConfiguration(REPO_CACHE_METADATA, new ConfigurationBuilder()
-                  .clustering().cacheMode(CacheMode.REPL_SYNC).build());
-      }
-
-      Cache<String, byte[]> fsCacheData = cacheManager.getCache(REPO_CACHE_FILESYSTEM, true);
-      Cache<String, Metadata> fsCacheMetadata = cacheManager.getCache(REPO_CACHE_METADATA, true);
+      Cache<String, byte[]> fsCacheData = cacheManager.getCache(REPO_CACHE_FILESYSTEM);
+      Cache<String, Metadata> fsCacheMetadata = cacheManager.getCache(REPO_CACHE_METADATA);
       return new GridFilesystem(fsCacheData, fsCacheMetadata);
    }
 }

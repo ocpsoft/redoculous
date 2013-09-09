@@ -38,18 +38,18 @@ public class RepositoryServiceImpl implements RepositoryService
    private RenderService render;
 
    @Override
-   public Repository getLocalRepository(String url)
+   public Repository getCachedRepository(String url)
    {
       String key = Keys.repository(url);
       Repository result = (Repository) repositoryCache.get(key);
       if (result == null)
       {
-         Repository localRepo = new GitRepository(Redoculous.getRoot(), url);
+         Repository localRepo = getLocalRepository(url);
          localRepo.init();
 
-         io.copyDirectoryAsync(localRepo.getBaseDir(), gfs.getFile(localRepo.getBaseDir().getAbsolutePath()));
-
-         repositoryCache.putIfAbsentAsync(key, localRepo);
+         result = new GitRepository(gfs.getFile("/"), url);
+         io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), result.getBaseDir());
+         repositoryCache.putIfAbsentAsync(key, result);
       }
       return result;
    }
@@ -58,18 +58,31 @@ public class RepositoryServiceImpl implements RepositoryService
    public File getRenderedPath(String repoUrl, String ref, String path)
    {
       Repository cachedRepo = getCachedRepository(repoUrl);
-      File result = render.resolveRendered(cachedRepo, ref, path);
-      if (result == null)
+      if (!cachedRepo.getCachedRefDir(ref).exists())
       {
-         Repository localRepo = getLocalRepository(repoUrl);
-         File file = gfs.getFile(localRepo.getBaseDir().getAbsolutePath());
+         if (!cachedRepo.getRefDir(ref).exists())
+         {
+            Repository localRepo = getLocalRepository(repoUrl);
+            if (!localRepo.getBaseDir().exists())
+            {
+               io.copyDirectoryFromGrid(gfs, cachedRepo.getRepoDir(), localRepo.getRepoDir());
+            }
+            if (!localRepo.getRefDir(ref).exists())
+            {
+               localRepo.initRef(ref);
+               io.copyDirectoryFromGrid(gfs, localRepo.getRefDir(ref), cachedRepo.getRefDir(ref));
+            }
+         }
       }
+
+      File result = render.resolveRendered(cachedRepo, ref, path);
       return result;
    }
 
-   private Repository getCachedRepository(String url)
+   @Override
+   public Repository getLocalRepository(String url)
    {
-      return new GitRepository(gfs.getFile(Redoculous.getRoot().getAbsolutePath()), url);
+      return new GitRepository(Redoculous.getRoot(), url);
    }
 
 }

@@ -6,8 +6,7 @@
  */
 package org.ocpsoft.redoculous.cache;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import org.ocpsoft.redoculous.util.OperatingSystemUtils;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -20,31 +19,9 @@ public final class Keys
    {
    }
 
-   private static MessageDigest digest;
-
-   static
-   {
-      if (digest == null)
-      {
-         try
-         {
-            digest = MessageDigest.getInstance("MD5");
-         }
-         catch (NoSuchAlgorithmException e)
-         {
-            throw new IllegalArgumentException(e);
-         }
-      }
-   }
-
    public static String repository(String repository)
    {
-      return hash(repository);
-   }
-
-   private static String hash(String value)
-   {
-      return new String(digest.digest(value.getBytes()));
+      return OperatingSystemUtils.getSafeFilename(repository);
    }
 
 }

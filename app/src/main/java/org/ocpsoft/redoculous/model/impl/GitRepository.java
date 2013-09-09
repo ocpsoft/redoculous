@@ -14,8 +14,11 @@ import java.util.Set;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.util.Files;
@@ -147,7 +150,8 @@ public class GitRepository extends AbstractRepository implements Repository
       }
    }
 
-   public void initRef(String repo, String ref)
+   @Override
+   public void initRef(String ref)
    {
       File repoDir = getRepoDir();
 
@@ -157,17 +161,16 @@ public class GitRepository extends AbstractRepository implements Repository
       File refCacheDir = getCachedRefDir(ref);
       if (!refDir.exists())
       {
-         System.out.println("Creating ref copy [" + repo + "] [" + ref + "]");
+         System.out.println("Creating ref copy [" + getUrl() + "] [" + ref + "]");
          refDir.mkdirs();
          refCacheDir.mkdirs();
          Git git = null;
          try
          {
             git = Git.open(repoDir);
-
             git.checkout().setName(ref).call();
 
-            System.out.println("Deleting cache for [" + repo + "] [" + ref + "]");
+            System.out.println("Deleting cache for [" + getUrl() + "] [" + ref + "]");
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
@@ -182,8 +185,7 @@ public class GitRepository extends AbstractRepository implements Repository
             }
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
-            throw new RewriteException("Could checkout ref [" + ref
-                     + "] from repository [" + repo + "].", e);
+            throw new RewriteException("Could checkout ref [" + ref + "] from repository [" + getUrl() + "].", e);
          }
          finally
          {
@@ -191,6 +193,56 @@ public class GitRepository extends AbstractRepository implements Repository
             {
                GitUtils.close(git);
             }
+         }
+      }
+   }
+
+   public void update()
+   {
+      File repoDir = getRepoDir();
+
+      Git git = null;
+      try
+      {
+         System.out.println("Handling update request for [" + getUrl() + "]");
+         git = Git.open(repoDir);
+
+         git.fetch()
+                  .setTagOpt(TagOpt.FETCH_TAGS)
+                  .setRemote("origin")
+                  .setRefSpecs(new RefSpec("+refs/heads/*:refs/remotes/origin/*"))
+                  .setProgressMonitor(new TextProgressMonitor()).call();
+
+         git.fetch()
+                  .setTagOpt(TagOpt.FETCH_TAGS)
+                  .setRemote("origin")
+                  .setRefSpecs(new RefSpec("+refs/tags/*:refs/tags/*"))
+                  .setProgressMonitor(new TextProgressMonitor()).call();
+
+         git.reset().setMode(ResetType.HARD)
+                  .setRef("refs/remotes/origin/" + git.getRepository().getBranch())
+                  .call();
+
+         git.clean().setCleanDirectories(true).call();
+
+         Files.delete(getRefsDir(), true);
+         Files.delete(getCacheDir(), true);
+      }
+      catch (GitAPIException e)
+      {
+         throw new RewriteException(
+                  "Could not pull from git repository.", e);
+      }
+      catch (Exception e)
+      {
+         throw new RuntimeException("Could not update repository [" + getUrl() + "]", e);
+      }
+      finally
+      {
+         if (git != null)
+         {
+            GitUtils.close(git);
+
          }
       }
    }

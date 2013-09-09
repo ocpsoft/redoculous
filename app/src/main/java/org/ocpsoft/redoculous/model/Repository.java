@@ -42,4 +42,6 @@ public interface Repository
     */
    String resolveRef(String ref);
 
+   void initRef(String ref);
+
 }

@@ -109,7 +109,7 @@ public final class OperatingSystemUtils
       String result = filename;
       if (result != null)
       {
-         result = result.replaceAll("[/?<>\\\\:*|\"]", "_");
+         result = result.replaceAll(File.separator, "\\-");
       }
       return result;
    }

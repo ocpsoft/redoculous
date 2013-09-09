@@ -15,7 +15,7 @@
 
    <properties>
       <main.basedir>${project.parent.basedir}</main.basedir>
-      <version.infinispan>5.1.4.FINAL</version.infinispan>
+      <version.infinispan>5.2.6.Final</version.infinispan>
    </properties>
 
    <dependencies>

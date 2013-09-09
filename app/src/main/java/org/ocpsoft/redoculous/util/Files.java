@@ -1,5 +1,6 @@
 package org.ocpsoft.redoculous.util;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -35,7 +36,7 @@ public final class Files
    /**
     * The number of bytes in a 50 MB.
     */
-   private static final long FIFTY_MB = ONE_MB * 50;
+   public static final long FIFTY_MB = ONE_MB * 50;
 
    /**
     * The number of bytes in a gigabyte.
@@ -454,6 +455,20 @@ public final class Files
       finally
       {
          outputStream.close();
+      }
+   }
+
+   public static String read(File file) throws IOException
+   {
+      BufferedInputStream inputStream = null;
+      try
+      {
+         inputStream = new BufferedInputStream(new FileInputStream(file));
+         return Streams.toString(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
       }
    }
 
