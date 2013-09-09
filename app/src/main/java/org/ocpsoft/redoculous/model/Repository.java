@@ -6,6 +6,9 @@
  */
 package org.ocpsoft.redoculous.model;
 
+import java.io.File;
+import java.util.Set;
+
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * 
@@ -13,4 +16,30 @@ package org.ocpsoft.redoculous.model;
 public interface Repository
 {
    void init();
+
+   String getKey();
+
+   String getUrl();
+
+   Set<String> getRefs();
+
+   String getCurrentRef();
+
+   File getBaseDir();
+
+   File getRepoDir();
+
+   File getCacheDir();
+
+   File getCachedRefDir(String ref);
+
+   File getRefsDir();
+
+   File getRefDir(String ref);
+
+   /**
+    * Transform the given ref into its canonicalized form.
+    */
+   String resolveRef(String ref);
+
 }

@@ -37,7 +37,7 @@ public final class Keys
       }
    }
 
-   public static Object repository(String repository)
+   public static String repository(String repository)
    {
       return hash(repository);
    }

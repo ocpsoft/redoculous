@@ -8,62 +8,101 @@ package org.ocpsoft.redoculous.model.impl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.lib.Ref;
-import org.ocpsoft.redoculous.config.git.GitUtils;
+import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.model.Repository;
-import org.ocpsoft.redoculous.rest.DocumentService.VersionResult;
-import org.ocpsoft.redoculous.util.GitRepositoryUtils;
+import org.ocpsoft.redoculous.util.Files;
+import org.ocpsoft.redoculous.util.GitUtils;
+import org.ocpsoft.rewrite.exception.RewriteException;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * 
  */
-public class GitRepository implements Repository
+public class GitRepository extends AbstractRepository implements Repository
 {
-   private GitRepositoryUtils utils = new GitRepositoryUtils();
+   private Set<String> refs;
 
-   private String repository;
-   private File repoDir;
-
-   public GitRepository(String repository)
+   public GitRepository(File root, String url)
    {
-      this.repository = repository;
-      this.repoDir = utils.getRepoDir(repository);
+      super(root, url);
    }
 
    @Override
    public void init()
    {
-      utils.clone(repository);
+      cloneRepository();
    }
 
-   public VersionResult getVersions() throws Exception
+   @Override
+   public String getCurrentRef()
    {
-      List<String> result = new ArrayList<String>();
-
       Git git = null;
       try
       {
-         git = Git.open(repoDir);
-         List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
-         result.addAll(processRefs(branches));
-         List<Ref> tags = git.tagList().call();
-         result.addAll(processRefs(tags));
+         git = GitUtils.git(getBaseDir());
+         return GitUtils.getCurrentBranchName(git);
+      }
+      catch (Exception e)
+      {
+         throw new RuntimeException("Failed to initialize repository [" + getUrl() + "]", e);
       }
       finally
       {
          if (git != null)
-         {
             GitUtils.close(git);
+      }
+   }
+
+   @Override
+   public String resolveRef(String ref)
+   {
+      if (!ref.startsWith("refs/"))
+      {
+         ref = "refs/remotes/origin/" + ref;
+      }
+      return ref;
+   }
+
+   @Override
+   public Set<String> getRefs()
+   {
+      if (refs == null)
+      {
+         try
+         {
+            refs = new LinkedHashSet<String>();
+
+            Git git = null;
+            try
+            {
+               git = Git.open(getBaseDir());
+               List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
+               refs.addAll(processRefs(branches));
+               List<Ref> tags = git.tagList().call();
+               refs.addAll(processRefs(tags));
+            }
+            finally
+            {
+               if (git != null)
+               {
+                  GitUtils.close(git);
+               }
+            }
+         }
+         catch (Exception e)
+         {
+            e.printStackTrace();
          }
       }
-
-      VersionResult versions = new VersionResult(result);
-      return versions;
+      return refs;
    }
 
    private List<String> processRefs(List<Ref> refs)
@@ -77,4 +116,82 @@ public class GitRepository implements Repository
       return result;
    }
 
+   private void cloneRepository()
+   {
+      File refsDir = getRefsDir();
+      File cacheDir = getCacheDir();
+
+      if (!getRepoDir().exists())
+      {
+         try
+         {
+            getRepoDir().mkdirs();
+            refsDir.mkdirs();
+            cacheDir.mkdirs();
+
+            Git git = Git.cloneRepository().setURI(getUrl())
+                     .setRemote("origin").setCloneAllBranches(true)
+                     .setDirectory(getRepoDir())
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
+            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
+                     .setThin(false).setTimeout(10)
+                     .setProgressMonitor(new TextProgressMonitor()).call();
+
+            GitUtils.close(git);
+         }
+         catch (Exception e)
+         {
+            throw new RuntimeException("Could not clone repository [" + getUrl() + "]", e);
+         }
+      }
+   }
+
+   public void initRef(String repo, String ref)
+   {
+      File repoDir = getRepoDir();
+
+      ref = resolveRef(ref);
+
+      File refDir = getRefDir(ref);
+      File refCacheDir = getCachedRefDir(ref);
+      if (!refDir.exists())
+      {
+         System.out.println("Creating ref copy [" + repo + "] [" + ref + "]");
+         refDir.mkdirs();
+         refCacheDir.mkdirs();
+         Git git = null;
+         try
+         {
+            git = Git.open(repoDir);
+
+            git.checkout().setName(ref).call();
+
+            System.out.println("Deleting cache for [" + repo + "] [" + ref + "]");
+            Files.delete(refDir, true);
+            Files.delete(refCacheDir, true);
+            refCacheDir.mkdirs();
+            Files.copyDirectory(repoDir, refDir);
+         }
+         catch (Exception e)
+         {
+            if (git != null)
+            {
+               GitUtils.close(git);
+               git = null;
+            }
+            Files.delete(refDir, true);
+            Files.delete(refCacheDir, true);
+            throw new RewriteException("Could checkout ref [" + ref
+                     + "] from repository [" + repo + "].", e);
+         }
+         finally
+         {
+            if (git != null)
+            {
+               GitUtils.close(git);
+            }
+         }
+      }
+   }
 }

@@ -7,7 +7,7 @@ import javax.enterprise.inject.Produces;
 import org.infinispan.manager.EmbeddedCacheManager;
 
 @Singleton
-public class NativeCacheService
+public class CacheManagerProducer
 {
    @Produces
    @Resource(lookup = "java:jboss/infinispan/cluster")

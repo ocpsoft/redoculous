@@ -14,7 +14,7 @@ import org.infinispan.configuration.cache.CacheMode;
 
 @Named
 @SessionScoped
-public class CacheController implements Serializable
+public class CacheStats implements Serializable
 {
    private static final long serialVersionUID = -992421203824556032L;
 

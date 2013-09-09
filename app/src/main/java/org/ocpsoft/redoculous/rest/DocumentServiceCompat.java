@@ -22,8 +22,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.ocpsoft.common.util.Streams;
-import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.util.GitRepositoryUtils;
+import org.ocpsoft.redoculous.util.GitUtils;
 
 @Path("/serve")
 @Produces({ "text/html" })

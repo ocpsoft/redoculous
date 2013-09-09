@@ -5,7 +5,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.ocpsoft.redoculous.config.git;
+package org.ocpsoft.redoculous.util;
 
 import java.io.File;
 import java.io.IOException;

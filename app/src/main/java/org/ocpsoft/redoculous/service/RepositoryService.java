@@ -6,9 +6,8 @@
  */
 package org.ocpsoft.redoculous.service;
 
-import java.util.Set;
+import java.io.File;
 
-import org.ocpsoft.redoculous.model.Ref;
 import org.ocpsoft.redoculous.model.Repository;
 
 /**
@@ -17,11 +16,7 @@ import org.ocpsoft.redoculous.model.Repository;
  */
 public interface RepositoryService
 {
-   Repository getRepository(String repository);
+   Repository getLocalRepository(String repository);
 
-   Set<Ref> getRefs(Repository repository);
-
-   Ref getRef(Repository repository, String ref);
-
-   String getRenderedPath(org.ocpsoft.redoculous.model.Ref reff, String path);
+   File getRenderedPath(String repository, String ref, String path);
 }

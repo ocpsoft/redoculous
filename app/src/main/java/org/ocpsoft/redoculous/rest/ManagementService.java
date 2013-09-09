@@ -18,8 +18,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
-import org.ocpsoft.redoculous.config.git.GitUtils;
 import org.ocpsoft.redoculous.util.GitRepositoryUtils;
+import org.ocpsoft.redoculous.util.GitUtils;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 import com.google.gson.Gson;

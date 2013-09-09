@@ -17,7 +17,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.ocpsoft.redoculous.model.Ref;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.service.RepositoryService;
 
@@ -37,23 +36,21 @@ public class DocumentService
             @QueryParam("path") String path)
             throws Exception
    {
-      Repository repository = rs.getRepository(repoName);
-      Ref ref = rs.getRef(repository, refName);
-      String content = rs.getRenderedPath(ref, path);
+      Repository repository = rs.getLocalRepository(repoName);
+      String content = rs.getRenderedPath(repository, refName, path);
       return Response.ok(content).build();
    }
 
    @GET
    @Path("/toc")
-   public Response getTableOfContents(
+   public Response serveTableOfContents(
             @QueryParam("repo") String repoName,
             @QueryParam("ref") String refName,
             @QueryParam("path") String path)
             throws Exception
    {
-      Repository repository = rs.getRepository(repoName);
-      Ref ref = rs.getRef(repository, refName);
-      String content = rs.getRenderedPath(ref, path);
+      Repository repository = rs.getLocalRepository(repoName);
+      String content = rs.getRenderedPath(repository, refName, path);
       Document document = Jsoup.parse(content, UTF8);
       Element toc = document.getElementById("toc");
       if (toc != null)
@@ -68,18 +65,17 @@ public class DocumentService
             @QueryParam("filter") @DefaultValue(".*") String filter)
             throws Exception
    {
-      Repository repository = rs.getRepository(repoName);
-      Set<Ref> refs = rs.getRefs(repository);
+      Repository repository = rs.getLocalRepository(repoName);
+      Set<String> refs = rs.getRefs(repository);
       List<String> result = processRefs(refs, filter);
       return new VersionResult(result);
    }
 
-   private List<String> processRefs(Iterable<Ref> refs, String filter)
+   private List<String> processRefs(Iterable<String> refs, String filter)
    {
       List<String> result = new ArrayList<String>();
-      for (Ref ref : refs)
+      for (String name : refs)
       {
-         String name = ref.getName();
          if (filter == null || filter.isEmpty() || name.matches(filter))
             result.add(name);
       }
