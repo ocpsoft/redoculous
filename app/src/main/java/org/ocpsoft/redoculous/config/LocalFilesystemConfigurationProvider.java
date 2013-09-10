@@ -57,7 +57,7 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                .when(Direction.isInbound()
                         .and(Domain.matches("localhost"))
                         .and(DispatchType.isRequest())
-                        .and(Path.matches("/serve"))
+                        .and(Path.matches("/{version}/serve"))
                         .and(Query.parameterExists("path"))
                )
                .perform(Subset.evaluate(ConfigurationBuilder

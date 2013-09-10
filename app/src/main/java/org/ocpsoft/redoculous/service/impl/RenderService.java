@@ -32,11 +32,10 @@ public class RenderService
       File result = resolvePath(repo.getCachedRefDir(ref), path);
       if (!result.exists())
       {
-         File pathFile = resolvePath(repo.getRefDir(ref), path);
-         File source = pathFile;
+         File source = resolvePath(repo.getRefDir(ref), path);
          if (source.exists())
          {
-            result = gfs.getFile(repo.getCachedRefDir(ref), source.getName());
+            result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
             LOOP: for (Renderer renderer : renderers)
             {
                for (String extension : renderer.getSupportedExtensions())
@@ -61,6 +60,17 @@ public class RenderService
       {
          throw new RuntimeException("Could not render file", e);
       }
+   }
+
+   private String getRelativePath(File base, File source)
+   {
+      String relative = source.getAbsolutePath().substring(base.getAbsolutePath().length(),
+               source.getAbsolutePath().length());
+
+      if (relative.startsWith("/"))
+         relative = relative.substring(1);
+
+      return relative;
    }
 
    private void render(Renderer renderer, File source, GridFile result)

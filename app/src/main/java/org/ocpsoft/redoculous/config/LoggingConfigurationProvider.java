@@ -21,6 +21,7 @@ import org.ocpsoft.logging.Logger;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
 import org.ocpsoft.rewrite.context.EvaluationContext;
+import org.ocpsoft.rewrite.servlet.config.DispatchType;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
 import org.ocpsoft.rewrite.servlet.config.HttpOperation;
 import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
@@ -34,13 +35,13 @@ public class LoggingConfigurationProvider extends HttpConfigurationProvider
    {
       return ConfigurationBuilder.begin()
                .addRule()
-               .perform(new HttpOperation() {
+               .when(DispatchType.isRequest())
+               .perform(new HttpOperation()
+               {
                   @Override
                   public void performHttp(HttpServletRewrite event, EvaluationContext context)
                   {
-                     log.info("Begin request:");
-                     log.info("URL [" + event.getAddress().toString() + "]");
-                     log.info("Method [" + event.getRequest().getMethod() + "]");
+                     log.info(event.getRequest().getMethod() + " - " + event.getAddress().toString());
                   }
                });
    }

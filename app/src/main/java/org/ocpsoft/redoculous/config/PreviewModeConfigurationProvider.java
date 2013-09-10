@@ -47,7 +47,7 @@ public class PreviewModeConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .and(Path.matches("/preview"))
+                        .and(Path.matches("/{version}/preview"))
                         .and(Query.parameterExists("path"))
                         .and(URL.captureIn("url"))
                )
