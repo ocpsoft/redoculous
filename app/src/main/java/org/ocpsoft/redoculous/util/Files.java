@@ -109,7 +109,7 @@ public final class Files
             {
                _deleteRecursive(sf, false);
             }
-            else
+            else if (sf.exists())
             {
                if (!sf.delete())
                {

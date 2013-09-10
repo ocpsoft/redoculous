@@ -30,9 +30,9 @@ public class RenderService
    public String resolveRendered(Repository repo, String ref, String path)
    {
       File result = resolvePath(repo.getCachedRefDir(ref), path);
+      File source = resolvePath(repo.getRefDir(ref), path);
       if (!result.exists())
       {
-         File source = resolvePath(repo.getRefDir(ref), path);
          if (source.exists())
          {
             result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
@@ -53,12 +53,15 @@ public class RenderService
       {
          if (result.exists())
             return Streams.toString(gfs.getInput(result));
+         else if (source.exists())
+            return Streams.toString(gfs.getInput(source));
          else
             return null;
       }
       catch (FileNotFoundException e)
       {
-         throw new RuntimeException("Could not render file", e);
+         e.printStackTrace();
+         return null;
       }
    }
 

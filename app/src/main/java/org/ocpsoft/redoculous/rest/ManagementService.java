@@ -45,6 +45,8 @@ public class ManagementService
             repo = repo + ".git";
       }
 
+      rs.updateRepository(repo);
+
    }
 
 }

@@ -19,4 +19,6 @@ public interface RepositoryService
    Repository getCachedRepository(String url);
 
    String getRenderedContent(String repository, String ref, String path);
+
+   Repository updateRepository(String repo);
 }

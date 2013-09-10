@@ -25,7 +25,6 @@ import javax.ejb.Stateless;
 import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.common.util.Streams;
-import org.ocpsoft.redoculous.util.Files;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -39,7 +38,7 @@ public class FileOperations
    {
       try
       {
-         Files.copyDirectory(source, destination);
+         copyDirectory(gfs, source, destination, null);
       }
       catch (IOException e)
       {

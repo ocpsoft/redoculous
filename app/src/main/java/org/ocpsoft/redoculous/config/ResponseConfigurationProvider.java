@@ -47,7 +47,7 @@ public class ResponseConfigurationProvider extends HttpConfigurationProvider
                .addRule()
                .when(Direction.isInbound()
                         .and(DispatchType.isRequest())
-                        .and(Path.matches("/{version}/serve"))
+                        .and(Path.matches("/api/{version}/serve"))
                         .and(Query.parameterExists("repo"))
                         .and(Query.parameterExists("ref"))
                         .and(Query.parameterExists("path"))
