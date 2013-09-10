@@ -7,6 +7,7 @@
 package org.ocpsoft.redoculous.model.impl;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -33,9 +34,9 @@ public class GitRepository extends AbstractRepository implements Repository
 {
    private Set<String> refs;
 
-   public GitRepository(File root, String url)
+   public GitRepository(FileAdapter adapter, File root, String url)
    {
-      super(root, url);
+      super(adapter, root, url);
    }
 
    @Override
@@ -155,10 +156,11 @@ public class GitRepository extends AbstractRepository implements Repository
    {
       File repoDir = getRepoDir();
 
-      ref = resolveRef(ref);
-
       File refDir = getRefDir(ref);
       File refCacheDir = getCachedRefDir(ref);
+
+      ref = resolveRef(ref);
+
       if (!refDir.exists())
       {
          System.out.println("Creating ref copy [" + getUrl() + "] [" + ref + "]");
@@ -174,7 +176,14 @@ public class GitRepository extends AbstractRepository implements Repository
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
-            Files.copyDirectory(repoDir, refDir);
+            Files.copyDirectory(repoDir, refDir, new FileFilter()
+            {
+               @Override
+               public boolean accept(File file)
+               {
+                  return !(file.getName().equals(".git") || file.getName().equals(".gitignore"));
+               }
+            });
          }
          catch (Exception e)
          {

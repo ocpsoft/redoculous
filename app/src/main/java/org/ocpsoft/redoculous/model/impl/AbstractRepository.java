@@ -19,50 +19,52 @@ public abstract class AbstractRepository implements Repository
 {
    private String url;
    private String key;
+   private FileAdapter adapter;
    private File root;
 
-   public AbstractRepository(File root, String url)
+   public AbstractRepository(FileAdapter adapter, File root, String url)
    {
+      this.adapter = adapter;
       this.root = root;
       this.url = url;
-      this.key = Keys.repository(url);
+      this.key = Keys.from(url);
 
    }
 
    @Override
    public File getBaseDir()
    {
-      return new File(root, getKey());
+      return adapter.newFile(root, getKey());
    }
 
    @Override
    public File getRepoDir()
    {
-      return new File(getBaseDir(), "repo");
+      return adapter.newFile(getBaseDir(), "repo");
    }
 
    @Override
    public File getCacheDir()
    {
-      return new File(getBaseDir(), "caches");
+      return adapter.newFile(getBaseDir(), "caches");
    }
 
    @Override
    public File getRefsDir()
    {
-      return new File(getBaseDir(), "refs");
+      return adapter.newFile(getBaseDir(), "refs");
    }
 
    @Override
    public File getRefDir(String ref)
    {
-      return new File(getRefsDir(), ref);
+      return adapter.newFile(getRefsDir(), Keys.from(resolveRef(ref)));
    }
 
    @Override
    public File getCachedRefDir(String ref)
    {
-      return new File(getCacheDir(), ref);
+      return adapter.newFile(getCacheDir(), Keys.from(resolveRef(ref)));
    }
 
    @Override

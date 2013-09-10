@@ -6,8 +6,6 @@
  */
 package org.ocpsoft.redoculous.service;
 
-import java.io.File;
-
 import org.ocpsoft.redoculous.model.Repository;
 
 /**
@@ -20,5 +18,5 @@ public interface RepositoryService
 
    Repository getCachedRepository(String url);
 
-   File getRenderedPath(String repository, String ref, String path);
+   String getRenderedContent(String repository, String ref, String path);
 }

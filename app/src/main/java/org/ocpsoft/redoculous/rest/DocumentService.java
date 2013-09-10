@@ -1,6 +1,5 @@
 package org.ocpsoft.redoculous.rest;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +18,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.service.RepositoryService;
-import org.ocpsoft.redoculous.util.Files;
 
 @Path("/v1/serve")
 @Produces({ "text/html" })
@@ -37,8 +35,7 @@ public class DocumentService
             @QueryParam("path") String path)
             throws Exception
    {
-      File rendered = rs.getRenderedPath(repoName, refName, path);
-      String content = Files.read(rendered);
+      String content = rs.getRenderedContent(repoName, refName, path);
       return Response.ok(content).build();
    }
 
@@ -50,8 +47,7 @@ public class DocumentService
             @QueryParam("path") String path)
             throws Exception
    {
-      File rendered = rs.getRenderedPath(repoName, refName, path);
-      String content = Files.read(rendered);
+      String content = rs.getRenderedContent(repoName, refName, path);
       Document document = Jsoup.parse(content, UTF8);
       Element toc = document.getElementById("toc");
       if (toc != null)

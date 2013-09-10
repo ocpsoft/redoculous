@@ -6,7 +6,10 @@
  */
 package org.ocpsoft.redoculous.cache;
 
-import org.ocpsoft.redoculous.util.OperatingSystemUtils;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import org.ocpsoft.rewrite.servlet.config.encodequery.Base64EncodingStrategy;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -14,14 +17,40 @@ import org.ocpsoft.redoculous.util.OperatingSystemUtils;
  */
 public final class Keys
 {
-
    private Keys()
    {
    }
 
-   public static String repository(String repository)
+   private static final Base64EncodingStrategy encoder = new Base64EncodingStrategy();
+   private static MessageDigest digest;
+
+   static
    {
-      return OperatingSystemUtils.getSafeFilename(repository);
+      if (digest == null)
+      {
+         try
+         {
+            digest = MessageDigest.getInstance("MD5");
+         }
+         catch (NoSuchAlgorithmException e)
+         {
+            throw new IllegalArgumentException(e);
+         }
+      }
+   }
+
+   private static String hash(String value)
+   {
+      return encoder.encode(new String(digest.digest(value.getBytes()))).replaceAll("/", "_").replaceAll("==$", "");
+   }
+
+   /*
+    * Key operations
+    */
+
+   public static String from(String value)
+   {
+      return hash(value);
    }
 
 }

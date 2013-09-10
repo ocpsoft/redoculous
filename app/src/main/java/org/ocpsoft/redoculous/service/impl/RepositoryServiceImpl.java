@@ -6,8 +6,6 @@
  */
 package org.ocpsoft.redoculous.service.impl;
 
-import java.io.File;
-
 import javax.inject.Inject;
 
 import org.infinispan.Cache;
@@ -40,14 +38,14 @@ public class RepositoryServiceImpl implements RepositoryService
    @Override
    public Repository getCachedRepository(String url)
    {
-      String key = Keys.repository(url);
+      String key = Keys.from(url);
       Repository result = (Repository) repositoryCache.get(key);
       if (result == null)
       {
          Repository localRepo = getLocalRepository(url);
          localRepo.init();
 
-         result = new GitRepository(gfs.getFile("/"), url);
+         result = new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), url);
          io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), result.getBaseDir());
          repositoryCache.putIfAbsentAsync(key, result);
       }
@@ -55,8 +53,11 @@ public class RepositoryServiceImpl implements RepositoryService
    }
 
    @Override
-   public File getRenderedPath(String repoUrl, String ref, String path)
+   public String getRenderedContent(String repoUrl, String ref, String path)
    {
+      if (path.startsWith("/"))
+         path = path.substring(1);
+
       Repository cachedRepo = getCachedRepository(repoUrl);
       if (!cachedRepo.getCachedRefDir(ref).exists())
       {
@@ -70,19 +71,19 @@ public class RepositoryServiceImpl implements RepositoryService
             if (!localRepo.getRefDir(ref).exists())
             {
                localRepo.initRef(ref);
-               io.copyDirectoryFromGrid(gfs, localRepo.getRefDir(ref), cachedRepo.getRefDir(ref));
+               io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), cachedRepo.getRefDir(ref));
             }
          }
       }
 
-      File result = render.resolveRendered(cachedRepo, ref, path);
+      String result = render.resolveRendered(cachedRepo, ref, path);
       return result;
    }
 
    @Override
    public Repository getLocalRepository(String url)
    {
-      return new GitRepository(Redoculous.getRoot(), url);
+      return new GitRepository(new NativeFileAdapter(), Redoculous.getRoot(), url);
    }
 
 }
