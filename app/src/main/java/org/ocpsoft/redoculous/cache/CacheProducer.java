@@ -8,8 +8,11 @@ package org.ocpsoft.redoculous.cache;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.infinispan.Cache;
+import org.infinispan.io.GridFile.Metadata;
+import org.infinispan.io.GridFilesystem;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.ocpsoft.redoculous.model.Repository;
 
@@ -27,7 +30,28 @@ public class CacheProducer
    @RepositoryCache
    public Cache<String, Repository> getRepositoryCache()
    {
-      Cache<String, Repository> result = cacheManager.getCache(REPOSITORY_CACHE);
+      Cache<String, Repository> result = cacheManager.<String, Repository>
+               getCache(REPOSITORY_CACHE)
+               .getAdvancedCache()
+               .with(CacheProducer.class.getClassLoader());
       return result;
+   }
+
+   private static final String REPO_CACHE_FILESYSTEM = "repo.cache.filesystem";
+   private static final String REPO_CACHE_METADATA = "repo.cache.metadata";
+
+   @Produces
+   @Singleton
+   public GridFilesystem getGridFilesystem()
+   {
+      Cache<String, byte[]> fsCacheData = cacheManager.<String, byte[]>
+               getCache(REPO_CACHE_FILESYSTEM)
+               .getAdvancedCache()
+               .with(CacheProducer.class.getClassLoader());
+      Cache<String, Metadata> fsCacheMetadata = cacheManager.<String, Metadata>
+               getCache(REPO_CACHE_METADATA)
+               .getAdvancedCache()
+               .with(CacheProducer.class.getClassLoader());
+      return new GridFilesystem(fsCacheData, fsCacheMetadata);
    }
 }
