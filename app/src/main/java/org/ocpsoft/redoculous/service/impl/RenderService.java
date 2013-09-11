@@ -121,13 +121,13 @@ public class RenderService
    {
       File original = gfs.getFile(refDir, path);
       File result = original;
-      if (path.endsWith("/") && result.isDirectory())
+      if (result.isDirectory())
       {
          LOOP: for (Renderer renderer : renderers)
          {
             for (String extension : renderer.getSupportedExtensions())
             {
-               result = gfs.getFile(refDir, path + "/index." + extension);
+               result = gfs.getFile(original, "index." + extension);
                if (result.isFile())
                   break LOOP;
             }
