@@ -49,6 +49,6 @@ public class LoggingConfigurationProvider extends HttpConfigurationProvider
    @Override
    public int priority()
    {
-      return Integer.MIN_VALUE;
+      return Integer.MIN_VALUE + 1;
    }
 }

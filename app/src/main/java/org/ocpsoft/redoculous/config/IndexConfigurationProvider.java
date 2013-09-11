@@ -15,41 +15,25 @@
  */
 package org.ocpsoft.redoculous.config;
 
-import java.io.File;
-
 import javax.servlet.ServletContext;
 
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
-import org.ocpsoft.rewrite.servlet.config.DispatchType;
-import org.ocpsoft.rewrite.servlet.config.Domain;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
-import org.ocpsoft.rewrite.servlet.config.Path;
-import org.ocpsoft.rewrite.servlet.config.Response;
-import org.ocpsoft.rewrite.servlet.config.Stream;
+import org.ocpsoft.rewrite.servlet.config.rule.Join;
 
-public class DemoConfigurationProvider extends HttpConfigurationProvider
+public class IndexConfigurationProvider extends HttpConfigurationProvider
 {
    @Override
    public Configuration getConfiguration(ServletContext context)
    {
       return ConfigurationBuilder.begin()
-               .addRule()
-               .when((DispatchType.isRequest())
-                        .and(Path.matches("/demo{**}"))
-                        .and(Domain.matches("example.com")
-                                 .or(Domain.matches("localhost")))
-               )
-               .perform(
-                        Stream.from(new File(context.getRealPath("/demo.html")))
-                                 .and(Response.complete())
-               )
-               .where("**").matches(".*");
+               .addRule(Join.path("/").to("/index.jsp"));
    }
 
    @Override
    public int priority()
    {
-      return Integer.MAX_VALUE;
+      return Integer.MIN_VALUE;
    }
 }
