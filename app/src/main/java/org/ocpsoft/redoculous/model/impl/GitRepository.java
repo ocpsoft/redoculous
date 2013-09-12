@@ -178,6 +178,8 @@ public class GitRepository extends AbstractRepository implements Repository
          try
          {
             git = Git.open(repoDir);
+            git.reset().setMode(ResetType.HARD).call();
+            git.clean().setCleanDirectories(true).call();
             git.checkout().setName(ref).call();
 
             System.out.println("Deleting cache for [" + getUrl() + "] [" + ref + "]");

@@ -60,7 +60,7 @@ public class RenderService
                         if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
                         {
                            render(renderer, source, (GridFile) result);
-                           log.info("Render: [" + repo + "] [" + ref + "] [" + path + "] - Complete.");
+                           log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Complete.");
                            break LOOP;
                         }
                      }
@@ -74,7 +74,7 @@ public class RenderService
          }
          else
          {
-            log.info("Render: [" + repo + "] [" + ref + "] [" + path + "] - Not required (already cached).");
+            log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Not required (already cached).");
          }
 
          try
@@ -83,14 +83,14 @@ public class RenderService
                return Streams.toString(gfs.getInput(result));
             else if (source.exists())
                return Streams.toString(gfs.getInput(source));
-            else
-               return null;
          }
          catch (FileNotFoundException e)
          {
             throw new RuntimeException(e);
          }
       }
+
+      log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Not found.");
       return null;
    }
 
