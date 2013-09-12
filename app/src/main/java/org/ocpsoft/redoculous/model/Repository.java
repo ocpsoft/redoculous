@@ -7,13 +7,14 @@
 package org.ocpsoft.redoculous.model;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * 
  */
-public interface Repository
+public interface Repository extends Serializable
 {
    void init();
 

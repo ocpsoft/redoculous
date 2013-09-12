@@ -17,6 +17,8 @@ import org.ocpsoft.redoculous.model.Repository;
  */
 public abstract class AbstractRepository implements Repository
 {
+   private static final long serialVersionUID = -6024964348584778584L;
+
    private String url;
    private String key;
    private FileAdapter adapter;

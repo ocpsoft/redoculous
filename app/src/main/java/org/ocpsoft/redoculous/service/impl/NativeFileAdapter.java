@@ -15,6 +15,8 @@ import org.ocpsoft.redoculous.model.impl.FileAdapter;
  */
 public class NativeFileAdapter implements FileAdapter
 {
+   private static final long serialVersionUID = -6825986937607933580L;
+
    @Override
    public File newFile(File parent, String child)
    {

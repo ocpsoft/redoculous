@@ -32,6 +32,8 @@ import org.ocpsoft.rewrite.exception.RewriteException;
  */
 public class GitRepository extends AbstractRepository implements Repository
 {
+   private static final long serialVersionUID = -6134354415109722452L;
+
    private Set<String> refs;
 
    public GitRepository(FileAdapter adapter, File root, String url)

@@ -7,14 +7,13 @@
 package org.ocpsoft.redoculous.model.impl;
 
 import java.io.File;
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * 
  */
-public interface FileAdapter
+public interface FileAdapter extends Serializable
 {
-
    File newFile(File parent, String child);
-
 }

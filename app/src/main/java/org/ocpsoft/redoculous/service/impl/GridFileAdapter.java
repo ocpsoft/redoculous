@@ -17,6 +17,8 @@ import org.ocpsoft.redoculous.model.impl.FileAdapter;
  */
 public class GridFileAdapter implements FileAdapter
 {
+   private static final long serialVersionUID = 1943469809609195419L;
+
    private GridFilesystem gfs;
 
    public GridFileAdapter(GridFilesystem gfs)
