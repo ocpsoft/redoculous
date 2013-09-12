@@ -222,7 +222,7 @@
                   <eviction strategy="LIRS" max-entries="10000"/>
                </distributed-cache>
                
-               <distributed-cache name="repository.cache.lock" mode="SYNC" owners="2" start="LAZY">
+               <distributed-cache name="repository.cache.lock" mode="SYNC" owners="2" start="LAZY" remote-timeout="300000">
                   <locking acquire-timeout="100"/>
                   <file-store passivation="false" fetch-state="false" />
                   <transaction mode="FULL_XA" locking="PESSIMISTIC" stop-timeout="30000"/>
