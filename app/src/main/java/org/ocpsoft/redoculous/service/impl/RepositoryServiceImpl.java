@@ -54,34 +54,34 @@ public class RepositoryServiceImpl implements RepositoryService
       try
       {
          _doPrimeRepository(repo);
-
-         Repository gridRepo = getGridRepository(repo);
-         if (!gridRepo.getCachedRefDir(ref).exists())
-         {
-            if (!gridRepo.getRefDir(ref).exists())
-            {
-               purgeLocalRepository(repo);
-               Repository localRepo = getLocalRepository(repo);
-               try
-               {
-                  io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
-                  localRepo.initRef(ref);
-                  io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
-               }
-               finally
-               {
-                  purgeLocalRepository(repo);
-               }
-            }
-         }
+         _doPrimeRef(repo, ref);
       }
       finally
       {
          lock.unlock();
       }
 
-      String result = render.resolveRendered(getGridRepository(repo), ref, path);
-      return result;
+      return render.resolveRendered(getGridRepository(repo), ref, path);
+   }
+
+   private void _doPrimeRef(String repo, String ref)
+   {
+      Repository gridRepo = getGridRepository(repo);
+      if (!gridRepo.getRefDir(ref).exists())
+      {
+         purgeLocalRepository(repo);
+         Repository localRepo = getLocalRepository(repo);
+         try
+         {
+            io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+            localRepo.initRef(ref);
+            io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
+         }
+         finally
+         {
+            purgeLocalRepository(repo);
+         }
+      }
    }
 
    @Override

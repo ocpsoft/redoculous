@@ -47,7 +47,7 @@ public class RenderService
          File result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
          if (!result.exists())
          {
-            Lock lock = gridLock.getLock(tx, repo.getUrl(), source.getAbsolutePath());
+            Lock lock = gridLock.getLock(tx, source.getAbsolutePath());
             lock.lock();
             try
             {
