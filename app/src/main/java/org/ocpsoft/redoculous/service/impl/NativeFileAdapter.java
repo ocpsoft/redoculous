@@ -6,7 +6,14 @@
  */
 package org.ocpsoft.redoculous.service.impl;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.ocpsoft.redoculous.model.impl.FileAdapter;
 
@@ -21,5 +28,17 @@ public class NativeFileAdapter implements FileAdapter
    public File newFile(File parent, String child)
    {
       return new File(parent, child);
+   }
+
+   @Override
+   public InputStream getInputStream(File file) throws IOException
+   {
+      return new BufferedInputStream(new FileInputStream(file));
+   }
+
+   @Override
+   public OutputStream getOutputStream(File file) throws IOException
+   {
+      return new BufferedOutputStream(new FileOutputStream(file));
    }
 }

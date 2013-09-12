@@ -208,6 +208,7 @@ public class GitRepository extends AbstractRepository implements Repository
       }
    }
 
+   @Override
    public void update()
    {
       File repoDir = getRepoDir();
@@ -256,5 +257,11 @@ public class GitRepository extends AbstractRepository implements Repository
 
          }
       }
+   }
+
+   @Override
+   public String toString()
+   {
+      return getBaseDir().toString();
    }
 }

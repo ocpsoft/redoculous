@@ -7,6 +7,9 @@
 package org.ocpsoft.redoculous.model.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 
 /**
@@ -16,4 +19,8 @@ import java.io.Serializable;
 public interface FileAdapter extends Serializable
 {
    File newFile(File parent, String child);
+
+   InputStream getInputStream(File file) throws IOException;
+
+   OutputStream getOutputStream(File file) throws IOException;
 }

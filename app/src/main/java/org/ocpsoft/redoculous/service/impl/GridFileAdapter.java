@@ -7,7 +7,11 @@
 package org.ocpsoft.redoculous.service.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.redoculous.model.impl.FileAdapter;
 
@@ -30,6 +34,18 @@ public class GridFileAdapter implements FileAdapter
    public File newFile(File parent, String child)
    {
       return gfs.getFile(parent, child);
+   }
+
+   @Override
+   public InputStream getInputStream(File file) throws IOException
+   {
+      return gfs.getInput(file);
+   }
+
+   @Override
+   public OutputStream getOutputStream(File file) throws IOException
+   {
+      return gfs.getOutput((GridFile) file);
    }
 
 }

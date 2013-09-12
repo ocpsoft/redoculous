@@ -8,9 +8,7 @@ package org.ocpsoft.redoculous.service.impl;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,9 +20,9 @@ import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
 
-import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.common.util.Streams;
+import org.ocpsoft.redoculous.model.impl.FileAdapter;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -38,7 +36,7 @@ public class FileOperations
    {
       try
       {
-         copyDirectory(gfs, source, destination, null);
+         copyDirectory(new GridFileAdapter(gfs), new NativeFileAdapter(), source, destination, null);
       }
       catch (IOException e)
       {
@@ -57,7 +55,8 @@ public class FileOperations
    {
       try
       {
-         copyDirectory(gfs, source, gfs.getFile(destination.getAbsolutePath()), null);
+         copyDirectory(new NativeFileAdapter(), new GridFileAdapter(gfs), source,
+                  gfs.getFile(destination.getAbsolutePath()), null);
       }
       catch (IOException e)
       {
@@ -68,8 +67,8 @@ public class FileOperations
    /*
     * Helpers
     */
-   public static void copyDirectory(GridFilesystem gfs, File srcDir, File destDir,
-            FileFilter filter) throws IOException
+   private void copyDirectory(FileAdapter sourceAdapter, FileAdapter destAdapter, File srcDir,
+            File destDir, FileFilter filter) throws IOException
    {
       if (srcDir == null)
       {
@@ -98,28 +97,16 @@ public class FileOperations
             exclusionList = new ArrayList<String>(srcFiles.length);
             for (File srcFile : srcFiles)
             {
-               File copiedFile = gfs.getFile(destDir, srcFile.getName());
-               exclusionList.add(copiedFile.getAbsolutePath());
+               File exclusion = sourceAdapter.newFile(destDir, srcFile.getName());
+               exclusionList.add(exclusion.getAbsolutePath());
             }
          }
       }
-      doCopyDirectory(gfs, srcDir, destDir, filter, exclusionList);
+      doCopyDirectory(sourceAdapter, destAdapter, srcDir, destDir, filter, exclusionList);
    }
 
-   /**
-    * Internal copy directory method.
-    * 
-    * @param gfs
-    * 
-    * @param srcDir the validated source directory, must not be {@code null}
-    * @param destDir the validated destination directory, must not be {@code null}
-    * @param filter the filter to apply, null means copy all directories and files
-    * @param preserveFileDate whether to preserve the file date
-    * @param exclusionList List of files and directories to exclude from the copy, may be null
-    * @throws IOException if an error occurs
-    */
-   private static void doCopyDirectory(GridFilesystem gfs, File srcDir, File destDir, FileFilter filter,
-            List<String> exclusionList) throws IOException
+   private static void doCopyDirectory(FileAdapter sourceAdapter, FileAdapter destAdapter, File srcDir, File destDir,
+            FileFilter filter, List<String> exclusionList) throws IOException
    {
       // recurse
       File[] srcFiles = filter == null ? srcDir.listFiles() : srcDir.listFiles(filter);
@@ -147,22 +134,23 @@ public class FileOperations
       }
       for (File srcFile : srcFiles)
       {
-         File dstFile = gfs.getFile(destDir, srcFile.getName());
+         File dstFile = destAdapter.newFile(destDir, srcFile.getName());
          if (exclusionList == null || !exclusionList.contains(srcFile.getAbsolutePath()))
          {
             if (srcFile.isDirectory())
             {
-               doCopyDirectory(gfs, srcFile, dstFile, filter, exclusionList);
+               doCopyDirectory(sourceAdapter, destAdapter, srcFile, dstFile, filter, exclusionList);
             }
             else
             {
-               doCopyFile(gfs, srcFile, dstFile);
+               doCopyFile(sourceAdapter, destAdapter, srcFile, dstFile);
             }
          }
       }
    }
 
-   private static void doCopyFile(GridFilesystem gfs, File srcFile, File destFile) throws IOException
+   private static void doCopyFile(FileAdapter sourceAdapter, FileAdapter destAdapter, File srcFile, File destFile)
+            throws IOException
    {
       if (destFile.exists() && destFile.isDirectory())
       {
@@ -173,14 +161,8 @@ public class FileOperations
       OutputStream fos = null;
       try
       {
-         if (srcFile instanceof GridFile)
-            fis = gfs.getInput(srcFile);
-         else
-            fis = new FileInputStream(srcFile);
-         if (destFile instanceof GridFile)
-            fos = gfs.getOutput((GridFile) destFile);
-         else
-            fos = new FileOutputStream(destFile);
+         fis = sourceAdapter.getInputStream(srcFile);
+         fos = destAdapter.getOutputStream(destFile);
          Streams.copy(fis, fos);
       }
       finally

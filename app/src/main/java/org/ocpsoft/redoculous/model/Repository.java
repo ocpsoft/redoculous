@@ -16,7 +16,29 @@ import java.util.Set;
  */
 public interface Repository extends Serializable
 {
+   /**
+    * Initialize the repository
+    */
    void init();
+
+   /**
+    * Transform the given ref into its canonicalized form.
+    */
+   String resolveRef(String ref);
+
+   /**
+    * Check out the given ref and populate corresponding ref dir with a copy of unrendered files.
+    */
+   void initRef(String ref);
+
+   /**
+    * Update from the origin repository and delete refs/caches dirs.
+    */
+   void update();
+
+   /*
+    * Getters/setters
+    */
 
    String getKey();
 
@@ -37,12 +59,5 @@ public interface Repository extends Serializable
    File getRefsDir();
 
    File getRefDir(String ref);
-
-   /**
-    * Transform the given ref into its canonicalized form.
-    */
-   String resolveRef(String ref);
-
-   void initRef(String ref);
 
 }

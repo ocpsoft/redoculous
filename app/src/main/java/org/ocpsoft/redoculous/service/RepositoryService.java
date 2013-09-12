@@ -14,11 +14,13 @@ import org.ocpsoft.redoculous.model.Repository;
  */
 public interface RepositoryService
 {
-   Repository getLocalRepository(String url);
-
-   Repository getGridRepository(String url);
-
    String getRenderedContent(String repository, String ref, String path);
 
-   Repository updateRepository(String repo);
+   void updateRepository(String repo);
+
+   void purgeRepository(String repo);
+
+   void initRepository(String repo);
+
+   Repository getRepository(String repo);
 }

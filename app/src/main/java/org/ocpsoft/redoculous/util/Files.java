@@ -63,11 +63,7 @@ public final class Files
    {
       if (recursive)
       {
-         if (_deleteRecursive(file, true))
-         {
-            return true;
-         }
-         return false;
+         return _deleteRecursive(file, true);
       }
 
       if ((file.listFiles() != null) && (file.listFiles().length != 0))

@@ -62,7 +62,7 @@ public class DocumentService
             @QueryParam("filter") @DefaultValue(".*") String filter)
             throws Exception
    {
-      Repository repository = rs.getLocalRepository(repoName);
+      Repository repository = rs.getRepository(repoName);
       Iterable<String> refs = repository.getRefs();
       List<String> result = processRefs(refs, filter);
       return new VersionResult(result);
