@@ -45,14 +45,14 @@ public class GridLock
             try
             {
                transaction.commit();
-               log.info("Lock: " + Arrays.asList(keys) + " Released");
+               log.info("Lock: " + Arrays.asList(keys) + " - Released (committed).");
             }
             catch (Exception e)
             {
                try
                {
                   transaction.rollback();
-                  log.info("Lock: " + Arrays.asList(keys) + " - Released.");
+                  log.info("Lock: " + Arrays.asList(keys) + " - Released (rolled back).");
                }
                catch (Exception e1)
                {
@@ -66,6 +66,8 @@ public class GridLock
          @Override
          public boolean tryLock(long time, TimeUnit unit) throws InterruptedException
          {
+            log.info("Lock: " + Arrays.asList(keys) + " - Requested (waiting).");
+
             boolean result = false;
 
             long start = System.currentTimeMillis();
@@ -95,9 +97,12 @@ public class GridLock
          @Override
          public boolean tryLock()
          {
+            log.info("Lock: " + Arrays.asList(keys) + " - Requested (waiting).");
             boolean result = cache.lock(keys);
             if (result)
                log.info("Lock: " + Arrays.asList(keys) + " - Obtained.");
+            else
+               log.info("Lock: " + Arrays.asList(keys) + " - Denied.");
             return result;
          }
 
@@ -116,6 +121,7 @@ public class GridLock
          @Override
          public void lock()
          {
+            log.info("Lock: " + Arrays.asList(keys) + " - Requested (waiting).");
             try
             {
                if (Status.STATUS_NO_TRANSACTION == transaction.getStatus())
