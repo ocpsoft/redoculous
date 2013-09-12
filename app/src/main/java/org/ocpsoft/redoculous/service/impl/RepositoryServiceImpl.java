@@ -48,18 +48,8 @@ public class RepositoryServiceImpl implements RepositoryService
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      Lock lock = gridLock.getLock(tx, repo);
-      lock.lock();
-
-      try
-      {
-         _doPrimeRepository(repo);
-         _doPrimeRef(repo, ref);
-      }
-      finally
-      {
-         lock.unlock();
-      }
+      primeRepository(repo);
+      _doPrimeRef(repo, ref);
 
       return render.resolveRendered(getGridRepository(repo), ref, path);
    }
@@ -69,17 +59,30 @@ public class RepositoryServiceImpl implements RepositoryService
       Repository gridRepo = getGridRepository(repo);
       if (!gridRepo.getRefDir(ref).exists())
       {
-         purgeLocalRepository(repo);
-         Repository localRepo = getLocalRepository(repo);
-         try
+         Lock lock = gridLock.getLock(tx, repo);
+         lock.lock();
+
+         if (!gridRepo.getRefDir(ref).exists())
          {
-            io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
-            localRepo.initRef(ref);
-            io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
-         }
-         finally
-         {
-            purgeLocalRepository(repo);
+            try
+            {
+               purgeLocalRepository(repo);
+               Repository localRepo = getLocalRepository(repo);
+               try
+               {
+                  io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+                  localRepo.initRef(ref);
+                  io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
+               }
+               finally
+               {
+                  purgeLocalRepository(repo);
+               }
+            }
+            finally
+            {
+               lock.unlock();
+            }
          }
       }
    }
