@@ -81,7 +81,7 @@ public class RepositoryServiceImpl implements RepositoryService
                {
                   io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
                   localRepo.update();
-                  Files.delete(gridRepo.getBaseDir(), true);
+                  purgeGridRepository(repo);
                   io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
                   log.info("Update: [" + repo + "] - From grid. Success.");
                }
