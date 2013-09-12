@@ -17,12 +17,15 @@ import javax.transaction.UserTransaction;
 import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.common.util.Streams;
+import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.render.Renderer;
 
 public class RenderService
 {
+   private static final Logger log = Logger.getLogger(RenderService.class);
+
    @Inject
    @Any
    private Instance<Renderer> renderers;
@@ -38,11 +41,11 @@ public class RenderService
 
    public String resolveRendered(Repository repo, String ref, String path)
    {
-      File result = resolvePath(repo.getCachedRefDir(ref), path);
       File source = resolvePath(repo.getRefDir(ref), path);
-      if (!result.exists())
+      if (source.exists())
       {
-         if (source.exists())
+         File result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
+         if (!result.exists())
          {
             Lock lock = gridLock.getLock(tx, repo.getUrl(), source.getAbsolutePath());
             lock.lock();
@@ -50,7 +53,6 @@ public class RenderService
             {
                if (!result.exists())
                {
-                  result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
                   LOOP: for (Renderer renderer : renderers)
                   {
                      for (String extension : renderer.getSupportedExtensions())
@@ -58,6 +60,7 @@ public class RenderService
                         if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
                         {
                            render(renderer, source, (GridFile) result);
+                           log.info("Render: [" + repo + "] [" + ref + "] [" + path + "] - Complete.");
                            break LOOP;
                         }
                      }
@@ -69,21 +72,26 @@ public class RenderService
                lock.unlock();
             }
          }
-      }
-      try
-      {
-         if (result.exists())
-            return Streams.toString(gfs.getInput(result));
-         else if (source.exists())
-            return Streams.toString(gfs.getInput(source));
          else
-            return null;
+         {
+            log.info("Render: [" + repo + "] [" + ref + "] [" + path + "] - Not required (already cached).");
+         }
+
+         try
+         {
+            if (result.exists())
+               return Streams.toString(gfs.getInput(result));
+            else if (source.exists())
+               return Streams.toString(gfs.getInput(source));
+            else
+               return null;
+         }
+         catch (FileNotFoundException e)
+         {
+            throw new RuntimeException(e);
+         }
       }
-      catch (FileNotFoundException e)
-      {
-         e.printStackTrace();
-         return null;
-      }
+      return null;
    }
 
    private String getRelativePath(File base, File source)

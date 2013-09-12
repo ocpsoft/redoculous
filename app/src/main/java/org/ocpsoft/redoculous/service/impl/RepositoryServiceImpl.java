@@ -43,15 +43,44 @@ public class RepositoryServiceImpl implements RepositoryService
    UserTransaction tx;
 
    @Override
-   public String getRenderedContent(String url, String ref, String path)
+   public String getRenderedContent(String repo, String ref, String path)
    {
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      primeRepository(url);
-      initGridRef(url, ref);
+      Lock lock = gridLock.getLock(tx, repo);
+      lock.lock();
 
-      String result = render.resolveRendered(getGridRepository(url), ref, path);
+      try
+      {
+         _doPrimeRepository(repo);
+
+         Repository gridRepo = getGridRepository(repo);
+         if (!gridRepo.getCachedRefDir(ref).exists())
+         {
+            if (!gridRepo.getRefDir(ref).exists())
+            {
+               purgeLocalRepository(repo);
+               Repository localRepo = getLocalRepository(repo);
+               try
+               {
+                  io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+                  localRepo.initRef(ref);
+                  io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
+               }
+               finally
+               {
+                  purgeLocalRepository(repo);
+               }
+            }
+         }
+      }
+      finally
+      {
+         lock.unlock();
+      }
+
+      String result = render.resolveRendered(getGridRepository(repo), ref, path);
       return result;
    }
 
@@ -129,35 +158,6 @@ public class RepositoryServiceImpl implements RepositoryService
       return getGridRepository(repo);
    }
 
-   private void initGridRef(String repo, String ref)
-   {
-      Repository gridRepo = getGridRepository(repo);
-      if (!gridRepo.getCachedRefDir(ref).exists())
-      {
-         if (!gridRepo.getRefDir(ref).exists())
-         {
-            Lock lock = gridLock.getLock(tx, repo);
-            lock.lock();
-            if (!gridRepo.getRefDir(ref).exists())
-            {
-               purgeLocalRepository(repo);
-               Repository localRepo = getLocalRepository(repo);
-               try
-               {
-                  io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
-                  localRepo.initRef(ref);
-                  io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
-               }
-               finally
-               {
-                  purgeLocalRepository(repo);
-               }
-            }
-            lock.unlock();
-         }
-      }
-   }
-
    private void purgeGridRepository(String repo)
    {
       Repository cachedRepo = getGridRepository(repo);
@@ -205,20 +205,7 @@ public class RepositoryServiceImpl implements RepositoryService
          lock.lock();
          try
          {
-            if (gridRepository == null || !gridRepository.getBaseDir().exists())
-            {
-               try
-               {
-                  Repository localRepo = getLocalRepository(repo);
-                  localRepo.init();
-                  localRepo.update();
-                  io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
-               }
-               finally
-               {
-                  purgeLocalRepository(repo);
-               }
-            }
+            _doPrimeRepository(repo);
          }
          finally
          {
@@ -226,5 +213,24 @@ public class RepositoryServiceImpl implements RepositoryService
          }
       }
       return gridRepository;
+   }
+
+   private void _doPrimeRepository(String repo)
+   {
+      Repository gridRepository = getGridRepository(repo);
+      if (gridRepository == null || !gridRepository.getBaseDir().exists())
+      {
+         try
+         {
+            Repository localRepo = getLocalRepository(repo);
+            localRepo.init();
+            localRepo.update();
+            io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
+         }
+         finally
+         {
+            purgeLocalRepository(repo);
+         }
+      }
    }
 }
