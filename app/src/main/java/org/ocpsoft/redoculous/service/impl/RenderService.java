@@ -7,14 +7,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.locks.Lock;
 
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.transaction.UserTransaction;
 
 import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.common.util.Streams;
+import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.render.Renderer;
 
@@ -27,6 +30,12 @@ public class RenderService
    @Inject
    private GridFilesystem gfs;
 
+   @Inject
+   private GridLock gridLock;
+
+   @Inject
+   private UserTransaction tx;
+
    public String resolveRendered(Repository repo, String ref, String path)
    {
       File result = resolvePath(repo.getCachedRefDir(ref), path);
@@ -35,17 +44,29 @@ public class RenderService
       {
          if (source.exists())
          {
-            result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
-            LOOP: for (Renderer renderer : renderers)
+            Lock lock = gridLock.getLock(tx, repo.getUrl(), source.getAbsolutePath());
+            lock.lock();
+            try
             {
-               for (String extension : renderer.getSupportedExtensions())
+               if (!result.exists())
                {
-                  if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
+                  result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
+                  LOOP: for (Renderer renderer : renderers)
                   {
-                     render(renderer, source, (GridFile) result);
-                     break LOOP;
+                     for (String extension : renderer.getSupportedExtensions())
+                     {
+                        if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
+                        {
+                           render(renderer, source, (GridFile) result);
+                           break LOOP;
+                        }
+                     }
                   }
                }
+            }
+            finally
+            {
+               lock.unlock();
             }
          }
       }

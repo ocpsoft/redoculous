@@ -141,7 +141,7 @@ public class FileOperations
             {
                doCopyDirectory(sourceAdapter, destAdapter, srcFile, dstFile, filter, exclusionList);
             }
-            else
+            else if(srcFile.exists()) // FIXME Remove this once ISPN-3205 is fixed and released in EAP
             {
                doCopyFile(sourceAdapter, destAdapter, srcFile, dstFile);
             }

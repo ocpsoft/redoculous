@@ -39,13 +39,27 @@ public class GridFileAdapter implements FileAdapter
    @Override
    public InputStream getInputStream(File file) throws IOException
    {
-      return gfs.getInput(file);
+      try
+      {
+         return gfs.getInput(file);
+      }
+      catch (Exception e)
+      {
+         throw new RuntimeException(e);
+      }
    }
 
    @Override
    public OutputStream getOutputStream(File file) throws IOException
    {
-      return gfs.getOutput((GridFile) file);
+      try
+      {
+         return gfs.getOutput((GridFile) file);
+      }
+      catch (Exception e)
+      {
+         throw new RuntimeException(e);
+      }
    }
 
 }

@@ -23,6 +23,7 @@ public class CacheProducer
    @Inject
    private EmbeddedCacheManager cacheManager;
 
+   private static final String REPO_CACHE_LOCK = "repository.cache.lock";
    private static final String REPO_CACHE_FILESYSTEM = "repository.cache.filesystem";
    private static final String REPO_CACHE_METADATA = "repository.cache.metadata";
 
@@ -39,5 +40,11 @@ public class CacheProducer
                .getAdvancedCache()
                .with(CacheProducer.class.getClassLoader());
       return new GridFilesystem(fsCacheData, fsCacheMetadata);
+   }
+
+   @Produces
+   public GridLock getGridLock()
+   {
+      return new GridLock(cacheManager.<String, Object> getCache(REPO_CACHE_LOCK).getAdvancedCache());
    }
 }

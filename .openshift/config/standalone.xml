@@ -213,23 +213,27 @@
 			<iiop enable-by-default="false" use-qualified-name="false" />
 		</subsystem>
 		<subsystem xmlns="urn:jboss:domain:infinispan:1.3">
-			<cache-container name="cluster" aliases="ha-partition" jndi-name="java:jboss/infinispan/cluster"
-				default-cache="default">
-				<transport lock-timeout="60000" />
-				<distributed-cache name="default" mode="SYNC" owners="2" start="LAZY">
+			<cache-container name="cluster" aliases="ha-partition" jndi-name="java:jboss/infinispan/cluster" default-cache="default">
+			   <transport lock-timeout="60000" />
+			   <distributed-cache name="default" mode="SYNC" owners="2" start="LAZY">
                   <locking isolation="REPEATABLE_READ"/>
                   <file-store passivation="true" preload="true" path="cache-data"></file-store>
-                  <eviction strategy="LRU" max-entries="10000"/>
-				</distributed-cache>
+                  <eviction strategy="LIRS" max-entries="10000"/>
+               </distributed-cache>
+               
+               <distributed-cache name="repository.cache.lock" mode="SYNC" owners="2" start="LAZY">
+                  <locking acquire-timeout="180000"/>
+                  <transaction mode="FULL_XA" locking="PESSIMISTIC" stop-timeout="300000"/>
+	           </distributed-cache>
                <distributed-cache name="repository.cache.filesystem" mode="SYNC" owners="2" start="LAZY">
                   <locking isolation="REPEATABLE_READ" />
                   <file-store passivation="true" preload="true" path="cache-data"></file-store>
-                  <eviction strategy="LRU" max-entries="10000"/>
+                  <eviction strategy="LIRS" max-entries="10000"/>
                </distributed-cache>
                <replicated-cache name="repository.cache.metadata" mode="SYNC">
                   <file-store passivation="true"></file-store>
                   <locking isolation="REPEATABLE_READ" />
-                  <eviction strategy="LRU" max-entries="10000"/>
+                  <eviction strategy="LIRS" max-entries="10000"/>
                </replicated-cache>
 			</cache-container>
 			<cache-container name="web" aliases="standard-session-cache"

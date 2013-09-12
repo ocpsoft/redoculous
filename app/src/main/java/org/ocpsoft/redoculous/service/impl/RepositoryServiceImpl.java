@@ -6,11 +6,15 @@
  */
 package org.ocpsoft.redoculous.service.impl;
 
+import java.util.concurrent.locks.Lock;
+
 import javax.inject.Inject;
+import javax.transaction.UserTransaction;
 
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.Redoculous;
+import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.model.impl.GitRepository;
 import org.ocpsoft.redoculous.service.RepositoryService;
@@ -31,6 +35,12 @@ public class RepositoryServiceImpl implements RepositoryService
 
    @Inject
    private RenderService render;
+
+   @Inject
+   private GridLock gridLock;
+
+   @Inject
+   UserTransaction tx;
 
    @Override
    public String getRenderedContent(String url, String ref, String path)
@@ -63,11 +73,17 @@ public class RepositoryServiceImpl implements RepositoryService
          purgeLocalRepository(repo);
          if (gridRepo != null && gridRepo.getRepoDir().exists())
          {
-            io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
-            localRepo.update();
-            Files.delete(gridRepo.getBaseDir(), true);
-            io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
-            log.info("Update: [" + repo + "] - From grid. Success.");
+            Lock lock = gridLock.getLock(tx, repo);
+            lock.lock();
+            if (gridRepo != null && gridRepo.getRepoDir().exists())
+            {
+               io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+               localRepo.update();
+               Files.delete(gridRepo.getBaseDir(), true);
+               io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
+               log.info("Update: [" + repo + "] - From grid. Success.");
+            }
+            lock.unlock();
          }
          else
          {
@@ -97,25 +113,31 @@ public class RepositoryServiceImpl implements RepositoryService
       return getGridRepository(repo);
    }
 
-   private void initGridRef(String url, String ref)
+   private void initGridRef(String repo, String ref)
    {
-      Repository gridRepo = getGridRepository(url);
+      Repository gridRepo = getGridRepository(repo);
       if (!gridRepo.getCachedRefDir(ref).exists())
       {
          if (!gridRepo.getRefDir(ref).exists())
          {
-            purgeLocalRepository(url);
-            Repository localRepo = getLocalRepository(url);
-            try
+            Lock lock = gridLock.getLock(tx, repo);
+            lock.lock();
+            if (!gridRepo.getRefDir(ref).exists())
             {
-               io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
-               localRepo.initRef(ref);
-               io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
+               purgeLocalRepository(repo);
+               Repository localRepo = getLocalRepository(repo);
+               try
+               {
+                  io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+                  localRepo.initRef(ref);
+                  io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
+               }
+               finally
+               {
+                  Files.delete(localRepo.getBaseDir(), true);
+               }
             }
-            finally
-            {
-               Files.delete(localRepo.getBaseDir(), true);
-            }
+            lock.unlock();
          }
       }
    }
@@ -125,8 +147,14 @@ public class RepositoryServiceImpl implements RepositoryService
       Repository cachedRepo = getGridRepository(repo);
       if (cachedRepo != null && cachedRepo.getBaseDir().exists())
       {
-         Files.delete(cachedRepo.getBaseDir(), true);
-         log.info("Purge: [" + repo + "] - From grid. Success.");
+         Lock lock = gridLock.getLock(tx, repo);
+         lock.lock();
+         if (cachedRepo != null && cachedRepo.getBaseDir().exists())
+         {
+            Files.delete(cachedRepo.getBaseDir(), true);
+            log.info("Purge: [" + repo + "] - From grid. Success.");
+         }
+         lock.unlock();
       }
       else
       {
@@ -148,27 +176,34 @@ public class RepositoryServiceImpl implements RepositoryService
       }
    }
 
-   private Repository getLocalRepository(String url)
+   private Repository getLocalRepository(String repo)
    {
-      return new GitRepository(new NativeFileAdapter(), Redoculous.getRoot(), url);
+      return new GitRepository(new NativeFileAdapter(), Redoculous.getRoot(), repo);
    }
 
-   private Repository getGridRepository(String url)
+   private Repository getGridRepository(String repo)
    {
-      return new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), url);
+      return new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), repo);
    }
 
-   private Repository primeRepository(String url)
+   private Repository primeRepository(String repo)
    {
-      Repository localRepo = getLocalRepository(url);
-      Repository gridRepository = getGridRepository(url);
+      Repository localRepo = getLocalRepository(repo);
+      Repository gridRepository = getGridRepository(repo);
+
       try
       {
          if (gridRepository == null || !gridRepository.getBaseDir().exists())
          {
-            localRepo.init();
-            localRepo.update();
-            io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
+            Lock lock = gridLock.getLock(tx, repo);
+            lock.lock();
+            if (gridRepository == null || !gridRepository.getBaseDir().exists())
+            {
+               localRepo.init();
+               localRepo.update();
+               io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
+            }
+            lock.unlock();
          }
          return gridRepository;
       }
