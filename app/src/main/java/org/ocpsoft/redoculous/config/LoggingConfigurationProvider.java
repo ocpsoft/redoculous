@@ -41,7 +41,8 @@ public class LoggingConfigurationProvider extends HttpConfigurationProvider
                   @Override
                   public void performHttp(HttpServletRewrite event, EvaluationContext context)
                   {
-                     log.info(event.getRequest().getMethod() + " - " + event.getAddress().toString());
+                     log.info("A [" + event.getRequest().getRemoteAddr() + "] " + event.getRequest().getMethod()
+                              + " " + event.getAddress().toString());
                   }
                });
    }
