@@ -37,8 +37,8 @@ public class CacheProducer
       return result;
    }
 
-   private static final String REPO_CACHE_FILESYSTEM = "repo.cache.filesystem";
-   private static final String REPO_CACHE_METADATA = "repo.cache.metadata";
+   private static final String REPO_CACHE_FILESYSTEM = "repository.cache.filesystem";
+   private static final String REPO_CACHE_METADATA = "repository.cache.metadata";
 
    @Produces
    @Singleton
