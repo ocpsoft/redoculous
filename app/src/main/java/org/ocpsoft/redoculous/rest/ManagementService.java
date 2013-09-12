@@ -27,7 +27,7 @@ public class ManagementService
    @Path("/init")
    public Response init(@QueryParam("repo") String repo)
    {
-      rs.getCachedRepository(repo);
+      rs.getGridRepository(repo);
       return Response.created(UriBuilder.fromPath("/v1/serve").queryParam("repo", repo).build()).build();
    }
 

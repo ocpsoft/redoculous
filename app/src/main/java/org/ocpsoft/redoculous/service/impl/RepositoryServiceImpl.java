@@ -8,11 +8,8 @@ package org.ocpsoft.redoculous.service.impl;
 
 import javax.inject.Inject;
 
-import org.infinispan.Cache;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.redoculous.Redoculous;
-import org.ocpsoft.redoculous.cache.Keys;
-import org.ocpsoft.redoculous.cache.RepositoryCache;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.model.impl.GitRepository;
 import org.ocpsoft.redoculous.service.RepositoryService;
@@ -23,10 +20,6 @@ import org.ocpsoft.redoculous.util.Files;
  */
 public class RepositoryServiceImpl implements RepositoryService
 {
-   @Inject
-   @RepositoryCache
-   private Cache<String, Repository> repositoryCache;
-
    @Inject
    private FileOperations io;
 
@@ -42,30 +35,30 @@ public class RepositoryServiceImpl implements RepositoryService
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      Repository cachedRepo = getCachedRepository(url);
-      if (cachedRepo == null)
+      Repository gridRepo = getGridRepository(url);
+      if (!gridRepo.getBaseDir().exists())
       {
-         cachedRepo = primeRepository(url);
+         gridRepo = primeRepository(url);
       }
 
-      if (!cachedRepo.getCachedRefDir(ref).exists())
+      if (!gridRepo.getCachedRefDir(ref).exists())
       {
-         if (!cachedRepo.getRefDir(ref).exists())
+         if (!gridRepo.getRefDir(ref).exists())
          {
             Repository localRepo = getLocalRepository(url);
             if (!localRepo.getBaseDir().exists())
             {
-               io.copyDirectoryFromGrid(gfs, cachedRepo.getRepoDir(), localRepo.getRepoDir());
+               io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
             }
             if (!localRepo.getRefDir(ref).exists())
             {
                localRepo.initRef(ref);
-               io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), cachedRepo.getRefDir(ref));
+               io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
             }
          }
       }
 
-      String result = render.resolveRendered(cachedRepo, ref, path);
+      String result = render.resolveRendered(gridRepo, ref, path);
       return result;
    }
 
@@ -81,7 +74,7 @@ public class RepositoryServiceImpl implements RepositoryService
             Files.delete(localRepo.getCacheDir(), true);
       }
 
-      Repository cachedRepo = getCachedRepository(repo);
+      Repository cachedRepo = getGridRepository(repo);
       if (cachedRepo != null && cachedRepo.getBaseDir().exists())
       {
          if (cachedRepo.getRefsDir().exists())
@@ -100,10 +93,9 @@ public class RepositoryServiceImpl implements RepositoryService
    }
 
    @Override
-   public Repository getCachedRepository(String url)
+   public Repository getGridRepository(String url)
    {
-      String key = Keys.from(url);
-      Repository result = (Repository) repositoryCache.get(key);
+      Repository result = new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), url);
       return result;
    }
 
@@ -112,9 +104,8 @@ public class RepositoryServiceImpl implements RepositoryService
       Repository localRepo = getLocalRepository(url);
       localRepo.init();
 
-      Repository result = new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), url);
+      Repository result = getGridRepository(url);
       io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), result.getBaseDir());
-      repositoryCache.putIfAbsentAsync(Keys.from(url), result);
       return result;
    }
 

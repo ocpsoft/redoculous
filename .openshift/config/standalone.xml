@@ -221,11 +221,6 @@
                   <file-store passivation="true" preload="true" path="cache-data"></file-store>
                   <eviction strategy="LRU" max-entries="10000"/>
 				</distributed-cache>
-               <distributed-cache name="repository.cache" mode="SYNC" owners="2" start="LAZY">
-                  <locking isolation="REPEATABLE_READ"/>
-                  <file-store passivation="true" preload="true" path="cache-data"></file-store>
-                  <eviction strategy="LRU" max-entries="10000"/>
-               </distributed-cache>
                <distributed-cache name="repository.cache.filesystem" mode="SYNC" owners="2" start="LAZY">
                   <locking isolation="REPEATABLE_READ" />
                   <file-store passivation="true" preload="true" path="cache-data"></file-store>

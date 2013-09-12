@@ -16,7 +16,7 @@ public interface RepositoryService
 {
    Repository getLocalRepository(String url);
 
-   Repository getCachedRepository(String url);
+   Repository getGridRepository(String url);
 
    String getRenderedContent(String repository, String ref, String path);
 
