@@ -140,11 +140,17 @@ public class GitRepository extends AbstractRepository implements Repository
                      .setDirectory(getRepoDir())
                      .setProgressMonitor(new TextProgressMonitor()).call();
 
-            git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
-                     .setThin(false).setTimeout(10)
-                     .setProgressMonitor(new TextProgressMonitor()).call();
+            try
+            {
+               git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
+                        .setThin(false).setTimeout(10)
+                        .setProgressMonitor(new TextProgressMonitor()).call();
+            }
+            finally
+            {
+               GitUtils.close(git);
+            }
 
-            GitUtils.close(git);
          }
          catch (Exception e)
          {

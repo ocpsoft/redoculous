@@ -223,6 +223,7 @@
                
                <distributed-cache name="repository.cache.lock" mode="SYNC" owners="2" start="LAZY">
                   <locking acquire-timeout="180000"/>
+                  <file-store  passivation="false" fetch-state="false" />
                   <transaction mode="FULL_XA" locking="PESSIMISTIC" stop-timeout="300000"/>
 	           </distributed-cache>
                <distributed-cache name="repository.cache.filesystem" mode="SYNC" owners="2" start="LAZY">
