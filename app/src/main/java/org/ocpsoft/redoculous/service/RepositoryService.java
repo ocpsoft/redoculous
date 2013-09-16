@@ -6,6 +6,8 @@
  */
 package org.ocpsoft.redoculous.service;
 
+import java.util.Set;
+
 import org.ocpsoft.redoculous.model.Repository;
 
 /**
@@ -23,4 +25,6 @@ public interface RepositoryService
    void initRepository(String repo);
 
    Repository getRepository(String repo);
+
+   Set<String> getRepositoryRefs(String repo);
 }

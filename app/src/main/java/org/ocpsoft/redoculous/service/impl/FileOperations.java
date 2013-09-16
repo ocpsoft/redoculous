@@ -14,11 +14,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
-
-import javax.ejb.AsyncResult;
-import javax.ejb.Asynchronous;
-import javax.ejb.Stateless;
 
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.common.util.Streams;
@@ -28,10 +23,8 @@ import org.ocpsoft.redoculous.model.impl.FileAdapter;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * 
  */
-@Stateless
 public class FileOperations
 {
-
    public void copyDirectoryFromGrid(GridFilesystem gfs, File source, File destination)
    {
       try
@@ -42,13 +35,6 @@ public class FileOperations
       {
          throw new RuntimeException("Could not replicate directory from GridFilesystem", e);
       }
-   }
-
-   @Asynchronous
-   public Future<Void> copyDirectoryToGridAsync(GridFilesystem gfs, File source, File destination)
-   {
-      copyDirectoryToGrid(gfs, source, destination);
-      return new AsyncResult<Void>(null);
    }
 
    public void copyDirectoryToGrid(GridFilesystem gfs, File source, File destination)
@@ -141,7 +127,7 @@ public class FileOperations
             {
                doCopyDirectory(sourceAdapter, destAdapter, srcFile, dstFile, filter, exclusionList);
             }
-            else if(srcFile.exists()) // FIXME Remove this once ISPN-3205 is fixed and released in EAP
+            else if (srcFile.exists()) // FIXME Remove this once ISPN-3205 is fixed and released in EAP
             {
                doCopyFile(sourceAdapter, destAdapter, srcFile, dstFile);
             }

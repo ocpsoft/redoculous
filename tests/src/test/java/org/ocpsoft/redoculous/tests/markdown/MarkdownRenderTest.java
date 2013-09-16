@@ -98,7 +98,7 @@ public class MarkdownRenderTest
    {
       WebTest test = new WebTest(baseUrl);
       String repositoryURL = "file://" + repository.getAbsolutePath();
-      HttpAction<HttpPost> action = test.post("/api/v1/manage/init?repo=" + repositoryURL);
+      HttpAction<HttpPost> action = test.post("/api/v1/manage?repo=" + repositoryURL);
       Assert.assertEquals(201, action.getResponse().getStatusLine().getStatusCode());
       String location = URLDecoder.decode(action.getResponseHeaderValue("location"), "UTF8");
       Assert.assertEquals(test.getBaseURL() + test.getContextPath() + "/api/v1/serve?repo=" + repositoryURL,

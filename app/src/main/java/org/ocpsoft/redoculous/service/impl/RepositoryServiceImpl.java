@@ -6,15 +6,20 @@
  */
 package org.ocpsoft.redoculous.service.impl;
 
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.transaction.UserTransaction;
 
+import org.infinispan.Cache;
 import org.infinispan.io.GridFilesystem;
 import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.Redoculous;
+import org.ocpsoft.redoculous.cache.CacheProducer;
 import org.ocpsoft.redoculous.cache.GridLock;
+import org.ocpsoft.redoculous.cache.Keys;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.model.impl.GitRepository;
 import org.ocpsoft.redoculous.service.RepositoryService;
@@ -26,6 +31,10 @@ import org.ocpsoft.redoculous.util.Files;
 public class RepositoryServiceImpl implements RepositoryService
 {
    private static final Logger log = Logger.getLogger(RepositoryServiceImpl.class);
+
+   @Inject
+   @Named(CacheProducer.DEFAULT)
+   private Cache<Object, Object> defaultCache;
 
    @Inject
    private FileOperations io;
@@ -51,14 +60,18 @@ public class RepositoryServiceImpl implements RepositoryService
       Lock lock = gridLock.getLock(tx, repo);
       lock.lock();
 
-      try
+      Repository gridRepo = getGridRepository(repo);
+      if (!gridRepo.getCachedRefDir(ref).exists())
       {
-         _doPrimeRepository(repo);
-         _doPrimeRef(repo, ref);
-      }
-      finally
-      {
-         lock.unlock();
+         try
+         {
+            _doPrimeGridRepository(repo);
+            _doPrimeRef(repo, ref);
+         }
+         finally
+         {
+            lock.unlock();
+         }
       }
 
       return render.resolveRendered(getGridRepository(repo), ref, path);
@@ -87,7 +100,7 @@ public class RepositoryServiceImpl implements RepositoryService
    @Override
    public void initRepository(String repo)
    {
-      primeRepository(repo);
+      primeGridRepository(repo);
    }
 
    @Override
@@ -111,6 +124,7 @@ public class RepositoryServiceImpl implements RepositoryService
                   io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
                   localRepo.update();
                   purgeGridRepository(repo);
+                  setRepositoryRefs(repo, localRepo.getRefs());
                   io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
                   log.info("Update: [" + repo + "] - From grid. Success.");
                }
@@ -127,7 +141,7 @@ public class RepositoryServiceImpl implements RepositoryService
       }
       else
       {
-         primeRepository(repo);
+         primeGridRepository(repo);
          log.info("Update: [" + repo
                   + "] - From source repository (Not previously cached. Init perfomed instead). Success.");
       }
@@ -154,8 +168,26 @@ public class RepositoryServiceImpl implements RepositoryService
    @Override
    public Repository getRepository(String repo)
    {
-      primeRepository(repo);
+      primeGridRepository(repo);
       return getGridRepository(repo);
+   }
+
+   @Override
+   @SuppressWarnings("unchecked")
+   public Set<String> getRepositoryRefs(String repo)
+   {
+      primeGridRepository(repo);
+      return (Set<String>) defaultCache.get(Keys.from("versions:" + repo));
+   }
+
+   private void setRepositoryRefs(String repo, Set<String> refs)
+   {
+      defaultCache.put(Keys.from("versions:" + repo), refs);
+   }
+
+   private void clearRepositoryRefs(String repo)
+   {
+      defaultCache.remove(Keys.from("versions:" + repo));
    }
 
    private void purgeGridRepository(String repo)
@@ -163,6 +195,7 @@ public class RepositoryServiceImpl implements RepositoryService
       Repository cachedRepo = getGridRepository(repo);
       if (cachedRepo != null && cachedRepo.getBaseDir().exists())
       {
+         clearRepositoryRefs(repo);
          Files.delete(cachedRepo.getBaseDir(), true);
          log.info("Purge: [" + repo + "] - From grid. Success.");
       }
@@ -196,7 +229,7 @@ public class RepositoryServiceImpl implements RepositoryService
       return new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), repo);
    }
 
-   private Repository primeRepository(String repo)
+   private Repository primeGridRepository(String repo)
    {
       Repository gridRepository = getGridRepository(repo);
       if (gridRepository == null || !gridRepository.getBaseDir().exists())
@@ -205,7 +238,7 @@ public class RepositoryServiceImpl implements RepositoryService
          lock.lock();
          try
          {
-            _doPrimeRepository(repo);
+            _doPrimeGridRepository(repo);
          }
          finally
          {
@@ -215,7 +248,7 @@ public class RepositoryServiceImpl implements RepositoryService
       return gridRepository;
    }
 
-   private void _doPrimeRepository(String repo)
+   private Repository _doPrimeGridRepository(String repo)
    {
       Repository gridRepository = getGridRepository(repo);
       if (gridRepository == null || !gridRepository.getBaseDir().exists())
@@ -225,6 +258,7 @@ public class RepositoryServiceImpl implements RepositoryService
             Repository localRepo = getLocalRepository(repo);
             localRepo.init();
             localRepo.update();
+            setRepositoryRefs(repo, localRepo.getRefs());
             io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
          }
          finally
@@ -232,5 +266,6 @@ public class RepositoryServiceImpl implements RepositoryService
             purgeLocalRepository(repo);
          }
       }
+      return gridRepository;
    }
 }

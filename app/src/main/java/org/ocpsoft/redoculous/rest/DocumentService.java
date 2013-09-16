@@ -16,7 +16,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.service.RepositoryService;
 
 @Path("/v1/serve")
@@ -36,7 +35,9 @@ public class DocumentService
             throws Exception
    {
       String content = rs.getRenderedContent(repoName, refName, path);
-      return Response.ok(content).build();
+      if (content != null)
+         return Response.ok(content).build();
+      return Response.status(404).build();
    }
 
    @GET
@@ -52,7 +53,7 @@ public class DocumentService
       Element toc = document.getElementById("toc");
       if (toc != null)
          return Response.ok(toc.toString()).build();
-      return Response.noContent().build();
+      return Response.status(404).build();
    }
 
    @GET
@@ -62,8 +63,7 @@ public class DocumentService
             @QueryParam("filter") @DefaultValue(".*") String filter)
             throws Exception
    {
-      Repository repository = rs.getRepository(repoName);
-      Iterable<String> refs = repository.getRefs();
+      Iterable<String> refs = rs.getRepositoryRefs(repoName);
       List<String> result = processRefs(refs, filter);
       return new VersionResult(result);
    }
@@ -93,7 +93,7 @@ public class DocumentService
          this.versions = versions;
       }
 
-      @XmlElement
+      @XmlElement(name = "version")
       public List<String> getVersions()
       {
          return versions;

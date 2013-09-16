@@ -8,6 +8,7 @@ package org.ocpsoft.redoculous.cache;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.infinispan.Cache;
@@ -23,6 +24,7 @@ public class CacheProducer
    @Inject
    private EmbeddedCacheManager cacheManager;
 
+   public static final String DEFAULT = "default";
    private static final String REPO_CACHE_LOCK = "repository.cache.lock";
    private static final String REPO_CACHE_FILESYSTEM = "repository.cache.filesystem";
    private static final String REPO_CACHE_METADATA = "repository.cache.metadata";
@@ -46,5 +48,15 @@ public class CacheProducer
    public GridLock getGridLock()
    {
       return new GridLock(cacheManager.<String, Object> getCache(REPO_CACHE_LOCK).getAdvancedCache());
+   }
+
+   @Produces
+   @Named(DEFAULT)
+   public Cache<Object, Object> getDefaultCache()
+   {
+      return cacheManager.<Object, Object>
+               getCache(DEFAULT)
+               .getAdvancedCache()
+               .with(CacheProducer.class.getClassLoader());
    }
 }

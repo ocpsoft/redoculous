@@ -89,7 +89,7 @@ public class GitRepository extends AbstractRepository implements Repository
             Git git = null;
             try
             {
-               git = Git.open(getBaseDir());
+               git = Git.open(getRepoDir());
                List<Ref> branches = git.branchList().setListMode(ListMode.ALL).call();
                refs.addAll(processRefs(branches));
                List<Ref> tags = git.tagList().call();
