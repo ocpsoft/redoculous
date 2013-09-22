@@ -16,6 +16,7 @@
    <name>Redoculous - Parent POM</name>
 
    <modules>
+      <module>api</module>
       <module>app</module>
       <module>embedded</module>
       <module>tests</module>
@@ -25,7 +26,7 @@
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <maven.compiler.source>1.6</maven.compiler.source>
       <maven.compiler.target>1.6</maven.compiler.target>
-      <version.rewrite>2.0.5.Final</version.rewrite>
+      <version.rewrite>2.0.7.Final</version.rewrite>
       <version.jgit>3.0.0.201306101825-r</version.jgit>
       <version.junit>4.8.1</version.junit>
       <version.jsoup>1.7.2</version.jsoup>
@@ -41,6 +42,12 @@
             <version>3.0.0.Final-redhat-1</version>
             <scope>provided</scope>
             <type>pom</type>
+         </dependency>
+
+         <dependency>
+            <groupId>org.ocpsoft.redoculous</groupId>
+            <artifactId>redoculous-server-api</artifactId>
+            <version>${project.version}</version>
          </dependency>
 
          <dependency>
