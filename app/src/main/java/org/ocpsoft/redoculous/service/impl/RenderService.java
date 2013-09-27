@@ -42,7 +42,7 @@ public class RenderService
    public String resolveRendered(Repository repo, String ref, String path)
    {
       File source = resolvePath(repo.getRefDir(ref), path);
-      if (source.exists())
+      if (source != null && source.isFile())
       {
          File result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
          if (!result.exists())
@@ -150,34 +150,39 @@ public class RenderService
    {
       File original = gfs.getFile(refDir, path);
       File result = original;
-      if (result.isDirectory())
+      if (result != null)
       {
-         LOOP: for (Renderer renderer : renderers)
+         // Look for directory indexes
+         if (result.isDirectory() && path.endsWith("/"))
          {
-            for (String extension : renderer.getSupportedExtensions())
+            LOOP: for (Renderer renderer : renderers)
             {
-               result = gfs.getFile(original, "index." + extension);
-               if (result.isFile())
-                  break LOOP;
+               for (String extension : renderer.getSupportedExtensions())
+               {
+                  result = gfs.getFile(original, "index." + extension);
+                  if (result.isFile())
+                     break LOOP;
+               }
             }
          }
-      }
 
-      if (!result.exists())
-      {
-         LOOP: for (Renderer renderer : renderers)
+         // Look for files matching supported extensions
+         if (!result.exists())
          {
-            for (String extension : renderer.getSupportedExtensions())
+            LOOP: for (Renderer renderer : renderers)
             {
-               result = gfs.getFile(refDir, path + "." + extension);
-               if (result.isFile())
-                  break LOOP;
+               for (String extension : renderer.getSupportedExtensions())
+               {
+                  result = gfs.getFile(refDir, path + "." + extension);
+                  if (result.isFile())
+                     break LOOP;
+               }
             }
          }
-      }
 
-      if (!result.exists())
-         result = original;
+         if (!result.exists() && !original.isDirectory())
+            result = original;
+      }
       return result;
    }
 
