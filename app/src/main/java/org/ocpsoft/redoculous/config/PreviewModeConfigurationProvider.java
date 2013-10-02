@@ -17,7 +17,6 @@ package org.ocpsoft.redoculous.config;
 
 import javax.servlet.ServletContext;
 
-import org.ocpsoft.redoculous.Redoculous;
 import org.ocpsoft.rewrite.config.And;
 import org.ocpsoft.rewrite.config.Configuration;
 import org.ocpsoft.rewrite.config.ConfigurationBuilder;
@@ -59,15 +58,15 @@ public class PreviewModeConfigurationProvider extends HttpConfigurationProvider
                                  .addRule()
                                  .when(And.all(Query.parameterExists("repo"),
                                           Query.parameterExists("ref")))
-                                 .perform(Response.withOutputInterceptedBy(new PreviewLinkInterceptor(
-                                          Redoculous.getRoot())))
+                                 .perform(Response.withOutputInterceptedBy(new PreviewLinkInterceptor()))
                                  .otherwise(Response.withOutputInterceptedBy(new PreviewLocalLinkInterceptor())
                                  ))
                         )
                         .and(Proxy.to("{url}&nogzip"))
                         .and(Response.complete()))
                .where("url")
-               .transposedBy(new Transposition<String>() {
+               .transposedBy(new Transposition<String>()
+               {
                   @Override
                   public String transpose(Rewrite event, EvaluationContext context, String value)
                   {

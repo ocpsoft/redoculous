@@ -32,10 +32,15 @@ public class DocumentServiceImpl implements DocumentService
    public Response serveTableOfContents(String repoName, String refName, String path) throws Exception
    {
       String content = rs.getRenderedContent(repoName, refName, path);
-      Document document = Jsoup.parse(content, UTF8);
-      Element toc = document.getElementById("toc");
-      if (toc != null)
-         return Response.ok(toc.toString()).build();
+      if (content != null)
+      {
+         Document document = Jsoup.parse(content, UTF8);
+         Element toc = document.getElementById("toc");
+         if (toc != null)
+            return Response.ok(toc.toString()).build();
+         else
+            return Response.noContent().status(201).build();
+      }
       return Response.status(404).build();
    }
 

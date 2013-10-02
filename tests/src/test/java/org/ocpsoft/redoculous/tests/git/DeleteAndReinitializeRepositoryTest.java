@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.tests.markdown;
+package org.ocpsoft.redoculous.tests.git;
 
 /*
  * Copyright 2011 <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -21,8 +21,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 
-import junit.framework.Assert;
-
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.eclipse.jgit.api.Git;
@@ -32,6 +31,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +44,7 @@ import org.ocpsoft.redoculous.util.Files;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @RunWith(Arquillian.class)
-public class MarkdownRenderTest extends RedoculousTestBase
+public class DeleteAndReinitializeRepositoryTest extends RedoculousTestBase
 {
 
    @Deployment(testable = false)
@@ -57,19 +57,22 @@ public class MarkdownRenderTest extends RedoculousTestBase
    private URL baseUrl;
    private File repository;
 
+   private Git repo;
+   private File document;
+
    @Before
    public void before() throws IOException, GitAPIException
    {
       repository = File.createTempFile("redoc", "ulous-test");
       repository.delete();
       repository.mkdirs();
-      File document = new File(repository, "document.markdown");
+      document = new File(repository, "document.asciidoc");
       document.createNewFile();
 
-      Files.write(document, getClass().getClassLoader().getResourceAsStream("markdown/document.markdown"));
+      Files.write(document, getClass().getClassLoader().getResourceAsStream("asciidoc/toc.asciidoc"));
 
-      Git repo = Git.init().setDirectory(repository).call();
-      repo.add().addFilepattern("document.markdown").call();
+      repo = Git.init().setDirectory(repository).call();
+      repo.add().addFilepattern("document.asciidoc").call();
       repo.commit().setMessage("Initial commit.").call();
    }
 
@@ -80,13 +83,13 @@ public class MarkdownRenderTest extends RedoculousTestBase
    }
 
    @Test
-   public void testServeMarkdown() throws Exception
+   public void testInitializeRepositoryAndServeAsciidoc() throws Exception
    {
       WebTest test = new WebTest(baseUrl);
       String repositoryURL = "file://" + repository.getAbsolutePath();
-      HttpAction<HttpPost> action = test.post("/api/v1/manage?repo=" + repositoryURL);
-      Assert.assertEquals(201, action.getResponse().getStatusLine().getStatusCode());
-      String location = URLDecoder.decode(action.getResponseHeaderValue("location"), "UTF8");
+      HttpAction<HttpPost> post = test.post("/api/v1/manage?repo=" + repositoryURL);
+      Assert.assertEquals(201, post.getResponse().getStatusLine().getStatusCode());
+      String location = URLDecoder.decode(post.getResponseHeaderValue("location"), "UTF8");
       Assert.assertEquals(test.getBaseURL() + test.getContextPath() + "/api/v1/serve?repo=" + repositoryURL,
                location);
 
@@ -95,5 +98,19 @@ public class MarkdownRenderTest extends RedoculousTestBase
 
       Assert.assertTrue(document.getResponseContent().startsWith("<h1"));
       Assert.assertTrue(documentFull.getResponseContent().startsWith("<h1"));
+
+      HttpAction<HttpDelete> delete = test.delete("/api/v1/manage?repo=" + repositoryURL);
+      Assert.assertEquals(204, delete.getStatusCode());
+
+      Files.write(this.document, getClass().getClassLoader().getResourceAsStream("asciidoc/notoc.asciidoc"));
+      repo.add().addFilepattern("document.asciidoc").call();
+      repo.commit().setMessage("No table of contents.").call();
+
+      document = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=document");
+      documentFull = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=document");
+
+      Assert.assertTrue(document.getResponseContent().contains("This is a simple document."));
+      Assert.assertTrue(documentFull.getResponseContent().contains("This is a simple document."));
+
    }
 }

@@ -45,14 +45,14 @@ public class GridLock
             try
             {
                transaction.commit();
-               log.info("Lock: " + Arrays.asList(keys) + " - Released (committed).");
+               log.info("Lock (Committed): " + Arrays.asList(keys) + ".");
             }
             catch (Exception e)
             {
                try
                {
                   transaction.rollback();
-                  log.info("Lock: " + Arrays.asList(keys) + " - Released (rolled back).");
+                  log.info("Lock (Rolled back): " + Arrays.asList(keys));
                }
                catch (Exception e1)
                {
@@ -66,7 +66,7 @@ public class GridLock
          @Override
          public boolean tryLock(long time, TimeUnit unit) throws InterruptedException
          {
-            log.info("Lock: " + Arrays.asList(keys) + " - Requested (waiting).");
+            log.info("Lock (Requested): " + Arrays.asList(keys) + " - (waiting).");
 
             boolean result = false;
 
@@ -89,7 +89,7 @@ public class GridLock
             }
 
             if (result)
-               log.info("Lock: " + Arrays.asList(keys) + " - Obtained.");
+               log.info("Lock (Obtained): " + Arrays.asList(keys));
 
             return result;
          }
@@ -97,12 +97,12 @@ public class GridLock
          @Override
          public boolean tryLock()
          {
-            log.info("Lock: " + Arrays.asList(keys) + " - Requested (waiting).");
+            log.info("Lock (Requested): " + Arrays.asList(keys) + " - (waiting).");
             boolean result = cache.lock(keys);
             if (result)
-               log.info("Lock: " + Arrays.asList(keys) + " - Obtained.");
+               log.info("Lock (Obtained): " + Arrays.asList(keys));
             else
-               log.info("Lock: " + Arrays.asList(keys) + " - Denied.");
+               log.info("Lock (Denied): " + Arrays.asList(keys));
             return result;
          }
 
@@ -121,7 +121,7 @@ public class GridLock
          @Override
          public void lock()
          {
-            log.info("Lock: " + Arrays.asList(keys) + " - Requested (waiting).");
+            log.info("Lock (Requested): " + Arrays.asList(keys) + " - (waiting).");
             try
             {
                if (Status.STATUS_NO_TRANSACTION == transaction.getStatus())
@@ -144,7 +144,7 @@ public class GridLock
                }
             }
 
-            log.info("Lock: " + Arrays.asList(keys) + " - Obtained.");
+            log.info("Lock (Obtained): " + Arrays.asList(keys));
          }
       };
    }

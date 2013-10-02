@@ -68,14 +68,14 @@
       <!-- Infinispan -->
       <dependency>
          <groupId>org.infinispan</groupId>
-         <artifactId>infinispan-core</artifactId>
+         <artifactId>infinispan-cdi</artifactId>
          <version>${version.infinispan}</version>
-         <scope>provided</scope>
       </dependency>
       <dependency>
          <groupId>org.infinispan</groupId>
-         <artifactId>infinispan-cdi</artifactId>
+         <artifactId>infinispan-core</artifactId>
          <version>${version.infinispan}</version>
+         <scope>provided</scope>
       </dependency>
 
       <!-- Test Dependencies -->

@@ -1,12 +1,12 @@
 package org.ocpsoft.redoculous.config;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.ocpsoft.rewrite.servlet.config.response.ResponseContent;
 import org.ocpsoft.rewrite.servlet.config.response.ResponseContentInterceptor;
 import org.ocpsoft.rewrite.servlet.config.response.ResponseContentInterceptorChain;
@@ -18,13 +18,6 @@ import org.ocpsoft.urlbuilder.Address;
 @SuppressWarnings("deprecation")
 public class PreviewLinkInterceptor implements ResponseContentInterceptor
 {
-   private File root;
-
-   public PreviewLinkInterceptor(File root)
-   {
-      this.root = root;
-   }
-
    @Override
    public void intercept(HttpServletRewrite event, ResponseContent buffer, ResponseContentInterceptorChain chain)
    {
@@ -32,36 +25,27 @@ public class PreviewLinkInterceptor implements ResponseContentInterceptor
       Address address = event.getAddress();
 
       String contents = new String(buffer.getContents());
-      Pattern pattern = Pattern.compile("(<a[^>]+href\\s*=\\s*(?:[\"']))([^\"']+)");
-      Matcher matcher = pattern.matcher(contents);
-      StringBuffer temp = new StringBuffer();
-      while (matcher.find())
+      Document document = Jsoup.parse(contents, "UTF-8");
+      Elements links = document.getElementsByAttribute("href");
+      String requestedPath = event.getRequest().getParameter("path");
+
+      for (Element link : links)
       {
-         String linkPrefix = matcher.group(1);
-         String url = matcher.group(2);
-         String requestedPath = event.getRequest().getParameter("path");
-         String requestedRef = event.getRequest().getParameter("ref");
-         String requestedRepo = event.getRequest().getParameter("repo");
+         String url = link.attr("href");
 
-         File refDir = new File(root, SafeFileNameTransposition.toSafeFilename(requestedRepo) + "/refs/" + requestedRef);
-
-         File requestedFile = new File(refDir, requestedPath);
-         if (requestedFile.isDirectory())
-         {
-            requestedFile = new File(requestedFile, "index");
-            if (!requestedPath.endsWith("/"))
-               requestedPath = requestedPath + "/";
-
-            requestedPath = requestedPath + "index";
-         }
-
-         if (!url.matches("^(\\w+://|www\\.|/).*"))
+         if (!url.matches("^(\\w+://|www\\.|/).*") && !url.startsWith("#"))
          {
             URLBuilder urlBuilder = URLBuilder.createFrom(requestedPath);
             List<String> segments = new ArrayList<String>(urlBuilder.getSegments());
 
             if (url.startsWith("."))
             {
+               if (!urlBuilder.hasTrailingSlash())
+               {
+                  segments.remove(segments.size() - 1);
+                  urlBuilder.getMetadata().setTrailingSlash(true);
+               }
+
                while (!segments.isEmpty())
                {
                   if (url.startsWith("../"))
@@ -78,29 +62,25 @@ public class PreviewLinkInterceptor implements ResponseContentInterceptor
                }
             }
 
-            if (!requestedFile.isDirectory() && !segments.isEmpty())
-            {
-               segments.remove(segments.size() - 1);
-            }
+            String path = URLBuilder.createFrom(segments, urlBuilder.getMetadata()).toPath();
 
-            String result = URLBuilder.createFrom(segments, urlBuilder.getMetadata()).toPath();
-
-            if (!url.startsWith("/") && !result.endsWith("/"))
+            if (!url.startsWith("/") && !path.endsWith("/"))
             {
                url = "/" + url;
             }
 
-            result = result + url;
+            path = path + url;
 
             QueryStringBuilder query = QueryStringBuilder.createNew();
             query.addParameters(address.getQuery());
             query.removeParameter("path");
-            query.addParameter("path", result);
-            matcher.appendReplacement(temp, linkPrefix + query.toQueryString());
+            query.addParameter("path", path);
+
+            String result = address.getPath() + query.toQueryString();
+            link.attr("href", result);
          }
       }
-      matcher.appendTail(temp);
-      buffer.setContents(temp.toString().getBytes());
+      buffer.setContents(document.toString().getBytes());
    }
 
 }

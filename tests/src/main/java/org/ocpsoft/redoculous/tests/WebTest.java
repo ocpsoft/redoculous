@@ -22,9 +22,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
@@ -61,6 +64,57 @@ public final class WebTest
       if (!"/".equals(contextPath))
          contextPath = contextPath.replaceAll("^(.*)/$", "$1").replaceAll("ROOT$", "");
       return contextPath;
+   }
+
+   /**
+    * Request a resource from the deployed test-application. The {@link HttpServletRequest#getContextPath()} will be
+    * automatically prepended to the given path.
+    * <p>
+    * E.g: A path of '/example' will be sent as '/rewrite-test/example'
+    * 
+    * @throws Exception
+    */
+   public HttpAction<HttpDelete> delete(final String path) throws Exception
+   {
+      DefaultHttpClient client = new DefaultHttpClient();
+      return delete(client, path, new HashMap<String, String>());
+   }
+
+   /**
+    * Request a resource from the deployed test-application. The {@link HttpServletRequest#getContextPath()} will be
+    * automatically prepended to the given path.
+    * <p>
+    * E.g: A path of '/example' will be sent as '/rewrite-test/example'
+    * 
+    * @throws Exception
+    */
+   public HttpAction<HttpDelete> delete(HttpClient client, String path, Map<String, String> parameters)
+            throws Exception
+   {
+      return delete(client, path, parameters, new Header[0]);
+   }
+
+   /**
+    * Request a resource from the deployed test-application. The context path will be automatically prepended to the
+    * given path.
+    * <p>
+    * E.g: A path of '/example' will be sent as '/rewrite-test/example'
+    * 
+    * @throws Exception
+    */
+   public HttpAction<HttpDelete> delete(HttpClient client, String path, Map<String, String> parameters,
+            Header... headers)
+            throws Exception
+   {
+      HttpDelete request = new HttpDelete(getBaseURL() + getContextPath() + path);
+      if (headers != null && headers.length > 0)
+      {
+         request.setHeaders(headers);
+      }
+      HttpContext context = new BasicHttpContext();
+      HttpResponse response = client.execute(request, context);
+
+      return new HttpAction<HttpDelete>(client, context, request, response, getBaseURL(), getContextPath());
    }
 
    /**

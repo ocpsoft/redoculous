@@ -23,16 +23,24 @@ public class RedoculousTestBase
 
    public static WebArchive getDeployment()
    {
-      return ShrinkWrap.create(WebArchive.class)
+      WebArchive archive = ShrinkWrap.create(WebArchive.class)
                .addAsWebInfResource(new File(CURRENT_DIR.getParent(), "/app/src/main/webapp/WEB-INF/beans.xml"))
                .addAsWebInfResource(new File(CURRENT_DIR.getParent(), "/app/src/main/webapp/WEB-INF/web.xml"))
+               .addAsManifestResource(new File(CURRENT_DIR.getParent(), "/app/src/main/webapp/META-INF/jboss-deployment-structure.xml"))
                .addAsResource(new File(CURRENT_DIR.getParent(), "/app/target/classes/org"))
                .addAsResource(new File(CURRENT_DIR.getParent(), "/app/target/classes/META-INF"))
                .addAsLibraries(Maven.resolver()
                         .loadPomFromFile("pom.xml")
                         .resolve("org.ocpsoft.redoculous:redoculous-server:war:1.0.0-SNAPSHOT")
                         .using(new TransitiveOnlyStrategy())
+                        .asFile())
+               .addAsLibraries(Maven.resolver()
+                        .loadPomFromFile("pom.xml")
+                        .resolve("org.ocpsoft.redoculous:redoculous-server-api:1.0.0-SNAPSHOT")
+                        .withoutTransitivity()
                         .asFile());
+
+      return archive;
    }
 
 }
