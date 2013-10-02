@@ -9,6 +9,7 @@ package org.ocpsoft.redoculous.cache;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.ocpsoft.common.util.Assert;
 import org.ocpsoft.rewrite.servlet.config.encodequery.Base64EncodingStrategy;
 
 /**
@@ -18,8 +19,7 @@ import org.ocpsoft.rewrite.servlet.config.encodequery.Base64EncodingStrategy;
 public final class Keys
 {
    private Keys()
-   {
-   }
+   {}
 
    private static final Base64EncodingStrategy encoder = new Base64EncodingStrategy();
    private static MessageDigest digest;
@@ -50,6 +50,7 @@ public final class Keys
 
    public static String from(String value)
    {
+      Assert.notNull(value, "Seed value must not be null.");
       return hash(value);
    }
 

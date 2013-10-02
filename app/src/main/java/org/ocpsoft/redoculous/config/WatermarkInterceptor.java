@@ -18,7 +18,7 @@ public class WatermarkInterceptor implements ResponseContentInterceptor
                "font-size: 12px !important; " +
                "display: block !important; " +
                "visibility: visible !important;'>" +
-               "Rendered by " +
+               "Rendered with " +
                "<a style='opacity: 0.8;' href='http://redoculous.io'>redoculous</a> - by " +
                "<a style='opacity: 0.8;' href='http://ocpsoft.org/'>ocpsoft.org</a> &copy " + getYear() + "</center>";
       buffer.setContents(content.getBytes());

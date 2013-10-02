@@ -62,6 +62,11 @@ public class PreviewLinkInterceptor implements ResponseContentInterceptor
                }
             }
 
+            if (!urlBuilder.hasTrailingSlash() && !segments.isEmpty())
+            {
+               segments.remove(segments.size() - 1);
+            }
+
             String path = URLBuilder.createFrom(segments, urlBuilder.getMetadata()).toPath();
 
             if (!url.startsWith("/") && !path.endsWith("/"))
