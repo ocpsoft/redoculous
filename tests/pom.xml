@@ -50,6 +50,13 @@
       </dependency>
 
       <dependency>
+         <groupId>org.jboss.spec</groupId>
+         <artifactId>jboss-javaee-6.0</artifactId>
+         <scope>provided</scope>
+         <type>pom</type>
+      </dependency>
+
+      <dependency>
          <groupId>org.eclipse.jgit</groupId>
          <artifactId>org.eclipse.jgit</artifactId>
       </dependency>
