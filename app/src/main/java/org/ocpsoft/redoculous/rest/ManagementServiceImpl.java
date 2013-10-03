@@ -2,6 +2,7 @@ package org.ocpsoft.redoculous.rest;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
 import org.ocpsoft.redoculous.service.RepositoryService;
@@ -19,15 +20,17 @@ public class ManagementServiceImpl implements ManagementService
    }
 
    @Override
-   public void updateRepository(String repo) throws Exception
+   public Response updateRepository(String repo) throws Exception
    {
       rs.updateRepository(repo);
+      return Response.status(Status.OK).build();
    }
 
    @Override
-   public void purgeRepository(String repo) throws Exception
+   public Response purgeRepository(String repo) throws Exception
    {
       rs.purgeRepository(repo);
+      return Response.status(Status.OK).build();
    }
 
 }

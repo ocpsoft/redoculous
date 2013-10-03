@@ -57,24 +57,29 @@ public class RepositoryServiceImpl implements RepositoryService
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      Lock lock = gridLock.getLock(tx, repo);
-      lock.lock();
+      String result = render.resolveRendered(getGridRepository(repo), ref, path);
 
-      Repository gridRepo = getGridRepository(repo);
-      if (!gridRepo.getCachedRefDir(ref).exists())
+      if (result == null)
       {
+         Lock lock = gridLock.getLock(tx, repo);
+         lock.lock();
          try
          {
-            _doPrimeGridRepository(repo);
-            _doPrimeRef(repo, ref);
+            Repository gridRepo = getGridRepository(repo);
+            if (!gridRepo.getCachedRefDir(ref).exists())
+            {
+               _doPrimeGridRepository(repo);
+               _doPrimeRef(repo, ref);
+            }
          }
          finally
          {
             lock.unlock();
          }
+         result = render.resolveRendered(getGridRepository(repo), ref, path);
       }
 
-      return render.resolveRendered(getGridRepository(repo), ref, path);
+      return result;
    }
 
    private void _doPrimeRef(String repo, String ref)

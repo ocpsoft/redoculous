@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.tests.git;
+package org.ocpsoft.redoculous.tests.git.hooks;
 
 /*
  * Copyright 2011 <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -20,10 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.message.BasicNameValuePair;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -44,9 +48,8 @@ import org.ocpsoft.redoculous.util.Files;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @RunWith(Arquillian.class)
-public class DeleteAndReinitializeRepositoryTest extends RedoculousTestBase
+public class GithubPostCommitTest extends RedoculousTestBase
 {
-
    @Deployment(testable = false)
    public static WebArchive getDeployment()
    {
@@ -83,7 +86,7 @@ public class DeleteAndReinitializeRepositoryTest extends RedoculousTestBase
    }
 
    @Test
-   public void testInitializeRepositoryAndServeAsciidoc() throws Exception
+   public void testPostUpdateHook() throws Exception
    {
       WebTest test = new WebTest(baseUrl);
       String repositoryURL = "file://" + repository.getAbsolutePath();
@@ -99,12 +102,12 @@ public class DeleteAndReinitializeRepositoryTest extends RedoculousTestBase
       Assert.assertTrue(document.getResponseContent().startsWith("<h1"));
       Assert.assertTrue(documentFull.getResponseContent().startsWith("<h1"));
 
-      HttpAction<HttpDelete> delete = test.delete("/api/v1/manage?repo=" + repositoryURL);
-      Assert.assertEquals(200, delete.getStatusCode());
-
       Files.write(this.document, getClass().getClassLoader().getResourceAsStream("asciidoc/notoc.asciidoc"));
       repo.add().addFilepattern("document.asciidoc").call();
       repo.commit().setMessage("No table of contents.").call();
+
+      HttpAction<HttpPost> postCommit = test.post("/api/v1/hooks/github?repo=" + repositoryURL);
+      Assert.assertEquals(200, postCommit.getStatusCode());
 
       document = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=document");
       documentFull = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=document");

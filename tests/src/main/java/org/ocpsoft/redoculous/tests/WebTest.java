@@ -19,18 +19,18 @@ package org.ocpsoft.redoculous.tests;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -77,21 +77,7 @@ public final class WebTest
    public HttpAction<HttpDelete> delete(final String path) throws Exception
    {
       DefaultHttpClient client = new DefaultHttpClient();
-      return delete(client, path, new HashMap<String, String>());
-   }
-
-   /**
-    * Request a resource from the deployed test-application. The {@link HttpServletRequest#getContextPath()} will be
-    * automatically prepended to the given path.
-    * <p>
-    * E.g: A path of '/example' will be sent as '/rewrite-test/example'
-    * 
-    * @throws Exception
-    */
-   public HttpAction<HttpDelete> delete(HttpClient client, String path, Map<String, String> parameters)
-            throws Exception
-   {
-      return delete(client, path, parameters, new Header[0]);
+      return delete(client, path, new Header[] {});
    }
 
    /**
@@ -102,8 +88,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   public HttpAction<HttpDelete> delete(HttpClient client, String path, Map<String, String> parameters,
-            Header... headers)
+   public HttpAction<HttpDelete> delete(HttpClient client, String path, Header... headers)
             throws Exception
    {
       HttpDelete request = new HttpDelete(getBaseURL() + getContextPath() + path);
@@ -128,7 +113,7 @@ public final class WebTest
    public HttpAction<HttpPost> post(final String path) throws Exception
    {
       DefaultHttpClient client = new DefaultHttpClient();
-      return post(client, path, new HashMap<String, String>());
+      return post(client, path, null, new Header[] {});
    }
 
    /**
@@ -139,9 +124,10 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   public HttpAction<HttpPost> post(HttpClient client, String path, Map<String, String> parameters) throws Exception
+   public HttpAction<HttpPost> post(final String path, HttpEntity entity) throws Exception
    {
-      return post(client, path, parameters, new Header[0]);
+      DefaultHttpClient client = new DefaultHttpClient();
+      return post(client, path, entity, new Header[] {});
    }
 
    /**
@@ -152,8 +138,7 @@ public final class WebTest
     * 
     * @throws Exception
     */
-   public HttpAction<HttpPost> post(HttpClient client, String path, Map<String, String> parameters,
-            Header... headers)
+   public HttpAction<HttpPost> post(HttpClient client, String path, HttpEntity entity, Header... headers)
             throws Exception
    {
       HttpPost request = new HttpPost(getBaseURL() + getContextPath() + path);
@@ -161,6 +146,11 @@ public final class WebTest
       {
          request.setHeaders(headers);
       }
+      if (entity != null)
+      {
+         request.setEntity(entity);
+      }
+      request.setEntity(null);
       HttpContext context = new BasicHttpContext();
       HttpResponse response = client.execute(request, context);
 
