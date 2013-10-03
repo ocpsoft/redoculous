@@ -23,6 +23,7 @@ import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
+import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.util.Files;
 import org.ocpsoft.rewrite.exception.RewriteException;
@@ -33,6 +34,7 @@ import org.ocpsoft.rewrite.exception.RewriteException;
  */
 public class GitRepository extends AbstractRepository implements Repository
 {
+   private static final Logger log = Logger.getLogger(GitRepository.class);
    private static final long serialVersionUID = -6134354415109722452L;
 
    private Set<String> refs;
@@ -198,7 +200,7 @@ public class GitRepository extends AbstractRepository implements Repository
 
       if (!refDir.exists())
       {
-         System.out.println("Creating ref copy [" + getUrl() + "] [" + ref + "]");
+         log.info("Creating ref copy [" + getUrl() + "] [" + ref + "]");
          refDir.mkdirs();
          refCacheDir.mkdirs();
          Git git = null;
@@ -209,7 +211,7 @@ public class GitRepository extends AbstractRepository implements Repository
             git.clean().setCleanDirectories(true).call();
             git.checkout().setName(ref).call();
 
-            System.out.println("Deleting cache for [" + getUrl() + "] [" + ref + "]");
+            log.info("Deleting cache for [" + getUrl() + "] [" + ref + "]");
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
@@ -252,7 +254,7 @@ public class GitRepository extends AbstractRepository implements Repository
       RedoculousProgressMonitor monitor = new RedoculousProgressMonitor();
       try
       {
-         System.out.println("Handling update request for [" + getUrl() + "]");
+         log.info("Handling update request for [" + getUrl() + "]");
          git = Git.open(repoDir);
 
          git.fetch()
