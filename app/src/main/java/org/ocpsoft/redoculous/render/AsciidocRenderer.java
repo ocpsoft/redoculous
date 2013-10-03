@@ -24,8 +24,7 @@ public class AsciidocRenderer implements Renderer
    private ScriptingContainer container;
 
    public AsciidocRenderer()
-   {
-   }
+   {}
 
    @Inject
    public AsciidocRenderer(ScriptingContainer container)

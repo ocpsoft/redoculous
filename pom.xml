@@ -31,6 +31,7 @@
       <version.junit>4.8.1</version.junit>
       <version.jsoup>1.7.2</version.jsoup>
       <version.gson>2.2.2</version.gson>
+      <version.shrinkwrap>1.2.0</version.shrinkwrap>
    </properties>
 
    <dependencyManagement>
@@ -70,7 +71,6 @@
             <artifactId>rewrite-transform-minify</artifactId>
             <version>${version.rewrite}</version>
          </dependency>
-
 
          <dependency>
             <groupId>org.eclipse.jgit</groupId>

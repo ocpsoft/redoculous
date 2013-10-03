@@ -8,6 +8,7 @@ package org.ocpsoft.redoculous.model.impl;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,12 +19,12 @@ import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.util.Files;
-import org.ocpsoft.redoculous.util.GitUtils;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 /**
@@ -53,8 +54,8 @@ public class GitRepository extends AbstractRepository implements Repository
       Git git = null;
       try
       {
-         git = GitUtils.git(getBaseDir());
-         return GitUtils.getCurrentBranchName(git);
+         git = git(getBaseDir());
+         return git.getRepository().getBranch();
       }
       catch (Exception e)
       {
@@ -63,7 +64,32 @@ public class GitRepository extends AbstractRepository implements Repository
       finally
       {
          if (git != null)
-            GitUtils.close(git);
+            git.getRepository().close();
+      }
+   }
+
+   public List<String> getLogForCurrentBranch() throws GitAPIException
+   {
+      Git git = null;
+      try
+      {
+         git = git(getBaseDir());
+         List<String> results = new ArrayList<String>();
+         Iterable<RevCommit> commits = git.log().call();
+
+         for (RevCommit commit : commits)
+            results.add(commit.getFullMessage());
+
+         return results;
+      }
+      catch (Exception e)
+      {
+         throw new RuntimeException("Failed to get log for repository [" + getUrl() + "]", e);
+      }
+      finally
+      {
+         if (git != null)
+            git.getRepository().close();
       }
    }
 
@@ -99,13 +125,13 @@ public class GitRepository extends AbstractRepository implements Repository
             {
                if (git != null)
                {
-                  GitUtils.close(git);
+                  git.getRepository().close();
                }
             }
          }
          catch (Exception e)
          {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to get list of active refs.", e);
          }
       }
       return refs;
@@ -129,6 +155,7 @@ public class GitRepository extends AbstractRepository implements Repository
 
       if (!getRepoDir().exists())
       {
+         RedoculousProgressMonitor monitor = new RedoculousProgressMonitor();
          try
          {
             getRepoDir().mkdirs();
@@ -138,17 +165,17 @@ public class GitRepository extends AbstractRepository implements Repository
             Git git = Git.cloneRepository().setURI(getUrl())
                      .setRemote("origin").setCloneAllBranches(true)
                      .setDirectory(getRepoDir())
-                     .setProgressMonitor(new TextProgressMonitor()).call();
+                     .setProgressMonitor(monitor).call();
 
             try
             {
                git.fetch().setRemote("origin").setTagOpt(TagOpt.FETCH_TAGS)
                         .setThin(false).setTimeout(10)
-                        .setProgressMonitor(new TextProgressMonitor()).call();
+                        .setProgressMonitor(monitor).call();
             }
             finally
             {
-               GitUtils.close(git);
+               git.getRepository().close();
             }
 
          }
@@ -199,7 +226,7 @@ public class GitRepository extends AbstractRepository implements Repository
          {
             if (git != null)
             {
-               GitUtils.close(git);
+               git.getRepository().close();
                git = null;
             }
             Files.delete(refDir, true);
@@ -210,7 +237,7 @@ public class GitRepository extends AbstractRepository implements Repository
          {
             if (git != null)
             {
-               GitUtils.close(git);
+               git.getRepository().close();
             }
          }
       }
@@ -222,6 +249,7 @@ public class GitRepository extends AbstractRepository implements Repository
       File repoDir = getRepoDir();
 
       Git git = null;
+      RedoculousProgressMonitor monitor = new RedoculousProgressMonitor();
       try
       {
          System.out.println("Handling update request for [" + getUrl() + "]");
@@ -231,13 +259,13 @@ public class GitRepository extends AbstractRepository implements Repository
                   .setTagOpt(TagOpt.FETCH_TAGS)
                   .setRemote("origin")
                   .setRefSpecs(new RefSpec("+refs/heads/*:refs/remotes/origin/*"))
-                  .setProgressMonitor(new TextProgressMonitor()).call();
+                  .setProgressMonitor(monitor).call();
 
          git.fetch()
                   .setTagOpt(TagOpt.FETCH_TAGS)
                   .setRemote("origin")
                   .setRefSpecs(new RefSpec("+refs/tags/*:refs/tags/*"))
-                  .setProgressMonitor(new TextProgressMonitor()).call();
+                  .setProgressMonitor(monitor).call();
 
          git.reset().setMode(ResetType.HARD)
                   .setRef("refs/remotes/origin/" + git.getRepository().getBranch())
@@ -248,11 +276,6 @@ public class GitRepository extends AbstractRepository implements Repository
          Files.delete(getRefsDir(), true);
          Files.delete(getCacheDir(), true);
       }
-      catch (GitAPIException e)
-      {
-         throw new RewriteException(
-                  "Could not pull from git repository.", e);
-      }
       catch (Exception e)
       {
          throw new RuntimeException("Could not update repository [" + getUrl() + "]", e);
@@ -260,10 +283,7 @@ public class GitRepository extends AbstractRepository implements Repository
       finally
       {
          if (git != null)
-         {
-            GitUtils.close(git);
-
-         }
+            git.getRepository().close();
       }
    }
 
@@ -271,5 +291,11 @@ public class GitRepository extends AbstractRepository implements Repository
    public String toString()
    {
       return getBaseDir().toString();
+   }
+
+   private Git git(final File dir) throws IOException
+   {
+      RepositoryBuilder db = new RepositoryBuilder().findGitDir(dir);
+      return new Git(db.build());
    }
 }

@@ -91,7 +91,9 @@ public class RepositoryServiceImpl implements RepositoryService
          Repository localRepo = getLocalRepository(repo);
          try
          {
-            io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+            localRepo.getBaseDir().mkdirs();
+            io.copyFileFromGrid(gfs, gridRepo.getRepoArchive(), localRepo.getRepoArchive());
+            localRepo.decompress();
             localRepo.initRef(ref);
             io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
          }
@@ -126,10 +128,13 @@ public class RepositoryServiceImpl implements RepositoryService
                purgeLocalRepository(repo);
                try
                {
-                  io.copyDirectoryFromGrid(gfs, gridRepo.getRepoDir(), localRepo.getRepoDir());
+                  localRepo.getBaseDir().mkdirs();
+                  io.copyFileFromGrid(gfs, gridRepo.getRepoArchive(), localRepo.getRepoArchive());
+                  localRepo.decompress();
                   localRepo.update();
-                  purgeGridRepository(repo);
                   setRepositoryRefs(repo, localRepo.getRefs());
+                  localRepo.compress();
+                  purgeGridRepository(repo);
                   io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
                   log.info("Update: [" + repo + "] - From grid. Success.");
                }
@@ -201,8 +206,20 @@ public class RepositoryServiceImpl implements RepositoryService
       if (cachedRepo != null && cachedRepo.getBaseDir().exists())
       {
          clearRepositoryRefs(repo);
-         Files.delete(cachedRepo.getBaseDir(), true);
-         log.info("Purge: [" + repo + "] - From grid. Success.");
+
+         // TODO This doesn't seem right - should probably find out why the files can't be deleted.
+         int retriesLeft = 5;
+         boolean deleted = Files.delete(cachedRepo.getBaseDir(), true);
+         while (!deleted && retriesLeft > 0)
+         {
+            retriesLeft--;
+            deleted = Files.delete(cachedRepo.getBaseDir(), true);
+         }
+
+         if (deleted)
+            log.info("Purge: [" + repo + "] - From grid. Success.");
+         else
+            throw new RuntimeException("Purge: [" + repo + "] - From grid. Failed.");
       }
       else
       {
@@ -264,6 +281,7 @@ public class RepositoryServiceImpl implements RepositoryService
             localRepo.init();
             localRepo.update();
             setRepositoryRefs(repo, localRepo.getRefs());
+            localRepo.compress();
             io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
          }
          finally

@@ -8,8 +8,15 @@ package org.ocpsoft.redoculous.model.impl;
 
 import java.io.File;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.UnzipParameters;
+import net.lingala.zip4j.model.ZipParameters;
+
+import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.cache.Keys;
 import org.ocpsoft.redoculous.model.Repository;
+import org.ocpsoft.redoculous.util.Files;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -17,6 +24,7 @@ import org.ocpsoft.redoculous.model.Repository;
  */
 public abstract class AbstractRepository implements Repository
 {
+   private static final Logger log = Logger.getLogger(AbstractRepository.class);
    private static final long serialVersionUID = -6024964348584778584L;
 
    private String url;
@@ -43,6 +51,12 @@ public abstract class AbstractRepository implements Repository
    public File getRepoDir()
    {
       return adapter.newFile(getBaseDir(), "repo");
+   }
+
+   @Override
+   public File getRepoArchive()
+   {
+      return adapter.newFile(getBaseDir(), "repo.zip");
    }
 
    @Override
@@ -81,4 +95,51 @@ public abstract class AbstractRepository implements Repository
       return url;
    }
 
+   @Override
+   public void compress()
+   {
+      log.info("Compressing repository [" + getUrl() + "].");
+      try {
+         if (getRepoArchive().isFile())
+            getRepoArchive().delete();
+
+         ZipFile zipFile = new ZipFile(getRepoArchive());
+         ZipParameters parameters = new ZipParameters();
+         parameters.setIncludeRootFolder(false);
+         parameters.setReadHiddenFiles(true);
+         zipFile.createZipFileFromFolder(getRepoDir(), parameters, false, 0);
+      }
+      catch (ZipException e) {
+         throw new RuntimeException("Could not compress repository: " + getRepoDir(), e);
+      }
+   }
+
+   @Override
+   public void decompress()
+   {
+      log.info("Decompressing repository [" + getUrl() + "].");
+      try {
+         if (getRepoDir().isDirectory())
+         {
+            for (File file : getRepoDir().listFiles()) {
+               Files.delete(file, true);
+            }
+         }
+         else
+            getRepoDir().mkdirs();
+
+         ZipFile zipFile = new ZipFile(getRepoArchive());
+         UnzipParameters parameters = new UnzipParameters();
+         parameters.setIgnoreAllFileAttributes(false);
+         parameters.setIgnoreArchiveFileAttribute(false);
+         parameters.setIgnoreDateTimeAttributes(false);
+         parameters.setIgnoreHiddenFileAttribute(false);
+         parameters.setIgnoreReadOnlyFileAttribute(false);
+         parameters.setIgnoreSystemFileAttribute(false);
+         zipFile.extractAll(getRepoDir().toString(), parameters);
+      }
+      catch (ZipException e) {
+         throw new RuntimeException("Could not decompress repository: " + getRepoDir(), e);
+      }
+   }
 }

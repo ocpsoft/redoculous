@@ -25,6 +25,18 @@ import org.ocpsoft.redoculous.model.impl.FileAdapter;
  */
 public class FileOperations
 {
+   public void copyFileFromGrid(GridFilesystem gfs, File source, File destination)
+   {
+      try
+      {
+         doCopyFile(new GridFileAdapter(gfs), new NativeFileAdapter(), source, destination);
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException("Could not replicate directory from GridFilesystem", e);
+      }
+   }
+
    public void copyDirectoryFromGrid(GridFilesystem gfs, File source, File destination)
    {
       try
@@ -34,6 +46,19 @@ public class FileOperations
       catch (IOException e)
       {
          throw new RuntimeException("Could not replicate directory from GridFilesystem", e);
+      }
+   }
+
+   public void copyFileToGrid(GridFilesystem gfs, File source, File destination)
+   {
+      try
+      {
+         doCopyFile(new NativeFileAdapter(), new GridFileAdapter(gfs), source,
+                  gfs.getFile(destination.getAbsolutePath()));
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException("Could not replicate directory to GridFilesystem", e);
       }
    }
 

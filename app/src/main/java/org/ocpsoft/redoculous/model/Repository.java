@@ -50,6 +50,8 @@ public interface Repository extends Serializable
 
    File getBaseDir();
 
+   File getRepoArchive();
+
    File getRepoDir();
 
    File getCacheDir();
@@ -59,5 +61,9 @@ public interface Repository extends Serializable
    File getRefsDir();
 
    File getRefDir(String ref);
+   
+   void compress();
+   
+   void decompress();
 
 }

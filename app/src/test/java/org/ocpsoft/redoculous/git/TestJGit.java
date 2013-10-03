@@ -10,7 +10,6 @@ import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.TagOpt;
 import org.junit.Before;
@@ -167,7 +166,6 @@ public class TestJGit
 
       PullResult pullResult = git.pull()
                .setTimeout(10)
-               .setProgressMonitor(new TextProgressMonitor())
                .setRebase(false)
                .call();
 
