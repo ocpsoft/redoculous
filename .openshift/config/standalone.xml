@@ -228,13 +228,13 @@
                   <transaction mode="FULL_XA" locking="PESSIMISTIC" stop-timeout="30000"/>
                </distributed-cache>
                
-               <distributed-cache name="filesystem.content" mode="SYNC" owners="2" start="LAZY">
+               <distributed-cache name="filesystem.content" mode="ASYNC" owners="2" start="LAZY" batching="true" remote-timeout="30000">
                   <locking isolation="REPEATABLE_READ" />
                   <file-store passivation="true" preload="true" path="redoculous" />
                   <eviction strategy="NONE" max-entries="-1"/>
                </distributed-cache>
                
-               <replicated-cache name="filesystem.metadata" mode="SYNC" start="LAZY">
+               <replicated-cache name="filesystem.metadata" mode="ASYNC" start="LAZY" remote-timeout="30000">
                   <file-store passivation="true" preload="true" path="redoculous" />
                   <locking isolation="REPEATABLE_READ" />
                   <eviction strategy="NONE" max-entries="-1"/>
