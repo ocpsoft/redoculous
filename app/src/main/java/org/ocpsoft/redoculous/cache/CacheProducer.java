@@ -25,9 +25,9 @@ public class CacheProducer
    private EmbeddedCacheManager cacheManager;
 
    public static final String DEFAULT = "default";
-   private static final String REPO_CACHE_LOCK = "repository.cache.lock";
-   private static final String REPO_CACHE_FILESYSTEM = "repository.cache.filesystem";
-   private static final String REPO_CACHE_METADATA = "repository.cache.metadata";
+   private static final String REPO_CACHE_LOCK = "grid.lock";
+   private static final String REPO_CACHE_FILESYSTEM = "filesystem.content";
+   private static final String REPO_CACHE_METADATA = "filesystem.metadata";
 
    @Produces
    @Singleton

@@ -213,31 +213,31 @@
 			<iiop enable-by-default="false" use-qualified-name="false" />
 		</subsystem>
 		<subsystem xmlns="urn:jboss:domain:infinispan:1.3">
-			<cache-container name="cluster" aliases="ha-partition" jndi-name="java:jboss/infinispan/cluster" default-cache="default">
+			<cache-container name="redoculous" aliases="ha-partition" jndi-name="java:jboss/infinispan/redoculous-cluster" default-cache="default">
 			   <transport />
             
 			   <distributed-cache name="default" mode="SYNC" owners="2" start="LAZY">
                   <locking isolation="REPEATABLE_READ"/>
-                  <file-store passivation="true" preload="true" path="cache-data"></file-store>
+                  <file-store passivation="true" preload="true" path="redoculous"></file-store>
                   <eviction strategy="LIRS" max-entries="10000"/>
                </distributed-cache>
                
-               <distributed-cache name="repository.cache.lock" mode="SYNC" owners="2" start="LAZY" remote-timeout="300000">
+               <distributed-cache name="grid.lock" mode="SYNC" owners="2" start="LAZY" remote-timeout="300000">
                   <locking acquire-timeout="300000"/>
                   <file-store passivation="false" fetch-state="false" />
                   <transaction mode="FULL_XA" locking="PESSIMISTIC" stop-timeout="30000"/>
                </distributed-cache>
                
-               <distributed-cache name="repository.cache.filesystem" mode="SYNC" owners="2" start="LAZY">
+               <distributed-cache name="filesystem.content" mode="SYNC" owners="2" start="LAZY">
                   <locking isolation="REPEATABLE_READ" />
-                  <file-store passivation="true" preload="true" path="cache-data" />
-                  <eviction strategy="LIRS" max-entries="10000"/>
+                  <file-store passivation="true" preload="true" path="redoculous" />
+                  <eviction strategy="NONE" max-entries="-1"/>
                </distributed-cache>
                
-               <replicated-cache name="repository.cache.metadata" mode="SYNC" start="LAZY">
-                  <file-store passivation="true" preload="true" path="cache-data" />
+               <replicated-cache name="filesystem.metadata" mode="SYNC" start="LAZY">
+                  <file-store passivation="true" preload="true" path="redoculous" />
                   <locking isolation="REPEATABLE_READ" />
-                  <eviction strategy="LIRS" max-entries="10000"/>
+                  <eviction strategy="NONE" max-entries="-1"/>
                </replicated-cache>
                
 			</cache-container>

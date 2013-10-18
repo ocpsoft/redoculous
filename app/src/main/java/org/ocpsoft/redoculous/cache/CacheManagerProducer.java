@@ -10,6 +10,6 @@ import org.infinispan.manager.EmbeddedCacheManager;
 public class CacheManagerProducer
 {
    @Produces
-   @Resource(lookup = "java:jboss/infinispan/cluster")
+   @Resource(lookup = "java:jboss/infinispan/redoculous-cluster")
    private static EmbeddedCacheManager container;
 }
