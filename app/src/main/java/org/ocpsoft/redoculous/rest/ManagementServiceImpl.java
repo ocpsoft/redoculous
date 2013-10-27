@@ -27,14 +27,14 @@ public class ManagementServiceImpl implements ManagementService
    }
 
    @Override
-   public Response updateRepository(String repo) throws Exception
+   public Response updateRepository(String repo)
    {
       rs.updateRepository(repo);
       return Response.status(Status.OK).build();
    }
 
    @Override
-   public Response purgeRepository(String repo) throws Exception
+   public Response purgeRepository(String repo)
    {
       rs.purgeRepository(repo);
       return Response.status(Status.OK).build();

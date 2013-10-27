@@ -22,8 +22,8 @@ public interface ManagementService
    public Response init(@QueryParam("repo") String repo);
 
    @PUT
-   public Response updateRepository(@QueryParam("repo") String repo) throws Exception;
+   public Response updateRepository(@QueryParam("repo") String repo);
 
    @DELETE
-   public Response purgeRepository(@QueryParam("repo") String repo) throws Exception;
+   public Response purgeRepository(@QueryParam("repo") String repo);
 }

@@ -99,10 +99,15 @@ public class RepositoryServiceImpl implements RepositoryService
             localRepo.decompress();
             localRepo.initRef(ref);
             io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
+            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
+         }
+         catch (RuntimeException e)
+         {
+            setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+            throw e;
          }
          finally
          {
-            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
             purgeLocalRepository(repo);
          }
       }
@@ -142,10 +147,15 @@ public class RepositoryServiceImpl implements RepositoryService
                   purgeGridRepository(repo);
                   io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
                   log.info("Update: [" + repo + "] - From grid. Success.");
+                  setStatus(repo, new RepositoryStatus(State.INITIALIZED));
+               }
+               catch (RuntimeException e)
+               {
+                  setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+                  throw e;
                }
                finally
                {
-                  setStatus(repo, new RepositoryStatus(State.INITIALIZED));
                   purgeLocalRepository(repo);
                }
             }
@@ -175,10 +185,15 @@ public class RepositoryServiceImpl implements RepositoryService
          setStatus(repo, new RepositoryStatus(State.PURGING, repo));
          purgeLocalRepository(repo);
          purgeGridRepository(repo);
+         removeStatus(repo);
+      }
+      catch (RuntimeException e)
+      {
+         setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+         throw e;
       }
       finally
       {
-         removeStatus(repo);
          lock.unlock();
       }
    }
@@ -292,10 +307,15 @@ public class RepositoryServiceImpl implements RepositoryService
             setRepositoryRefs(repo, localRepo.getRefs());
             localRepo.compress();
             io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
+            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
+         }
+         catch (RuntimeException e)
+         {
+            setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+            throw e;
          }
          finally
          {
-            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
             purgeLocalRepository(repo);
          }
       }

@@ -6,6 +6,8 @@
  */
 package org.ocpsoft.redoculous.rest.model;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -14,12 +16,14 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @XmlRootElement
-public class RepositoryStatus
+public class RepositoryStatus implements Serializable
 {
+   private static final long serialVersionUID = 5934745054083782293L;
+
    @XmlEnum
    public static enum State
    {
-      MISSING, CLONING, INITIALIZED, CHECKOUT_REF, UPDATING, PURGING
+      MISSING, CLONING, INITIALIZED, CHECKOUT_REF, UPDATING, PURGING, ERROR
    }
 
    @XmlElement(required = true)
