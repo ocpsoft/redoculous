@@ -6,6 +6,8 @@
  */
 package org.ocpsoft.redoculous.rest.model;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -14,12 +16,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class RepositoryStatus
 {
+   @XmlEnum
    public static enum State
    {
       MISSING, CLONING, INITIALIZED, CHECKOUT_REF, UPDATING, PURGING
    }
 
-   private State state;
+   @XmlElement(required = true)
+   private State state = State.MISSING;
+
+   @XmlElement(required = true)
    private String message;
 
    public RepositoryStatus()
