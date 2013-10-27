@@ -22,6 +22,8 @@ import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.cache.Keys;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.model.impl.GitRepository;
+import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
+import org.ocpsoft.redoculous.rest.model.RepositoryStatus.State;
 import org.ocpsoft.redoculous.service.RepositoryService;
 import org.ocpsoft.redoculous.util.Files;
 
@@ -49,7 +51,7 @@ public class RepositoryServiceImpl implements RepositoryService
    private GridLock gridLock;
 
    @Inject
-   UserTransaction tx;
+   private UserTransaction tx;
 
    @Override
    public String getRenderedContent(String repo, String ref, String path)
@@ -91,6 +93,7 @@ public class RepositoryServiceImpl implements RepositoryService
          Repository localRepo = getLocalRepository(repo);
          try
          {
+            setStatus(repo, new RepositoryStatus(State.CHECKOUT_REF, ref));
             localRepo.getBaseDir().mkdirs();
             io.copyFileFromGrid(gfs, gridRepo.getRepoArchive(), localRepo.getRepoArchive());
             localRepo.decompress();
@@ -99,6 +102,7 @@ public class RepositoryServiceImpl implements RepositoryService
          }
          finally
          {
+            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
             purgeLocalRepository(repo);
          }
       }
@@ -128,6 +132,7 @@ public class RepositoryServiceImpl implements RepositoryService
                purgeLocalRepository(repo);
                try
                {
+                  setStatus(repo, new RepositoryStatus(State.UPDATING));
                   localRepo.getBaseDir().mkdirs();
                   io.copyFileFromGrid(gfs, gridRepo.getRepoArchive(), localRepo.getRepoArchive());
                   localRepo.decompress();
@@ -140,6 +145,7 @@ public class RepositoryServiceImpl implements RepositoryService
                }
                finally
                {
+                  setStatus(repo, new RepositoryStatus(State.INITIALIZED));
                   purgeLocalRepository(repo);
                }
             }
@@ -166,11 +172,13 @@ public class RepositoryServiceImpl implements RepositoryService
       lock.lock();
       try
       {
+         setStatus(repo, new RepositoryStatus(State.PURGING, repo));
          purgeLocalRepository(repo);
          purgeGridRepository(repo);
       }
       finally
       {
+         removeStatus(repo);
          lock.unlock();
       }
    }
@@ -277,6 +285,7 @@ public class RepositoryServiceImpl implements RepositoryService
       {
          try
          {
+            setStatus(repo, new RepositoryStatus(State.CLONING));
             Repository localRepo = getLocalRepository(repo);
             localRepo.init();
             localRepo.update();
@@ -286,9 +295,29 @@ public class RepositoryServiceImpl implements RepositoryService
          }
          finally
          {
+            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
             purgeLocalRepository(repo);
          }
       }
       return gridRepository;
+   }
+
+   @Override
+   public RepositoryStatus getStatus(String repo)
+   {
+      RepositoryStatus status = (RepositoryStatus) defaultCache.get(Keys.from("status:" + repo));
+      if (status == null)
+         status = new RepositoryStatus(State.MISSING);
+      return status;
+   }
+
+   private void setStatus(String repo, RepositoryStatus status)
+   {
+      defaultCache.put(Keys.from("status:" + repo), status);
+   }
+
+   private void removeStatus(String repo)
+   {
+      defaultCache.remove(Keys.from("status:" + repo));
    }
 }

@@ -9,6 +9,7 @@ package org.ocpsoft.redoculous.service;
 import java.util.Set;
 
 import org.ocpsoft.redoculous.model.Repository;
+import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
 
 /**
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -27,4 +28,6 @@ public interface RepositoryService
    Repository getRepository(String repo);
 
    Set<String> getRepositoryRefs(String repo);
+
+   RepositoryStatus getStatus(String repo);
 }
