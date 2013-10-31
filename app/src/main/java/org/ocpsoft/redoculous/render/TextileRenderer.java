@@ -48,7 +48,7 @@ public class TextileRenderer implements Renderer
    }
 
    @Override
-   public void render(InputStream inputStream, OutputStream outputStream)
+   public void render(RenderRequest request, InputStream inputStream, OutputStream outputStream)
    {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
       Streams.copy(inputStream, bos);

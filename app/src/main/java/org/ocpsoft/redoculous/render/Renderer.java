@@ -9,5 +9,5 @@ public interface Renderer
 
    String getName();
 
-   void render(InputStream source, OutputStream output);
+   void render(RenderRequest request, InputStream source, OutputStream output);
 }

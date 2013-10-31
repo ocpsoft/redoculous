@@ -20,6 +20,7 @@ import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.model.Repository;
+import org.ocpsoft.redoculous.render.RenderRequest;
 import org.ocpsoft.redoculous.render.Renderer;
 
 public class RenderService
@@ -39,8 +40,12 @@ public class RenderService
    @Inject
    private UserTransaction tx;
 
-   public String resolveRendered(Repository repo, String ref, String path)
+   public String resolveRendered(RenderRequest request)
    {
+      Repository repo = request.getRepository();
+      String ref = request.getRef();
+      String path = request.getPath();
+
       File source = resolvePath(repo.getRefDir(ref), path);
       if (source != null && source.isFile())
       {
@@ -59,7 +64,7 @@ public class RenderService
                      {
                         if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
                         {
-                           render(renderer, source, (GridFile) result);
+                           render(renderer, request, source, (GridFile) result);
                            log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Complete.");
                            break LOOP;
                         }
@@ -94,6 +99,27 @@ public class RenderService
       return null;
    }
 
+   public String resolveUnRendered(RenderRequest request)
+   {
+      Repository repo = request.getRepository();
+      String ref = request.getRef();
+      String path = request.getPath();
+
+      File source = resolvePath(repo.getRefDir(ref), path);
+      if (source != null && source.isFile())
+      {
+         try
+         {
+            return Streams.toString(gfs.getInput(source));
+         }
+         catch (FileNotFoundException e)
+         {
+            throw new RuntimeException(e);
+         }
+      }
+      return null;
+   }
+
    private String getRelativePath(File base, File source)
    {
       String relative = source.getAbsolutePath().substring(base.getAbsolutePath().length(),
@@ -105,7 +131,7 @@ public class RenderService
       return relative;
    }
 
-   private void render(Renderer renderer, File source, GridFile result)
+   private void render(Renderer renderer, RenderRequest request, File source, GridFile result)
    {
       InputStream input = null;
       OutputStream output = null;
@@ -117,7 +143,7 @@ public class RenderService
          result.createNewFile();
          input = new BufferedInputStream(gfs.getInput(source));
          output = new BufferedOutputStream(gfs.getOutput(result));
-         renderer.render(input, output);
+         renderer.render(request, input, output);
       }
       catch (Exception e)
       {

@@ -22,6 +22,7 @@ import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.cache.Keys;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.model.impl.GitRepository;
+import org.ocpsoft.redoculous.render.RenderRequest;
 import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
 import org.ocpsoft.redoculous.rest.model.RepositoryStatus.State;
 import org.ocpsoft.redoculous.service.RepositoryService;
@@ -59,7 +60,7 @@ public class RepositoryServiceImpl implements RepositoryService
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      String result = render.resolveRendered(getGridRepository(repo), ref, path);
+      String result = render.resolveRendered(new RenderRequest(getGridRepository(repo), ref, path));
 
       if (result == null)
       {
@@ -78,7 +79,7 @@ public class RepositoryServiceImpl implements RepositoryService
          {
             lock.unlock();
          }
-         result = render.resolveRendered(getGridRepository(repo), ref, path);
+         result = render.resolveRendered(new RenderRequest(getGridRepository(repo), ref, path));
       }
 
       return result;

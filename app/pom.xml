@@ -49,6 +49,13 @@
          <artifactId>rewrite-transform-minify</artifactId>
       </dependency>
 
+      <!-- Asciidoctor -->
+      <dependency>
+         <groupId>org.asciidoctor</groupId>
+         <artifactId>asciidoctor-java-integration</artifactId>
+         <version>0.1.4</version>
+      </dependency>
+
       <!-- Compression -->
       <dependency>
          <groupId>net.lingala.zip4j</groupId>

@@ -1,43 +1,33 @@
 package org.ocpsoft.redoculous.render;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Stack;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
-import org.jruby.embed.ScriptingContainer;
-import org.ocpsoft.common.util.Streams;
+import jline.internal.InputStreamReader;
 
-@ApplicationScoped
+import org.asciidoctor.Options;
+import org.asciidoctor.SafeMode;
+import org.ocpsoft.rewrite.exception.RewriteException;
+
+@RequestScoped
 public class AsciidocRenderer implements Renderer
 {
-   private static final Charset UTF8 = Charset.forName("UTF8");
-   private final static String SCRIPT = "require 'asciidoctor'\n" +
-            "Asciidoctor.render(input)\n";
-
-   private ScriptingContainer container;
-
-   public AsciidocRenderer()
-   {}
-
    @Inject
-   public AsciidocRenderer(ScriptingContainer container)
-   {
-      this.container = container;
-      List<String> loadPaths = Arrays.asList("ruby/asciidoctor/lib");
-      container.getLoadPaths().addAll(loadPaths);
-   }
+   private AsciidocProvider provider;
+
+   private final Stack<RenderRequest> requests = new Stack<RenderRequest>();
 
    @Override
    public Iterable<String> getSupportedExtensions()
    {
-      return Arrays.asList("ad", "adoc", "asciidoc");
+      return Arrays.asList("ad", "adoc", "asc", "asciidoc");
    }
 
    @Override
@@ -47,24 +37,25 @@ public class AsciidocRenderer implements Renderer
    }
 
    @Override
-   public void render(InputStream inputStream, OutputStream outputStream)
+   public void render(RenderRequest request, InputStream inputStream, OutputStream outputStream)
    {
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      Streams.copy(inputStream, bos);
-      String input = new String(bos.toByteArray(), UTF8);
-
-      container.put("input", input);
-
-      Object output = container.runScriptlet(SCRIPT);
-      // write result to the output stream
       try
       {
-         outputStream.write(output.toString().getBytes(UTF8));
+         requests.push(request);
+         Options options = new Options();
+         options.setSafe(SafeMode.SAFE);
+         provider.getAsciidoctor().render(new InputStreamReader(inputStream), new OutputStreamWriter(outputStream),
+                  options);
+         requests.pop();
       }
       catch (IOException e)
       {
-         throw new RuntimeException(e);
+         throw new RewriteException("Failed to render " + request);
       }
    }
 
+   public Stack<RenderRequest> getRequests()
+   {
+      return requests;
+   }
 }
