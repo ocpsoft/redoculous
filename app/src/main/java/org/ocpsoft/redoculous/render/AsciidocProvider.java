@@ -8,8 +8,9 @@ package org.ocpsoft.redoculous.render;
 
 import java.util.Arrays;
 
-import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.ejb.Stateful;
+import javax.enterprise.context.ApplicationScoped;
 
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.internal.JRubyAsciidoctor;
@@ -18,7 +19,8 @@ import org.asciidoctor.internal.JRubyAsciidoctor;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @Startup
-@Singleton
+@Stateful
+@ApplicationScoped
 public class AsciidocProvider
 {
    private final Asciidoctor asciidoctor;

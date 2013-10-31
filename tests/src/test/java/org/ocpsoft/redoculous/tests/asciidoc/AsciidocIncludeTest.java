@@ -1,4 +1,4 @@
-package org.ocpsoft.redoculous.tests.markdown;
+package org.ocpsoft.redoculous.tests.asciidoc;
 
 /*
  * Copyright 2011 <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
@@ -44,8 +44,10 @@ import org.ocpsoft.redoculous.util.Files;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  */
 @RunWith(Arquillian.class)
-public class MarkdownRenderTest extends RedoculousTestBase
+public class AsciidocIncludeTest extends RedoculousTestBase
 {
+
+   private static final String ASDF123 = "ASDF123";
 
    @Deployment(testable = false)
    public static WebArchive getDeployment()
@@ -63,13 +65,16 @@ public class MarkdownRenderTest extends RedoculousTestBase
       repository = File.createTempFile("redoc", "ulous-test");
       repository.delete();
       repository.mkdirs();
-      File document = new File(repository, "document.markdown");
+      File document = new File(repository, "document.asciidoc");
       document.createNewFile();
+      File master = new File(repository, "master.asciidoc");
+      master.createNewFile();
 
-      Files.write(document, getClass().getClassLoader().getResourceAsStream("markdown/document.markdown"));
+      Files.write(document, getClass().getClassLoader().getResourceAsStream("asciidoc/toc.asciidoc"));
+      Files.write(master, "include::toc.asciidoc[]\\n" + ASDF123);
 
       Git repo = Git.init().setDirectory(repository).call();
-      repo.add().addFilepattern("document.markdown").call();
+      repo.add().addFilepattern("document.asciidoc").call();
       repo.commit().setMessage("Initial commit.").call();
    }
 
@@ -80,7 +85,7 @@ public class MarkdownRenderTest extends RedoculousTestBase
    }
 
    @Test
-   public void testServeMarkdown() throws Exception
+   public void testServeAsciidocWithInclude() throws Exception
    {
       WebTest test = new WebTest(baseUrl);
       String repositoryURL = "file://" + repository.getAbsolutePath();
@@ -90,7 +95,9 @@ public class MarkdownRenderTest extends RedoculousTestBase
       Assert.assertEquals(test.getBaseURL() + test.getContextPath() + "/api/v1/serve?repo=" + repositoryURL,
                location);
 
-      HttpAction<HttpGet> document = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=document");
+      HttpAction<HttpGet> document = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=master");
+
       Assert.assertTrue(document.getResponseContent().startsWith("<h1"));
+      Assert.assertTrue(document.getResponseContent().contains(ASDF123));
    }
 }
