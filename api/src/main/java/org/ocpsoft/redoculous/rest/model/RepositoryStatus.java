@@ -55,4 +55,10 @@ public class RepositoryStatus implements Serializable
    {
       return state;
    }
+
+   @Override
+   public String toString()
+   {
+      return state.name() + (message != null ? message : "");
+   }
 }
