@@ -23,7 +23,12 @@ public class ManagementServiceImpl implements ManagementService
    public Response init(String namespace, String repo)
    {
       rs.initRepository(namespace, repo);
-      return Response.created(UriBuilder.fromPath("/v1/serve").queryParam("repo", repo).build()).build();
+
+      UriBuilder uri = UriBuilder.fromPath("/v1/serve").queryParam("repo", repo);
+      if (namespace != null && !namespace.isEmpty())
+         uri.queryParam("ns", namespace);
+
+      return Response.created(uri.build()).build();
    }
 
    @Override

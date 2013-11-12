@@ -96,4 +96,23 @@ public class InitializeRepositoryTest extends RedoculousTestBase
       Assert.assertTrue(document.getResponseContent().startsWith("<h1"));
       Assert.assertTrue(documentFull.getResponseContent().startsWith("<h1"));
    }
+
+   @Test
+   public void testInitializeRepositoryWithNamespaceAndVerifyUniqueness() throws Exception
+   {
+      WebTest test = new WebTest(baseUrl);
+      String repositoryURL = "file://" + repository.getAbsolutePath();
+      String namespace = "testns1";
+      HttpAction<HttpPost> action = test.post("/api/v1/manage?repo=" + repositoryURL + "&ns=" + namespace);
+      Assert.assertEquals(201, action.getResponse().getStatusLine().getStatusCode());
+      String location = URLDecoder.decode(action.getResponseHeaderValue("location"), "UTF8");
+      Assert.assertEquals(test.getBaseURL() + test.getContextPath() + "/api/v1/serve?repo=" + repositoryURL
+               + "&ns=" + namespace, location);
+
+      HttpAction<HttpGet> existing = test.get("/api/v1/manage?repo=" + repositoryURL + "&ns=" + namespace);
+      HttpAction<HttpGet> nonExisting = test.get("/api/v1/manage?repo=" + repositoryURL);
+
+      Assert.assertTrue(existing.getResponseContent().contains("INITIALIZED"));
+      Assert.assertTrue(nonExisting.getResponseContent().contains("MISSING"));
+   }
 }
