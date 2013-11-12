@@ -123,7 +123,7 @@ public class RepositoryServiceImpl implements RepositoryService
    @Override
    public void updateRepository(String namespace, String repo)
    {
-      log.info("Update: [" + repo + "] - Requested.");
+      log.info("Update: [" + repo + "] [" + namespace + "] - Requested.");
       Repository localRepo = getLocalRepository(namespace, repo);
       Repository gridRepo = getGridRepository(namespace, repo);
 
@@ -147,7 +147,7 @@ public class RepositoryServiceImpl implements RepositoryService
                   localRepo.compress();
                   purgeGridRepository(namespace, repo);
                   io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
-                  log.info("Update: [" + repo + "] - From grid. Success.");
+                  log.info("Update: [" + repo + "] [" + namespace + "] - From grid. Success.");
                   setStatus(namespace, repo, new RepositoryStatus(State.INITIALIZED));
                }
                catch (RuntimeException e)
@@ -169,7 +169,7 @@ public class RepositoryServiceImpl implements RepositoryService
       else
       {
          primeGridRepository(namespace, repo);
-         log.info("Update: [" + repo
+         log.info("Update: [" + repo + "] [" + namespace
                   + "] - From source repository (Not previously cached. Init perfomed instead). Success.");
       }
    }
@@ -177,7 +177,7 @@ public class RepositoryServiceImpl implements RepositoryService
    @Override
    public void purgeRepository(String namespace, String repo)
    {
-      log.info("Purge: [" + repo + "] - Requested.");
+      log.info("Purge: [" + repo + "] [" + namespace + "] - Requested.");
 
       Lock lock = gridLock.getLock(tx, repo);
       lock.lock();
@@ -241,13 +241,13 @@ public class RepositoryServiceImpl implements RepositoryService
          }
 
          if (deleted)
-            log.info("Purge: [" + repo + "] - From grid. Success.");
+            log.info("Purge: [" + repo + "] [" + namespace + "] - From grid. Success.");
          else
-            throw new RuntimeException("Purge: [" + repo + "] - From grid. Failed.");
+            throw new RuntimeException("Purge: [" + repo + "] [" + namespace + "] - From grid. Failed.");
       }
       else
       {
-         log.info("Purge: [" + repo + "] - From grid. Not required.");
+         log.info("Purge: [" + repo + "] [" + namespace + "] - From grid. Not required.");
       }
    }
 
@@ -257,11 +257,11 @@ public class RepositoryServiceImpl implements RepositoryService
       if (localRepo != null && localRepo.getBaseDir().exists())
       {
          Files.delete(localRepo.getBaseDir(), true);
-         log.info("Purge: [" + repo + "] - From local filesystem. Success.");
+         log.info("Purge: [" + repo + "] [" + namespace + "] - From local filesystem. Success.");
       }
       else
       {
-         log.info("Purge: [" + repo + "] - From local filesystem. Not required.");
+         log.info("Purge: [" + repo + "] [" + namespace + "] - From local filesystem. Not required.");
       }
    }
 

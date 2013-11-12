@@ -61,7 +61,7 @@ public class GitRepository extends AbstractRepository implements Repository
       }
       catch (Exception e)
       {
-         throw new RuntimeException("Failed to initialize repository [" + getUrl() + "]", e);
+         throw new RuntimeException("Failed to initialize repository [" + getUrl() + "] [" + getKey() + "]", e);
       }
       finally
       {
@@ -86,7 +86,7 @@ public class GitRepository extends AbstractRepository implements Repository
       }
       catch (Exception e)
       {
-         throw new RuntimeException("Failed to get log for repository [" + getUrl() + "]", e);
+         throw new RuntimeException("Failed to get log for repository [" + getUrl() + "] [" + getKey() + "]", e);
       }
       finally
       {
@@ -133,7 +133,7 @@ public class GitRepository extends AbstractRepository implements Repository
          }
          catch (Exception e)
          {
-            throw new RuntimeException("Failed to get list of active refs.", e);
+            throw new RuntimeException("Failed to get list of active refs for repository ["+getUrl()+"] [" + getKey() + "]", e);
          }
       }
       return refs;
@@ -183,7 +183,7 @@ public class GitRepository extends AbstractRepository implements Repository
          }
          catch (Exception e)
          {
-            throw new RuntimeException("Could not clone repository [" + getUrl() + "]", e);
+            throw new RuntimeException("Could not clone repository [" + getUrl() + "] [" + getKey() + "]", e);
          }
       }
    }
@@ -200,7 +200,7 @@ public class GitRepository extends AbstractRepository implements Repository
 
       if (!refDir.exists())
       {
-         log.info("Creating ref copy [" + getUrl() + "] [" + ref + "]");
+         log.info("Creating ref copy [" + getUrl() + "] [" + ref + "] [" + getKey() + "]");
          refDir.mkdirs();
          refCacheDir.mkdirs();
          Git git = null;
@@ -211,7 +211,7 @@ public class GitRepository extends AbstractRepository implements Repository
             git.clean().setCleanDirectories(true).call();
             git.checkout().setName(ref).call();
 
-            log.info("Deleting cache for [" + getUrl() + "] [" + ref + "]");
+            log.info("Deleting cache for [" + getUrl() + "] [" + ref + "] [" + getKey() + "]");
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
             refCacheDir.mkdirs();
@@ -233,7 +233,7 @@ public class GitRepository extends AbstractRepository implements Repository
             }
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
-            throw new RewriteException("Could checkout ref [" + ref + "] from repository [" + getUrl() + "].", e);
+            throw new RewriteException("Could checkout ref [" + ref + "] from repository [" + getUrl() + "] [" + getKey() + "].", e);
          }
          finally
          {
@@ -254,7 +254,7 @@ public class GitRepository extends AbstractRepository implements Repository
       RedoculousProgressMonitor monitor = new RedoculousProgressMonitor();
       try
       {
-         log.info("Handling update request for [" + getUrl() + "]");
+         log.info("Handling update request for [" + getUrl() + "] [" + getKey() + "]");
          git = Git.open(repoDir);
 
          git.fetch()
@@ -280,7 +280,7 @@ public class GitRepository extends AbstractRepository implements Repository
       }
       catch (Exception e)
       {
-         throw new RuntimeException("Could not update repository [" + getUrl() + "]", e);
+         throw new RuntimeException("Could not update repository [" + getUrl() + "] [" + getKey() + "]", e);
       }
       finally
       {
