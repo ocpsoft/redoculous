@@ -14,29 +14,29 @@ public class ManagementServiceImpl implements ManagementService
    private RepositoryService rs;
 
    @Override
-   public RepositoryStatus status(String repo)
+   public RepositoryStatus status(String namespace, String repo)
    {
-      return rs.getStatus(repo);
+      return rs.getStatus(namespace, repo);
    }
 
    @Override
-   public Response init(String repo)
+   public Response init(String namespace, String repo)
    {
-      rs.initRepository(repo);
+      rs.initRepository(namespace, repo);
       return Response.created(UriBuilder.fromPath("/v1/serve").queryParam("repo", repo).build()).build();
    }
 
    @Override
-   public Response updateRepository(String repo)
+   public Response updateRepository(String namespace, String repo)
    {
-      rs.updateRepository(repo);
+      rs.updateRepository(namespace, repo);
       return Response.status(Status.OK).build();
    }
 
    @Override
-   public Response purgeRepository(String repo)
+   public Response purgeRepository(String namespace, String repo)
    {
-      rs.purgeRepository(repo);
+      rs.purgeRepository(namespace, repo);
       return Response.status(Status.OK).build();
    }
 

@@ -147,7 +147,7 @@ public class RenderService
       }
       catch (Exception e)
       {
-         throw new RuntimeException(e);
+         throw new RuntimeException("Failed to render document " + request, e);
       }
       finally
       {

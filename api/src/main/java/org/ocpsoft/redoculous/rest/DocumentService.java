@@ -15,6 +15,7 @@ public interface DocumentService
 {
    @GET
    public Response serve(
+            @QueryParam("ns") @DefaultValue("") String namespace,
             @QueryParam("repo") String repoName,
             @QueryParam("ref") String refName,
             @QueryParam("path") String path)
@@ -23,6 +24,7 @@ public interface DocumentService
    @GET
    @Path("/toc")
    public Response serveTableOfContents(
+            @QueryParam("ns") @DefaultValue("") String namespace,
             @QueryParam("repo") String repoName,
             @QueryParam("ref") String refName,
             @QueryParam("path") String path)
@@ -32,6 +34,7 @@ public interface DocumentService
    @Path("/versions")
    @Produces({ "application/xml", "application/json" })
    public VersionResult getAvailableVersions(
+            @QueryParam("ns") @DefaultValue("") String namespace,
             @QueryParam("repo") String repoName,
             @QueryParam("filter") @DefaultValue(".*") String filter)
             throws Exception;

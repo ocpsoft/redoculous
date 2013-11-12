@@ -54,4 +54,13 @@ public final class Keys
       return hash(value);
    }
 
+   public static String from(String namespace, String... values)
+   {
+      StringBuilder builder = new StringBuilder();
+      builder.append(namespace);
+      for (int i = 0; values != null && i < values.length; i++) {
+         builder.append("/" + values[i]);
+      }
+      return from(builder.toString());
+   }
 }

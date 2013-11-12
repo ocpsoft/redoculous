@@ -39,9 +39,9 @@ public class GitRepository extends AbstractRepository implements Repository
 
    private Set<String> refs;
 
-   public GitRepository(FileAdapter adapter, File root, String url)
+   public GitRepository(FileAdapter adapter, File root, String namespace, String url)
    {
-      super(adapter, root, url);
+      super(adapter, root, namespace, url);
    }
 
    @Override

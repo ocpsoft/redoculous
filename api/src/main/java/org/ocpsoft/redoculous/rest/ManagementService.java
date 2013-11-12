@@ -1,6 +1,7 @@
 package org.ocpsoft.redoculous.rest;
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -16,14 +17,22 @@ import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
 public interface ManagementService
 {
    @GET
-   public RepositoryStatus status(@QueryParam("repo") String repo);
+   public RepositoryStatus status(
+            @QueryParam("ns") @DefaultValue("") String namespace,
+            @QueryParam("repo") String repo);
 
    @POST
-   public Response init(@QueryParam("repo") String repo);
+   public Response init(
+            @QueryParam("ns") @DefaultValue("") String namespace,
+            @QueryParam("repo") String repo);
 
    @PUT
-   public Response updateRepository(@QueryParam("repo") String repo);
+   public Response updateRepository(
+            @QueryParam("ns") @DefaultValue("") String namespace,
+            @QueryParam("repo") String repo);
 
    @DELETE
-   public Response purgeRepository(@QueryParam("repo") String repo);
+   public Response purgeRepository(
+            @QueryParam("ns") @DefaultValue("") String namespace,
+            @QueryParam("repo") String repo);
 }

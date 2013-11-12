@@ -33,7 +33,6 @@ public class GridIncludeProcessor extends IncludeProcessor
    {
       super(documentRuby);
       documentRuby.getAttributes();
-
    }
 
    @Override
@@ -46,9 +45,7 @@ public class GridIncludeProcessor extends IncludeProcessor
    public void process(PreprocessorReader reader, String target, Map<String, Object> attributes)
    {
       RenderRequest request = getAsciidocRenderer().getRequests().peek();
-      String path = request.getPath();
-      if (!path.endsWith("/"))
-         path = path.replaceFirst("^(.*/)[^\\\\]+", "$1"); // strip down to directory (remove file name)
+      String path = FilenameUtils.getPath(request.getPath());
 
       path = FilenameUtils.normalize(path + target);
 

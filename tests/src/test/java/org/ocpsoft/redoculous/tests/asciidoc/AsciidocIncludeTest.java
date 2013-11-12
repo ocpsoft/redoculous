@@ -71,10 +71,12 @@ public class AsciidocIncludeTest extends RedoculousTestBase
       master.createNewFile();
 
       Files.write(document, getClass().getClassLoader().getResourceAsStream("asciidoc/toc.asciidoc"));
-      Files.write(master, "include::toc.asciidoc[]\\n" + ASDF123);
+      Files.write(master, "Somethingn, then...\n"
+               + "include::document.asciidoc[]\n" + ASDF123);
 
       Git repo = Git.init().setDirectory(repository).call();
       repo.add().addFilepattern("document.asciidoc").call();
+      repo.add().addFilepattern("master.asciidoc").call();
       repo.commit().setMessage("Initial commit.").call();
    }
 
@@ -97,7 +99,7 @@ public class AsciidocIncludeTest extends RedoculousTestBase
 
       HttpAction<HttpGet> document = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=master");
 
-      Assert.assertTrue(document.getResponseContent().startsWith("<h1"));
+      Assert.assertTrue(document.getResponseContent().contains("PrettyFaces"));
       Assert.assertTrue(document.getResponseContent().contains(ASDF123));
    }
 }

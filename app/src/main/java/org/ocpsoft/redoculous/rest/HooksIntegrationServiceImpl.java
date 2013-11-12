@@ -15,7 +15,7 @@ public class HooksIntegrationServiceImpl implements HooksIntegrationService
    private ManagementService rs;
 
    @Override
-   public Response githubUpdateRepository(String repo, String payload)
+   public Response githubUpdateRepository(String namespace, String repo, String payload)
             throws Exception
    {
       if (payload != null)
@@ -31,7 +31,7 @@ public class HooksIntegrationServiceImpl implements HooksIntegrationService
       if (repo == null || repo.isEmpty())
          return Response.status(Status.NOT_FOUND).build();
       else
-         rs.updateRepository(repo);
+         rs.updateRepository(namespace, repo);
       return Response.status(Status.OK).build();
    }
 }

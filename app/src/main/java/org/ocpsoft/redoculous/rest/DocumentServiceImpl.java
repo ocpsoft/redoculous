@@ -20,18 +20,18 @@ public class DocumentServiceImpl implements DocumentService
    private RepositoryService rs;
 
    @Override
-   public Response serve(String repoName, String refName, String path) throws Exception
+   public Response serve(String namespace, String repoName, String refName, String path) throws Exception
    {
-      String content = rs.getRenderedContent(repoName, refName, path);
+      String content = rs.getRenderedContent(namespace, repoName, refName, path);
       if (content != null)
          return Response.ok(content).build();
       return Response.status(404).build();
    }
 
    @Override
-   public Response serveTableOfContents(String repoName, String refName, String path) throws Exception
+   public Response serveTableOfContents(String namespace, String repoName, String refName, String path) throws Exception
    {
-      String content = rs.getRenderedContent(repoName, refName, path);
+      String content = rs.getRenderedContent(namespace, repoName, refName, path);
       if (content != null)
       {
          Document document = Jsoup.parse(content, UTF8);
@@ -45,9 +45,9 @@ public class DocumentServiceImpl implements DocumentService
    }
 
    @Override
-   public VersionResult getAvailableVersions(String repoName, String filter) throws Exception
+   public VersionResult getAvailableVersions(String namespace, String repoName, String filter) throws Exception
    {
-      Iterable<String> refs = rs.getRepositoryRefs(repoName);
+      Iterable<String> refs = rs.getRepositoryRefs(namespace, repoName);
       List<String> result = processRefs(refs, filter);
       return new VersionResult(result);
    }

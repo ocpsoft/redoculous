@@ -2,22 +2,22 @@ package org.ocpsoft.redoculous.render;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Stack;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-
-import jline.internal.InputStreamReader;
 
 import org.asciidoctor.Options;
 import org.asciidoctor.SafeMode;
 import org.ocpsoft.rewrite.exception.RewriteException;
 
 @RequestScoped
-public class AsciidocRenderer implements Renderer
+public class AsciidocRenderer implements Renderer, JRubyLoadPathProvider
 {
    @Inject
    private AsciidocProvider provider;
@@ -57,5 +57,11 @@ public class AsciidocRenderer implements Renderer
    public Stack<RenderRequest> getRequests()
    {
       return requests;
+   }
+
+   @Override
+   public List<String> getLoadPaths()
+   {
+      return Arrays.asList("gems/asciidoctor-0.1.4/lib");
    }
 }

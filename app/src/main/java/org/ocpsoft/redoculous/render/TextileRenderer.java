@@ -15,25 +15,14 @@ import org.jruby.embed.ScriptingContainer;
 import org.ocpsoft.common.util.Streams;
 
 @ApplicationScoped
-public class TextileRenderer implements Renderer
+public class TextileRenderer implements Renderer, JRubyLoadPathProvider
 {
    private static final Charset UTF8 = Charset.forName("UTF8");
    private static final String SCRIPT = "require 'redcloth'\n" +
             "RedCloth.new(input).to_html\n";
 
-   private ScriptingContainer container;
-
-   public TextileRenderer()
-   {
-   }
-
    @Inject
-   public TextileRenderer(ScriptingContainer container)
-   {
-      this.container = container;
-      List<String> loadPaths = Arrays.asList("ruby/redcloth/lib");
-      container.getLoadPaths().addAll(loadPaths);
-   }
+   private ScriptingContainer container;
 
    @Override
    public Iterable<String> getSupportedExtensions()
@@ -66,6 +55,12 @@ public class TextileRenderer implements Renderer
       {
          throw new RuntimeException(e);
       }
+   }
+
+   @Override
+   public List<String> getLoadPaths()
+   {
+      return Arrays.asList("ruby/redcloth/lib");
    }
 
 }

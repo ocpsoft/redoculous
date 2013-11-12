@@ -32,13 +32,12 @@ public abstract class AbstractRepository implements Repository
    private FileAdapter adapter;
    private File root;
 
-   public AbstractRepository(FileAdapter adapter, File root, String url)
+   public AbstractRepository(FileAdapter adapter, File root, String namespace, String url)
    {
       this.adapter = adapter;
       this.root = root;
       this.url = url;
-      this.key = Keys.from(url);
-
+      this.key = Keys.from(namespace, url);
    }
 
    @Override

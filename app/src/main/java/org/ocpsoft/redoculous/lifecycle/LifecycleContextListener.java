@@ -36,7 +36,10 @@ public class LifecycleContextListener implements ContextListener
 
       log.info("Redoculous shutting down JRuby");
       if (ScriptingContainerProducer.container != null)
+      {
          ScriptingContainerProducer.container.terminate();
+         ScriptingContainerProducer.container = null;
+      }
    }
 
    @Override

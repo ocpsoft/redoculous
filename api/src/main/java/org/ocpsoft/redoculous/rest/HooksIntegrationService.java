@@ -1,5 +1,6 @@
 package org.ocpsoft.redoculous.rest;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -14,6 +15,8 @@ public interface HooksIntegrationService
    @POST
    @Path("/github")
    public Response githubUpdateRepository(
-            @QueryParam("repo") String repo, @FormParam("payload") String payload)
+            @QueryParam("ns") @DefaultValue("") String namespace,
+            @QueryParam("repo") String repo,
+            @FormParam("payload") String payload)
             throws Exception;
 }

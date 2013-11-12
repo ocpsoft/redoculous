@@ -18,6 +18,16 @@
       <version.infinispan>5.2.6.Final</version.infinispan>
    </properties>
 
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>org.jruby</groupId>
+            <artifactId>jruby-complete</artifactId>
+            <version>1.7.6</version>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+
    <dependencies>
       <dependency>
          <groupId>org.ocpsoft.redoculous</groupId>

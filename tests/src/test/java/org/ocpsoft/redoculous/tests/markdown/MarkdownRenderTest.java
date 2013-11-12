@@ -91,6 +91,7 @@ public class MarkdownRenderTest extends RedoculousTestBase
                location);
 
       HttpAction<HttpGet> document = test.get("/api/v1/serve?repo=" + repositoryURL + "&ref=master&path=document");
-      Assert.assertTrue(document.getResponseContent().startsWith("<h1"));
+      Assert.assertTrue(document.getResponseContent().contains("<h1"));
+      Assert.assertTrue(document.getResponseContent().contains("A First Level Header"));
    }
 }

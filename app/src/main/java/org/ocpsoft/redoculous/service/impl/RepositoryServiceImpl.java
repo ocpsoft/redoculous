@@ -55,12 +55,12 @@ public class RepositoryServiceImpl implements RepositoryService
    private UserTransaction tx;
 
    @Override
-   public String getRenderedContent(String repo, String ref, String path)
+   public String getRenderedContent(String namespace, String repo, String ref, String path)
    {
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      String result = render.resolveRendered(new RenderRequest(getGridRepository(repo), ref, path));
+      String result = render.resolveRendered(new RenderRequest(getGridRepository(namespace, repo), ref, path));
 
       if (result == null)
       {
@@ -68,64 +68,64 @@ public class RepositoryServiceImpl implements RepositoryService
          lock.lock();
          try
          {
-            Repository gridRepo = getGridRepository(repo);
+            Repository gridRepo = getGridRepository(namespace, repo);
             if (!gridRepo.getCachedRefDir(ref).exists())
             {
-               _doPrimeGridRepository(repo);
-               _doPrimeRef(repo, ref);
+               _doPrimeGridRepository(namespace, repo);
+               _doPrimeRef(namespace, repo, ref);
             }
          }
          finally
          {
             lock.unlock();
          }
-         result = render.resolveRendered(new RenderRequest(getGridRepository(repo), ref, path));
+         result = render.resolveRendered(new RenderRequest(getGridRepository(namespace, repo), ref, path));
       }
 
       return result;
    }
 
-   private void _doPrimeRef(String repo, String ref)
+   private void _doPrimeRef(String namespace, String repo, String ref)
    {
-      Repository gridRepo = getGridRepository(repo);
+      Repository gridRepo = getGridRepository(namespace, repo);
       if (!gridRepo.getRefDir(ref).exists())
       {
-         purgeLocalRepository(repo);
-         Repository localRepo = getLocalRepository(repo);
+         purgeLocalRepository(namespace, repo);
+         Repository localRepo = getLocalRepository(namespace, repo);
          try
          {
-            setStatus(repo, new RepositoryStatus(State.CHECKOUT_REF, ref));
+            setStatus(namespace, repo, new RepositoryStatus(State.CHECKOUT_REF, ref));
             localRepo.getBaseDir().mkdirs();
             io.copyFileFromGrid(gfs, gridRepo.getRepoArchive(), localRepo.getRepoArchive());
             localRepo.decompress();
             localRepo.initRef(ref);
             io.copyDirectoryToGrid(gfs, localRepo.getRefDir(ref), gridRepo.getRefDir(ref));
-            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
+            setStatus(namespace, repo, new RepositoryStatus(State.INITIALIZED));
          }
          catch (RuntimeException e)
          {
-            setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+            setStatus(namespace, repo, new RepositoryStatus(State.ERROR, e.getMessage()));
             throw e;
          }
          finally
          {
-            purgeLocalRepository(repo);
+            purgeLocalRepository(namespace, repo);
          }
       }
    }
 
    @Override
-   public void initRepository(String repo)
+   public void initRepository(String namespace, String repo)
    {
-      primeGridRepository(repo);
+      primeGridRepository(namespace, repo);
    }
 
    @Override
-   public void updateRepository(String repo)
+   public void updateRepository(String namespace, String repo)
    {
       log.info("Update: [" + repo + "] - Requested.");
-      Repository localRepo = getLocalRepository(repo);
-      Repository gridRepo = getGridRepository(repo);
+      Repository localRepo = getLocalRepository(namespace, repo);
+      Repository gridRepo = getGridRepository(namespace, repo);
 
       if (gridRepo != null && gridRepo.getRepoDir().exists())
       {
@@ -135,29 +135,29 @@ public class RepositoryServiceImpl implements RepositoryService
          {
             if (gridRepo != null && gridRepo.getRepoDir().exists())
             {
-               purgeLocalRepository(repo);
+               purgeLocalRepository(namespace, repo);
                try
                {
-                  setStatus(repo, new RepositoryStatus(State.UPDATING));
+                  setStatus(namespace, repo, new RepositoryStatus(State.UPDATING));
                   localRepo.getBaseDir().mkdirs();
                   io.copyFileFromGrid(gfs, gridRepo.getRepoArchive(), localRepo.getRepoArchive());
                   localRepo.decompress();
                   localRepo.update();
-                  setRepositoryRefs(repo, localRepo.getRefs());
+                  setRepositoryRefs(namespace, repo, localRepo.getRefs());
                   localRepo.compress();
-                  purgeGridRepository(repo);
+                  purgeGridRepository(namespace, repo);
                   io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepo.getBaseDir());
                   log.info("Update: [" + repo + "] - From grid. Success.");
-                  setStatus(repo, new RepositoryStatus(State.INITIALIZED));
+                  setStatus(namespace, repo, new RepositoryStatus(State.INITIALIZED));
                }
                catch (RuntimeException e)
                {
-                  setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+                  setStatus(namespace, repo, new RepositoryStatus(State.ERROR, e.getMessage()));
                   throw e;
                }
                finally
                {
-                  purgeLocalRepository(repo);
+                  purgeLocalRepository(namespace, repo);
                }
             }
          }
@@ -168,14 +168,14 @@ public class RepositoryServiceImpl implements RepositoryService
       }
       else
       {
-         primeGridRepository(repo);
+         primeGridRepository(namespace, repo);
          log.info("Update: [" + repo
                   + "] - From source repository (Not previously cached. Init perfomed instead). Success.");
       }
    }
 
    @Override
-   public void purgeRepository(String repo)
+   public void purgeRepository(String namespace, String repo)
    {
       log.info("Purge: [" + repo + "] - Requested.");
 
@@ -183,14 +183,14 @@ public class RepositoryServiceImpl implements RepositoryService
       lock.lock();
       try
       {
-         setStatus(repo, new RepositoryStatus(State.PURGING, repo));
-         purgeLocalRepository(repo);
-         purgeGridRepository(repo);
-         removeStatus(repo);
+         setStatus(namespace, repo, new RepositoryStatus(State.PURGING, repo));
+         purgeLocalRepository(namespace, repo);
+         purgeGridRepository(namespace, repo);
+         removeStatus(namespace, repo);
       }
       catch (RuntimeException e)
       {
-         setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+         setStatus(namespace, repo, new RepositoryStatus(State.ERROR, e.getMessage()));
          throw e;
       }
       finally
@@ -200,36 +200,36 @@ public class RepositoryServiceImpl implements RepositoryService
    }
 
    @Override
-   public Repository getRepository(String repo)
+   public Repository getRepository(String namespace, String repo)
    {
-      primeGridRepository(repo);
-      return getGridRepository(repo);
+      primeGridRepository(namespace, repo);
+      return getGridRepository(namespace, repo);
    }
 
    @Override
    @SuppressWarnings("unchecked")
-   public Set<String> getRepositoryRefs(String repo)
+   public Set<String> getRepositoryRefs(String namespace, String repo)
    {
-      primeGridRepository(repo);
-      return (Set<String>) defaultCache.get(Keys.from("versions:" + repo));
+      primeGridRepository(namespace, repo);
+      return (Set<String>) defaultCache.get(Keys.from(namespace, repo, "versions"));
    }
 
-   private void setRepositoryRefs(String repo, Set<String> refs)
+   private void setRepositoryRefs(String namespace, String repo, Set<String> refs)
    {
-      defaultCache.put(Keys.from("versions:" + repo), refs);
+      defaultCache.put(Keys.from(namespace, repo, "versions"), refs);
    }
 
-   private void clearRepositoryRefs(String repo)
+   private void clearRepositoryRefs(String namespace, String repo)
    {
-      defaultCache.remove(Keys.from("versions:" + repo));
+      defaultCache.remove(Keys.from(namespace, repo, "versions"));
    }
 
-   private void purgeGridRepository(String repo)
+   private void purgeGridRepository(String namespace, String repo)
    {
-      Repository cachedRepo = getGridRepository(repo);
+      Repository cachedRepo = getGridRepository(namespace, repo);
       if (cachedRepo != null && cachedRepo.getBaseDir().exists())
       {
-         clearRepositoryRefs(repo);
+         clearRepositoryRefs(namespace, repo);
 
          // TODO This doesn't seem right - should probably find out why the files can't be deleted.
          int retriesLeft = 5;
@@ -251,9 +251,9 @@ public class RepositoryServiceImpl implements RepositoryService
       }
    }
 
-   private void purgeLocalRepository(String repo)
+   private void purgeLocalRepository(String namespace, String repo)
    {
-      Repository localRepo = getLocalRepository(repo);
+      Repository localRepo = getLocalRepository(namespace, repo);
       if (localRepo != null && localRepo.getBaseDir().exists())
       {
          Files.delete(localRepo.getBaseDir(), true);
@@ -265,26 +265,26 @@ public class RepositoryServiceImpl implements RepositoryService
       }
    }
 
-   private Repository getLocalRepository(String repo)
+   private Repository getLocalRepository(String namespace, String repo)
    {
-      return new GitRepository(new NativeFileAdapter(), Redoculous.getRoot(), repo);
+      return new GitRepository(new NativeFileAdapter(), Redoculous.getRoot(), namespace, repo);
    }
 
-   private Repository getGridRepository(String repo)
+   private Repository getGridRepository(String namespace, String repo)
    {
-      return new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), repo);
+      return new GitRepository(new GridFileAdapter(gfs), gfs.getFile("/"), namespace, repo);
    }
 
-   private Repository primeGridRepository(String repo)
+   private Repository primeGridRepository(String namespace, String repo)
    {
-      Repository gridRepository = getGridRepository(repo);
+      Repository gridRepository = getGridRepository(namespace, repo);
       if (gridRepository == null || !gridRepository.getBaseDir().exists())
       {
          Lock lock = gridLock.getLock(tx, repo);
          lock.lock();
          try
          {
-            _doPrimeGridRepository(repo);
+            _doPrimeGridRepository(namespace, repo);
          }
          finally
          {
@@ -294,51 +294,51 @@ public class RepositoryServiceImpl implements RepositoryService
       return gridRepository;
    }
 
-   private Repository _doPrimeGridRepository(String repo)
+   private Repository _doPrimeGridRepository(String namespace, String repo)
    {
-      Repository gridRepository = getGridRepository(repo);
+      Repository gridRepository = getGridRepository(namespace, repo);
       if (gridRepository == null || !gridRepository.getBaseDir().exists())
       {
          try
          {
-            setStatus(repo, new RepositoryStatus(State.CLONING));
-            Repository localRepo = getLocalRepository(repo);
+            setStatus(namespace, repo, new RepositoryStatus(State.CLONING));
+            Repository localRepo = getLocalRepository(namespace, repo);
             localRepo.init();
             localRepo.update();
-            setRepositoryRefs(repo, localRepo.getRefs());
+            setRepositoryRefs(namespace, repo, localRepo.getRefs());
             localRepo.compress();
             io.copyDirectoryToGrid(gfs, localRepo.getBaseDir(), gridRepository.getBaseDir());
-            setStatus(repo, new RepositoryStatus(State.INITIALIZED));
+            setStatus(namespace, repo, new RepositoryStatus(State.INITIALIZED));
          }
          catch (RuntimeException e)
          {
-            setStatus(repo, new RepositoryStatus(State.ERROR, e.getMessage()));
+            setStatus(namespace, repo, new RepositoryStatus(State.ERROR, e.getMessage()));
             throw e;
          }
          finally
          {
-            purgeLocalRepository(repo);
+            purgeLocalRepository(namespace, repo);
          }
       }
       return gridRepository;
    }
 
    @Override
-   public RepositoryStatus getStatus(String repo)
+   public RepositoryStatus getStatus(String namespace, String repo)
    {
-      RepositoryStatus status = (RepositoryStatus) defaultCache.get(Keys.from("status:" + repo));
+      RepositoryStatus status = (RepositoryStatus) defaultCache.get(Keys.from(namespace, repo, "status"));
       if (status == null)
          status = new RepositoryStatus(State.MISSING);
       return status;
    }
 
-   private void setStatus(String repo, RepositoryStatus status)
+   private void setStatus(String namespace, String repo, RepositoryStatus status)
    {
-      defaultCache.put(Keys.from("status:" + repo), status);
+      defaultCache.put(Keys.from(namespace, repo, "status"), status);
    }
 
-   private void removeStatus(String repo)
+   private void removeStatus(String namespace, String repo)
    {
-      defaultCache.remove(Keys.from("status:" + repo));
+      defaultCache.remove(Keys.from(namespace, repo, "status"));
    }
 }

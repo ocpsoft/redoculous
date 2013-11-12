@@ -6,11 +6,14 @@
  */
 package org.ocpsoft.redoculous.render;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ejb.Startup;
 import javax.ejb.Stateful;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.internal.JRubyAsciidoctor;
@@ -23,16 +26,22 @@ import org.asciidoctor.internal.JRubyAsciidoctor;
 @ApplicationScoped
 public class AsciidocProvider
 {
-   private final Asciidoctor asciidoctor;
+   private Asciidoctor asciidoctor;
 
-   public AsciidocProvider()
-   {
-      asciidoctor = JRubyAsciidoctor.create(Arrays.asList("gems/asciidoctor-0.1.4/lib"));
-      asciidoctor.extensionRegistry().includeProcessor(GridIncludeProcessor.class);
-   }
+   @Inject
+   private Instance<JRubyLoadPathProvider> renderers;
 
    public Asciidoctor getAsciidoctor()
    {
+      if (asciidoctor == null)
+      {
+         List<String> loadPaths = new ArrayList<String>();
+         for (JRubyLoadPathProvider renderer : renderers) {
+            loadPaths.addAll(renderer.getLoadPaths());
+         }
+         asciidoctor = JRubyAsciidoctor.create(loadPaths);
+         asciidoctor.extensionRegistry().includeProcessor(GridIncludeProcessor.class);
+      }
       return asciidoctor;
    }
 

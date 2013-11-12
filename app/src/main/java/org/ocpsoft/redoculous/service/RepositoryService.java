@@ -17,17 +17,17 @@ import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
  */
 public interface RepositoryService
 {
-   String getRenderedContent(String repository, String ref, String path);
+   String getRenderedContent(String namespace, String repo, String ref, String path);
 
-   void updateRepository(String repo);
+   void updateRepository(String namespace, String repo);
 
-   void purgeRepository(String repo);
+   void purgeRepository(String namespace, String repo);
 
-   void initRepository(String repo);
+   void initRepository(String namespace, String repo);
 
-   Repository getRepository(String repo);
+   Repository getRepository(String namespace, String repo);
 
-   Set<String> getRepositoryRefs(String repo);
+   Set<String> getRepositoryRefs(String namespace, String repo);
 
-   RepositoryStatus getStatus(String repo);
+   RepositoryStatus getStatus(String namespace, String repo);
 }

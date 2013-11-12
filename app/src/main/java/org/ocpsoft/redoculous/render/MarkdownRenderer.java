@@ -15,25 +15,14 @@ import org.jruby.embed.ScriptingContainer;
 import org.ocpsoft.common.util.Streams;
 
 @ApplicationScoped
-public class MarkdownRenderer implements Renderer
+public class MarkdownRenderer implements Renderer, JRubyLoadPathProvider
 {
    private static final Charset UTF8 = Charset.forName("UTF8");
    private final static String SCRIPT = "require 'maruku'\n" +
             "Maruku.new(input).to_html";
 
-   private ScriptingContainer container;
-
-   public MarkdownRenderer()
-   {
-   }
-
    @Inject
-   public MarkdownRenderer(ScriptingContainer container)
-   {
-      this.container = container;
-      List<String> loadPaths = Arrays.asList("ruby/maruku/lib");
-      container.getLoadPaths().addAll(loadPaths);
-   }
+   private ScriptingContainer container;
 
    @Override
    public Iterable<String> getSupportedExtensions()
@@ -56,16 +45,29 @@ public class MarkdownRenderer implements Renderer
 
       container.put("input", input);
 
-      Object output = container.runScriptlet(SCRIPT);
-      // write result to the output stream
+      Object output;
+      try {
+         output = container.runScriptlet(SCRIPT);
+      }
+      catch (RuntimeException e) {
+         throw e;
+      }
+
       try
       {
+         // write result to the output stream
          outputStream.write(output.toString().getBytes(UTF8));
       }
       catch (IOException e)
       {
          throw new RuntimeException(e);
       }
+   }
+
+   @Override
+   public List<String> getLoadPaths()
+   {
+      return Arrays.asList("ruby/maruku/lib");
    }
 
 }
