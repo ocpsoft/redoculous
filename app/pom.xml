@@ -94,6 +94,12 @@
          <groupId>org.infinispan</groupId>
          <artifactId>infinispan-cdi</artifactId>
          <version>${version.infinispan}</version>
+         <exclusions>
+            <exclusion>
+               <artifactId>getopt</artifactId>
+               <groupId>gnu-getopt</groupId>
+            </exclusion>
+         </exclusions>
       </dependency>
       <dependency>
          <groupId>org.infinispan</groupId>
