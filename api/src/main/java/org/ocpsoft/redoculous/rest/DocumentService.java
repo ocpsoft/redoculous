@@ -20,6 +20,15 @@ public interface DocumentService
             @QueryParam("ref") String refName,
             @QueryParam("path") String path)
             throws Exception;
+   
+   @GET
+   @Path("/notoc")
+   public Response serveNoTableOfContents(
+            @QueryParam("ns") @DefaultValue("") String namespace,
+            @QueryParam("repo") String repoName,
+            @QueryParam("ref") String refName,
+            @QueryParam("path") String path)
+            throws Exception;
 
    @GET
    @Path("/toc")

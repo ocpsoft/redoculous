@@ -29,7 +29,26 @@ public class DocumentServiceImpl implements DocumentService
    }
 
    @Override
-   public Response serveTableOfContents(String namespace, String repoName, String refName, String path) throws Exception
+   public Response serveNoTableOfContents(String namespace, String repoName, String refName, String path)
+            throws Exception
+   {
+      String content = rs.getRenderedContent(namespace, repoName, refName, path);
+      if (content != null)
+      {
+         Document document = Jsoup.parse(content, UTF8);
+         Element toc = document.getElementById("toc");
+         if (toc != null)
+         {
+            toc.remove();
+         }
+         return Response.ok(document.toString()).build();
+      }
+      return Response.status(404).build();
+   }
+
+   @Override
+   public Response serveTableOfContents(String namespace, String repoName, String refName, String path)
+            throws Exception
    {
       String content = rs.getRenderedContent(namespace, repoName, refName, path);
       if (content != null)
