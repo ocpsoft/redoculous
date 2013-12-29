@@ -21,6 +21,7 @@ import javax.servlet.ServletContext;
 
 import org.ocpsoft.redoculous.config.util.CanonicalizeFileName;
 import org.ocpsoft.redoculous.config.util.LiveReloadScriptAppender;
+import org.ocpsoft.redoculous.config.util.PreviewLinkInterceptor;
 import org.ocpsoft.redoculous.config.util.RemoveFilePrefixTransposition;
 import org.ocpsoft.redoculous.config.util.SafeFileNameTransposition;
 import org.ocpsoft.redoculous.config.util.WatermarkInterceptor;
@@ -59,7 +60,7 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                .when(Direction.isInbound()
                         .and(Domain.matches("localhost"))
                         .and(DispatchType.isRequest())
-                        .and(Path.matches("/api/{version}/serve"))
+                        .and(Path.matches("/"))
                         .and(Query.parameterExists("path"))
                )
                .perform(Subset.evaluate(ConfigurationBuilder
@@ -83,6 +84,7 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                  .and(Response.setStatus(200))
                                  .and(Transform.with(Asciidoc.partialDocument()))
                                  .and(Response.withOutputInterceptedBy(new WatermarkInterceptor(),
+                                          new PreviewLinkInterceptor(),
                                           new LiveReloadScriptAppender()))
                                  .and(Stream.from(new File("/{path}.asciidoc")))
                                  .and(Response.complete()))
@@ -105,6 +107,7 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                  .and(Response.setStatus(200))
                                  .and(Transform.with(Asciidoc.partialDocument()))
                                  .and(Response.withOutputInterceptedBy(new WatermarkInterceptor(),
+                                          new PreviewLinkInterceptor(),
                                           new LiveReloadScriptAppender()))
                                  .and(Stream.from(new File("/{path}/index.asciidoc")))
                                  .and(Response.complete()))

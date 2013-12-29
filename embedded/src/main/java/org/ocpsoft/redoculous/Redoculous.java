@@ -7,8 +7,11 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletHandler;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.resource.Resource;
+import org.ocpsoft.redoculous.config.util.NullServlet;
 import org.ocpsoft.rewrite.exception.RewriteException;
 import org.ocpsoft.rewrite.servlet.RewriteFilter;
 import org.ocpsoft.rewrite.servlet.impl.RewriteServletContextListener;
@@ -41,21 +44,36 @@ public class Redoculous
 
    public static void main(String[] args) throws Exception
    {
-      Server server = new Server(8080);
+      Server server = new Server(Integer.getInteger("port", 8080));
 
-      WebAppContext webapp = new WebAppContext();
-      webapp.addEventListener(new RewriteServletContextListener());
-      webapp.addEventListener(new RewriteServletRequestListener());
-      webapp.setServer(server);
-      webapp.setContextPath("/");
-      webapp.setClassLoader(Redoculous.class.getClassLoader());
-      webapp.addFilter(RewriteFilter.class, "/*",
-               EnumSet.of(DispatcherType.REQUEST,
-                        DispatcherType.FORWARD,
-                        DispatcherType.ERROR));
+      HandlerList handlers = new HandlerList();
+      handlers.addHandler(getServletContextHandler());
+      handlers.addHandler(getResourceHandler());
 
-      webapp.start();
+      server.setHandler(handlers);
       server.start();
       server.join();
+   }
+
+   private static ResourceHandler getResourceHandler()
+   {
+      ResourceHandler handler = new ResourceHandler();
+      handler.setDirectoriesListed(true);
+      handler.setBaseResource(Resource.newClassPathResource("webapp"));
+      return handler;
+   }
+
+   private static ServletContextHandler getServletContextHandler()
+   {
+      ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+      context.setClassLoader(Redoculous.class.getClassLoader());
+      context.setContextPath("/p");
+      context.addFilter(RewriteFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD,
+               DispatcherType.INCLUDE, DispatcherType.ASYNC, DispatcherType.ERROR));
+      context.addEventListener(new RewriteServletContextListener());
+      context.addEventListener(new RewriteServletRequestListener());
+      context.addServlet(NullServlet.class, "/*");
+      context.setResourceBase("webapp");
+      return context;
    }
 }

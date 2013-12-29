@@ -17,13 +17,6 @@ import org.ocpsoft.urlbuilder.Address;
 @SuppressWarnings("deprecation")
 public class PreviewLinkInterceptor implements ResponseContentInterceptor
 {
-   private File root;
-
-   public PreviewLinkInterceptor(File root)
-   {
-      this.root = root;
-   }
-
    @Override
    public void intercept(HttpServletRewrite event, ResponseContent buffer, ResponseContentInterceptorChain chain)
    {
@@ -39,12 +32,8 @@ public class PreviewLinkInterceptor implements ResponseContentInterceptor
          String linkPrefix = matcher.group(1);
          String url = matcher.group(2);
          String requestedPath = event.getRequest().getParameter("path");
-         String requestedRef = event.getRequest().getParameter("ref");
-         String requestedRepo = event.getRequest().getParameter("repo");
-
-         File refDir = new File(root, SafeFileNameTransposition.toSafeFilename(requestedRepo) + "/refs/" + requestedRef);
-
-         File requestedFile = new File(refDir, requestedPath);
+         File requestedFile = new File(requestedPath.startsWith("file://") ? requestedPath.replaceFirst("file://", "")
+                  : requestedPath);
          if (requestedFile.isDirectory())
          {
             requestedFile = new File(requestedFile, "index");
