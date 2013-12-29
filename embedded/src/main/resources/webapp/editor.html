@@ -1,8 +1,29 @@
 <html>
 
+<head>
+<style type="text/css">
+#editor {
+	height: 100%;
+	width: 100%;
+	border: 0;
+	background: rgb(41, 41, 41);
+	font-family: monospace;
+	font-size: 14px;
+	padding: 10px;
+	color: #ddd;
+	line-height: 1.35em;
+	margin: 0;
+	padding: 10;
+}
+</style>
+</head>
+
 <body>
 	<textarea id="editor" rows="50" cols="100"></textarea>
+	<button id="openViewer"
+		onclick="window.open(window.location.href.replace('/edit', ''))">Open Viewer</button>
 </body>
+
 <script type='text/javascript' src='/js/jquery.min.js'></script>
 <script type="text/javascript">
 	var value = $("#editor").val()

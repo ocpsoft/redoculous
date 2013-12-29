@@ -1,5 +1,15 @@
 $.support.cors = false;
+
 $.fn.redoculousNow = function() {
+
+	if (window.opener) {
+		if (getParameterByName(window.opener.location.search, "path") != getParameterByName(
+				window.location.search, "path")) {
+			window.opener.location.href = window.location.href.replace('/p/',
+					'/p/edit')
+		}
+	}
+
 	var handle = $(this);
 
 	var titlePattern = "%TITLE%";
@@ -48,6 +58,14 @@ $.fn.redoculousNow = function() {
 	}
 
 };
+
+function getParameterByName(search, name) {
+	name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+	var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"), results = regex
+			.exec(search);
+	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g,
+			" "));
+}
 
 $(document).ready(function() {
 	$("[data-redoculous-now]").redoculousNow();
