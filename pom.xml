@@ -24,8 +24,8 @@
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <maven.compiler.source>1.6</maven.compiler.source>
-      <maven.compiler.target>1.6</maven.compiler.target>
+      <maven.compiler.source>1.7</maven.compiler.source>
+      <maven.compiler.target>1.7</maven.compiler.target>
       <version.rewrite>2.0.8.Final</version.rewrite>
       <version.jgit>3.0.0.201306101825-r</version.jgit>
       <version.junit>4.8.1</version.junit>
