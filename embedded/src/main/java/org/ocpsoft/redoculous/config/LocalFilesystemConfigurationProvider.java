@@ -19,6 +19,8 @@ import java.io.File;
 
 import javax.servlet.ServletContext;
 
+import org.ocpsoft.redoculous.config.editor.SaveFileOperation;
+import org.ocpsoft.redoculous.config.editor.ServeEditorOperation;
 import org.ocpsoft.redoculous.config.util.CanonicalizeFileName;
 import org.ocpsoft.redoculous.config.util.LiveReloadScriptAppender;
 import org.ocpsoft.redoculous.config.util.PreviewLinkInterceptor;
@@ -34,6 +36,7 @@ import org.ocpsoft.rewrite.param.Transposition;
 import org.ocpsoft.rewrite.servlet.config.DispatchType;
 import org.ocpsoft.rewrite.servlet.config.Domain;
 import org.ocpsoft.rewrite.servlet.config.HttpConfigurationProvider;
+import org.ocpsoft.rewrite.servlet.config.Method;
 import org.ocpsoft.rewrite.servlet.config.Path;
 import org.ocpsoft.rewrite.servlet.config.Query;
 import org.ocpsoft.rewrite.servlet.config.Response;
@@ -52,6 +55,34 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
    {
       return ConfigurationBuilder
                .begin()
+
+               .addRule()
+               .when(
+                        Direction.isInbound()
+                                 .and(Domain.matches("localhost"))
+                                 .and(DispatchType.isRequest())
+                                 .and(Path.matches("/edit"))
+                                 .and(Query.parameterExists("path"))
+               )
+               .perform(
+                        Response.setContentType("text/html")
+                                 .and(Response.addHeader("Charset", "UTF-8"))
+                                 .and(Response.addHeader("Access-Control-Allow-Origin", "*"))
+                                 .and(Response.addHeader("Access-Control-Allow-Credentials", "true"))
+                                 .and(Response.addHeader("Access-Control-Allow-Methods", "GET, POST"))
+                                 .and(Subset.evaluate(ConfigurationBuilder.begin()
+                                          .addRule()
+                                          .when(Method.isGet())
+                                          .perform(new ServeEditorOperation())
+
+                                          .addRule()
+                                          .when(Method.isPost())
+                                          .perform(new SaveFileOperation())
+                                          )))
+               .where("path")
+               .matches("file:///.*")
+               .transposedBy(new RemoveFilePrefixTransposition())
+               .transposedBy(canonicalizeFilename)
 
                /*
                 * Don't do anything if we don't have required values.

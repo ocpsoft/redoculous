@@ -1,0 +1,103 @@
+<html>
+
+<body>
+	<textarea id="editor" rows="50" cols="100"></textarea>
+</body>
+<script type='text/javascript' src='/js/jquery.min.js'></script>
+<script type="text/javascript">
+	var value = $("#editor").val()
+
+	var initialized = false;
+	var loadTimeoutId;
+	var saveTimeoutCleared = true;
+	var saveTimeoutId;
+
+	$("#editor").keyup(function() {
+		window.clearTimeout(loadTimeoutId);
+		window.clearTimeout(saveTimeoutId);
+		if (value != $("#editor").val()) {
+			saveTimeoutCleared = false;
+			saveTimeoutId = window.setTimeout(save, 250);
+		}
+	});
+
+	var load = function() {
+		var url = window.location;
+		var cancelLoad = false;
+
+		if (saveTimeoutCleared) {
+			console.log("Loading document [" + url + "]");
+
+			$
+					.ajax({
+						url : url + "&serveContent",
+						cache : false,
+						dataType : "text",
+						type : "GET"
+					})
+					// Failure
+					.fail(
+							function(xhr, status, error) {
+								console.log("Error loading document [" + url
+										+ "] - [" + status + "-" + error + "]");
+							})
+					// Success
+					.done(
+							function(data) {
+								var value = $("#editor").val();
+								if (value != data) {
+									if (value != "") {
+										var confirm = window
+												.confirm("The document has changed on"
+														+ " the filesystem. Load changes?");
+										if (confirm) {
+											$("#editor").val(data);
+										} else {
+											window.clearTimeout(loadTimeoutId);
+											cancelLoad = true;
+										}
+									} else {
+										$("#editor").val(data);
+									}
+								}
+							});
+		}
+
+		if (cancelLoad == false)
+			loadTimeoutId = window.setTimeout(load, 2000);
+
+		initialized = true;
+	};
+
+	var save = function() {
+		var url = window.location;
+		window.clearTimeout(saveTimeoutId);
+		saveTimeoutCleared = true;
+
+		console.log("Saving document [" + url + "]");
+
+		$.ajax({
+			url : url,
+			cache : false,
+			data : "content=" + $("#editor").val(),
+			dataType : "text",
+			type : "POST"
+		})
+		// Failure
+		.fail(
+				function(xhr, status, error) {
+					console.log("Error saving document [" + url + "] - ["
+							+ status + "-" + error + "]");
+				})
+		// Success
+		.done(function(html) {
+			console.log("Saved document [" + url + "]");
+		});
+
+		loadTimeoutId = window.setTimeout(load, 2000);
+	};
+
+	load();
+</script>
+
+</html>
