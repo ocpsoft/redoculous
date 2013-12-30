@@ -1,3 +1,15 @@
+var OSName = "Unknown OS";
+if (navigator.appVersion.indexOf("Win") != -1)
+	OSName = "Windows";
+if (navigator.appVersion.indexOf("Mac") != -1)
+	OSName = "MacOS";
+if (navigator.appVersion.indexOf("X11") != -1)
+	OSName = "UNIX";
+if (navigator.appVersion.indexOf("Linux") != -1)
+	OSName = "Linux";
+
+console.log('Detected OS: ' + OSName);
+
 /* Add methods to String to get lines and count number of lines */
 if (typeof String.prototype.lines != 'function') {
 	String.prototype.lines = function() {
@@ -21,6 +33,11 @@ if (typeof String.prototype.endsWith != 'function') {
 	};
 }
 
+var getNearestDirectory = function(path) {
+	var result = path.substring(0, path.lastIndexOf('/'));
+	return result;
+};
+
 var getCurrentFilePath = function() {
 	var search = window.location.search;
 	var result = getParameterByName("path");
@@ -33,7 +50,7 @@ var getCurrentFilePath = function() {
 	}
 
 	return result;
-}
+};
 
 var getParameterByName = function(name) {
 	var search = window.location.search;
@@ -42,13 +59,13 @@ var getParameterByName = function(name) {
 			.exec(search);
 	return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g,
 			" "));
-}
+};
 
 var nl2br = function(str, is_xhtml) {
 	var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '' : '<br>';
 
 	return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag
 			+ '$2');
-}
+};
 
 console.log('Loaded: redoculous-common.js');

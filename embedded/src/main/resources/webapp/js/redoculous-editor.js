@@ -20,11 +20,15 @@ $.fn.redoculousEditor = function() {
 
 	var handle = $(this);
 
-	var getAppURL = function() {
+	var getServerURL = function() {
 		var url = window.location.href;
 		var arr = url.split("/");
 		var result = arr[0] + "//" + arr[2];
-		return result + "/p";
+		return result;
+	}
+
+	var getAppURL = function() {
+		return getServerURL() + "/p";
 	}
 
 	var getDataURL = function() {
@@ -147,14 +151,22 @@ $.fn.redoculousEditor = function() {
 			// visible height + scroll top = visible height (when scrolled up)
 			var visibleHeight = editor.height();
 			var contentHeight = editor[0].scrollHeight;
+			var documentHeight = $(window).height();
 			var scrollTop = editor.scrollTop();
 			var newScrollPercent = scrollTop / (contentHeight - visibleHeight)
 
-			/*
-			 * $("#stats").html( "visible height: " + visibleHeight + "<br/>" +
-			 * "content height: " + contentHeight + "<br/>" + "scroll top: " +
-			 * scrollTop + "<br/>" + "scroll percent: " + newScrollPercent + "<br/>" );
-			 */
+			if (false)
+				$("#stats").html(
+						"visible height: " + visibleHeight + "<br/>"
+								+ "document height: " + documentHeight
+								+ "<br/>" + "content height: " + contentHeight
+								+ "<br/>" + "scroll top: " + scrollTop
+								+ "<br/>" + "scroll percent: "
+								+ newScrollPercent + "<br/>");
+
+			if (newCursorPercent > newScrollPercent
+					&& contentHeight == documentHeight)
+				newScrollPercent = newCursorPercent;
 
 			if (newScrollPercent != syncScrollPercent) {
 				syncScrollPercent = newScrollPercent;
@@ -167,11 +179,11 @@ $.fn.redoculousEditor = function() {
 	$("#follow").click(function() {
 		if (follow) {
 			$("#follow").removeClass("btn-primary");
-			$("#follow").text("Link with viewer");
+			$("#follow").text("Viewer unlinked");
 			follow = false;
 		} else {
 			$("#follow").addClass("btn-primary");
-			$("#follow").text("Unlink from viewer");
+			$("#follow").text("Viewer linked");
 			follow = true;
 			syncCursorUpdateRequired = true;
 			syncScrollUpdateRequired = true;
@@ -190,6 +202,55 @@ $.fn.redoculousEditor = function() {
 		return viewer && !viewer.closed;
 	}
 
+	$("#open").click(function() {
+		var path = getCurrentFilePath();
+		if (path.startsWith("file://"))
+			path = path.substring(7);
+
+		var frame = $('<iframe />', {
+			src : getServerURL() + "/fs" + getNearestDirectory(path),
+			id : 'openFileFrame',
+			scrolling : 'vertical',
+			frameborder : 0
+		});
+		coverEditor(true);
+		frame.appendTo('body');
+
+		var configureFrameTimeoutId;
+		var escape = function(e) {
+			if (e.keyCode == 27) {
+				frame.remove();
+				coverEditor(false);
+				$(document).unbind("keyup", escape);
+				window.clearTimeout(configureFrameTimeoutId);
+			}
+		}
+
+		$(document).keyup(escape);
+
+		var configureFrame = function() {
+			window.clearTimeout(configureFrameTimeoutId);
+			frame.contents().keyup(escape);
+			frame.contents().find("a").each(function() {
+				var href = $(this).attr("href");
+				if (!href.endsWith("/")) {
+					$(this).click(function() {
+						window.location.search = "path=" + href.substring(3);
+					});
+				}
+			});
+			configureFrameTimeoutId = window.setTimeout(configureFrame, 50);
+		};
+		configureFrameTimeoutId = window.setTimeout(configureFrame, 50);
+	});
+
+	var coverEditor = function(covered) {
+		if (covered)
+			$("#editorCover").css("z-index", "2");
+		else
+			$("#editorCover").css("z-index", "-1");
+	};
+
 	load();
 	syncScroll();
 
@@ -205,6 +266,8 @@ var setViewerOpen = function(obj) {
 	$("#openViewer").addClass("hidden");
 	$("#follow").removeClass("hidden");
 }
+
+$('#bookmarklet').tooltip();
 
 $(document).ready(function() {
 	$("[data-redoculous-editor]").redoculousEditor();

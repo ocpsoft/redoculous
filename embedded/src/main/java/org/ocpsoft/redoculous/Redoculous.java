@@ -6,10 +6,14 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.resource.FileResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.ocpsoft.redoculous.config.util.NullServlet;
 import org.ocpsoft.rewrite.exception.RewriteException;
@@ -44,15 +48,40 @@ public class Redoculous
 
    public static void main(String[] args) throws Exception
    {
-      Server server = new Server(Integer.getInteger("port", 8080));
+      Server server = new Server(Integer.getInteger("port", 4343));
 
       HandlerList handlers = new HandlerList();
       handlers.addHandler(getServletContextHandler());
+      handlers.addHandler(getFilesystemHandler());
       handlers.addHandler(getResourceHandler());
+      handlers.addHandler(new DefaultHandler());
 
       server.setHandler(handlers);
       server.start();
       server.join();
+   }
+
+   private static Handler getFilesystemHandler()
+   {
+      ResourceHandler handler = new ResourceHandler();
+      handler.setDirectoriesListed(true);
+      handler.setBaseResource(new FileResource(getFilesystemRoot().toURI()));
+
+      ContextHandler context = new ContextHandler("/fs");
+      context.setHandler(handler);
+
+      return context;
+   }
+
+   private static File getFilesystemRoot()
+   {
+      File temp = new File("").getAbsoluteFile();
+      while (temp.getParentFile() != null)
+      {
+         temp = temp.getParentFile();
+      }
+
+      return temp;
    }
 
    private static ResourceHandler getResourceHandler()
