@@ -14,11 +14,10 @@ html,body {
 	background: rgb(41, 41, 41);
 	font-family: monospace;
 	font-size: 14px;
-	padding: 10px;
 	color: #ddd;
 	line-height: 1.35em;
-	margin: 0;
-	padding: 10;
+	margin: 10px;
+	padding: 0;
 }
 
 #controls {
@@ -47,6 +46,8 @@ html,body {
 		<!--  -->
 		<a id="openViewer" class="btn primary" onclick="openViewer()">Open
 			Viewer</a>
+
+		<div id="stats" style="color: yellow;"></div>
 	</div>
 </body>
 
@@ -187,9 +188,21 @@ html,body {
 				syncCursorUpdateRequired = true;
 			}
 
-			var height = $(editor).height();
-			var scrollTop = $(editor).scrollTop();
-			var newScrollPercent = scrollTop / height;
+			// visible height + scroll top = content height (when scrolled down)
+			// visible height + scroll top = visible height (when scrolled up)
+			var visibleHeight = editor.height();
+			var contentHeight = editor[0].scrollHeight;
+			var scrollTop = editor.scrollTop();
+			var newScrollPercent = scrollTop / (contentHeight - visibleHeight)
+
+			/*
+			$("#stats").html(
+					"visible height: " + visibleHeight + "<br/>"
+							+ "content height: " + contentHeight + "<br/>"
+							+ "scroll top: " + scrollTop + "<br/>"
+							+ "scroll percent: " + newScrollPercent + "<br/>"
+							);
+			*/
 
 			if (newScrollPercent != syncScrollPercent) {
 				syncScrollPercent = newScrollPercent;
@@ -228,6 +241,14 @@ html,body {
 
 	var viewerOpen = function() {
 		return viewerId && !viewerId.closed;
+	}
+
+	function nl2br(str, is_xhtml) {
+		var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? ''
+				: '<br>';
+
+		return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1'
+				+ breakTag + '$2');
 	}
 
 	load();

@@ -30,6 +30,7 @@ public class LiveReloadScriptAppender implements ResponseContentInterceptor
       String buffer = new String(content.getContents(), content.getCharset());
 
       StringBuilder builder = new StringBuilder();
+      builder.append("<!DOCTYPE html>").append("\n");
       builder.append("<html>").append("\n");
       builder.append("  <head>").append("\n");
       builder.append("    <link rel='stylesheet' href='" + /*event.getContextPath() +*/ "/css/asciidoctor.css'").append("\n");

@@ -23,7 +23,7 @@ $.fn.redoculousNow = function() {
 			if (window.opener.follow && window.opener.syncCursorUpdateRequired) {
 
 				if (syncCursorHighlighter == null) {
-					$("body")
+					$("html")
 							.append(
 									"<div id='redoculousCursorHighlighter' style='width: 100%; height: 100px; background-color: yellow; position: absolute; opacity: 0.2;'></div>")
 					syncCursorHighlighter = $('#redoculousCursorHighlighter');
@@ -31,7 +31,7 @@ $.fn.redoculousNow = function() {
 
 				syncCursorHighlighter.stop();
 				syncCursorHighlighter.animate({
-					top : $(document).height()
+					top : ($("body").height())
 							* window.opener.syncCursorPercent
 				}, 250);
 				window.opener.syncCursorUpdateRequired = false;
@@ -55,12 +55,14 @@ $.fn.redoculousNow = function() {
 
 		if (window.opener) {
 			if (window.opener.follow && window.opener.syncScrollUpdateRequired) {
+
+				var newScrollTop = ($(document).height() - $(window).height())
+						* window.opener.syncScrollPercent;
+
 				$('html, body').stop();
-				$('html, body').animate(
-						{
-							scrollTop : $(window).height()
-									* window.opener.syncScrollPercent
-						}, 250);
+				$('html, body').animate({
+					scrollTop : newScrollTop
+				}, 250);
 				window.opener.syncScrollUpdateRequired = false;
 			}
 		}
