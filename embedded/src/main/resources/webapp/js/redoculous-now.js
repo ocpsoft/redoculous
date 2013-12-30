@@ -32,7 +32,7 @@ $.fn.redoculousNow = function() {
 				syncCursorHighlighter.stop();
 				syncCursorHighlighter.animate({
 					top : ($("body").height())
-							* window.opener.syncCursorPercent
+							* window.opener.syncCursorPercent + 25
 				}, 250);
 				window.opener.syncCursorUpdateRequired = false;
 			}
