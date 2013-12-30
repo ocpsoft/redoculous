@@ -20,8 +20,7 @@ $.fn.redoculousNow = function() {
 		window.clearTimeout(syncCursorTimeoutId);
 
 		if (window.opener) {
-			if (window.opener.followCursor
-					&& window.opener.syncCursorUpdateRequired) {
+			if (window.opener.follow && window.opener.syncCursorUpdateRequired) {
 
 				if (syncCursorHighlighter == null) {
 					$("body")
@@ -37,6 +36,10 @@ $.fn.redoculousNow = function() {
 				}, 250);
 				window.opener.syncCursorUpdateRequired = false;
 			}
+			if (!window.opener.follow && syncCursorHighlighter) {
+				syncCursorHighlighter.remove();
+				syncCursorHighlighter = null;
+			}
 		}
 
 		window.setTimeout(syncCursor, 100);
@@ -51,8 +54,7 @@ $.fn.redoculousNow = function() {
 		window.clearTimeout(syncScrollTimeoutId);
 
 		if (window.opener) {
-			if (window.opener.followCursor
-					&& window.opener.syncScrollUpdateRequired) {
+			if (window.opener.follow && window.opener.syncScrollUpdateRequired) {
 				$('html, body').stop();
 				$('html, body').animate(
 						{
@@ -68,6 +70,13 @@ $.fn.redoculousNow = function() {
 
 	syncScroll();
 	/* End SyncScroll */
+
+	/* Unload Sync */
+	$(window).unload(function() {
+		if (window.opener) {
+			window.opener.viewerClosed();
+		}
+	});
 
 	var ajaxCall = function() {
 

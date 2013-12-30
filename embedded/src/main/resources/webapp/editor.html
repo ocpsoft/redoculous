@@ -21,18 +21,33 @@ html,body {
 	padding: 10;
 }
 
-#openViewer {
-	position: absolute;
+#controls {
+	float: right;
 	bottom: 15px;
 	right: 15px;
+	position: absolute;
+	opacity: 0.5;
+}
+
+#controls:hover {
+	opacity: 1.0;
+}
+
+.hidden {
+	display: none;
 }
 </style>
 </head>
 
 <body>
 	<textarea id="editor" rows="50" cols="100"></textarea>
-	<a id="openViewer" class="btn primary" onclick="openViewer()">Open
-		Viewer</a>
+	<div id="controls">
+		<a id="follow" class="btn hidden btn-primary" onclick="toggleFollow()">Unlink
+			from viewer</a>
+		<!--  -->
+		<a id="openViewer" class="btn primary" onclick="openViewer()">Open
+			Viewer</a>
+	</div>
 </body>
 
 <script type='text/javascript' src='/js/jquery.min.js'></script>
@@ -50,7 +65,7 @@ html,body {
 	var editor = $("#editor");
 	var value = editor.val()
 
-	var followCursor = true;
+	var follow = true;
 	var initialized = false;
 	var syncTimeoutId;
 	var viewerUpdateRequired = true;
@@ -122,15 +137,6 @@ html,body {
 		return loaded;
 	};
 
-	var openViewer = function() {
-		if (viewerOpen())
-			viewerId = window.open(window.location.href.replace('/edit', ''));
-	}
-
-	var viewerOpen = function() {
-		return !viewerId || viewerId.closed;
-	}
-
 	var save = function() {
 		var url = window.location;
 		viewerUpdateRequired = true;
@@ -163,7 +169,7 @@ html,body {
 	var syncScrollTimeoutId;
 	var syncScroll = function() {
 		window.clearTimeout(syncScrollTimeoutId);
-		if (followCursor) {
+		if (follow) {
 
 			var totalLines = editor.val().split("\n").length;
 			var currentLine = editor.val().substr(0, editor[0].selectionStart)
@@ -191,6 +197,37 @@ html,body {
 			}
 		}
 		syncScrollTimeoutId = window.setTimeout(syncScroll, 100);
+	}
+
+	var toggleFollow = function() {
+		if (follow) {
+			$("#follow").removeClass("btn-primary");
+			$("#follow").text("Link with viewer");
+			follow = false;
+		} else {
+			$("#follow").addClass("btn-primary");
+			$("#follow").text("Unlink from viewer");
+			follow = true;
+			syncCursorUpdateRequired = true;
+			syncScrollUpdateRequired = true;
+		}
+	}
+
+	var viewerClosed = function() {
+		$("#openViewer").removeClass("hidden");
+		$("#follow").addClass("hidden");
+	}
+
+	var openViewer = function() {
+		if (!viewerOpen()) {
+			viewerId = window.open(window.location.href.replace('/edit', ''));
+			$("#openViewer").addClass("hidden");
+			$("#follow").removeClass("hidden");
+		}
+	}
+
+	var viewerOpen = function() {
+		return viewerId && !viewerId.closed;
 	}
 
 	load();
