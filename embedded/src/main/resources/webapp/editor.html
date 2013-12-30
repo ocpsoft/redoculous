@@ -1,6 +1,7 @@
 <html>
 
 <head>
+<link rel="stylesheet" type="text/css" href="/css/bootstrap.css"> 
 <style type="text/css">
 #editor {
 	height: 100%;
@@ -15,13 +16,20 @@
 	margin: 0;
 	padding: 10;
 }
+
+#openViewer {
+	position: absolute;
+	bottom: 15px;
+	right: 15px;
+}
 </style>
 </head>
 
 <body>
 	<textarea id="editor" rows="50" cols="100"></textarea>
-	<button id="openViewer"
-		onclick="window.open(window.location.href.replace('/edit', ''))">Open Viewer</button>
+	<a id="openViewer" class="btn primary"
+		onclick="window.open(window.location.href.replace('/edit', ''))">Open
+		Viewer</a>
 </body>
 
 <script type='text/javascript' src='/js/jquery.min.js'></script>
