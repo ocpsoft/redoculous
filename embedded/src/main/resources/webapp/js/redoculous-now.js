@@ -18,13 +18,15 @@ $.fn.redoculousNow = function() {
 		window.clearTimeout(syncCursorScrollTimeoutId);
 
 		if (window.opener) {
-			if (window.opener.followCursor) {
+			if (window.opener.followCursor
+					&& window.opener.syncCursorUpdateRequired) {
 				$('html, body').stop();
 				$('html, body').animate(
 						{
 							scrollTop : $(window).height()
 									* window.opener.syncCursorScrollPercent
 						}, 250);
+				window.opener.syncCursorUpdateRequired = false;
 			}
 		}
 

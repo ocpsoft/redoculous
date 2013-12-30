@@ -162,6 +162,8 @@ html,body {
 	var syncCursor = function() {
 		window.clearTimeout(syncCursorTimeoutId);
 		if (followCursor) {
+
+			/* calculate % by lines
 			var totalLines = editor.val().split("\n").length;
 			var currentLine = editor.val().substr(0, editor[0].selectionStart)
 					.split("\n").length;
@@ -173,6 +175,7 @@ html,body {
 				totalLines = 1;
 
 			var newPercent = (currentLine * 100) / (totalLines * 100);
+			 */
 
 			var height = $(editor).height();
 			var scrollTop = $(editor).scrollTop();
@@ -183,7 +186,7 @@ html,body {
 				syncCursorUpdateRequired = true;
 			}
 		}
-		syncCursorTimeoutId = window.setTimeout(syncCursor, 500);
+		syncCursorTimeoutId = window.setTimeout(syncCursor, 100);
 	}
 
 	load();
