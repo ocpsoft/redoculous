@@ -10,7 +10,7 @@
    <groupId>org.ocpsoft.redoculous</groupId>
    <artifactId>redoculous-parent</artifactId>
    <packaging>pom</packaging>
-   <version>1.0.0.Alpha4</version>
+   <version>1.0.0-SNAPSHOT</version>
 
    <name>Redoculous - Parent POM</name>
 
@@ -195,7 +195,7 @@
       <connection>scm:git:git://github.com/ocpsoft/redoculous.git</connection>
       <developerConnection>scm:git:git@github.com:ocpsoft/redoculous.git</developerConnection>
       <url>http://github.com/ocpsoft/redoculous</url>
-      <tag>1.0.0.Alpha4</tag>
+      <tag>HEAD</tag>
    </scm>
 
    <issueManagement>
