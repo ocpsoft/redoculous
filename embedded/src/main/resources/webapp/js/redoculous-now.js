@@ -13,27 +13,27 @@ $.fn.redoculousNow = function() {
 		}
 	}
 
-	var syncCursorScrollTimeoutId;
-	var syncCursorScroll = function() {
-		window.clearTimeout(syncCursorScrollTimeoutId);
+	var syncScrollTimeoutId;
+	var syncScroll = function() {
+		window.clearTimeout(syncScrollTimeoutId);
 
 		if (window.opener) {
 			if (window.opener.followCursor
-					&& window.opener.syncCursorUpdateRequired) {
+					&& window.opener.syncScrollUpdateRequired) {
 				$('html, body').stop();
 				$('html, body').animate(
 						{
 							scrollTop : $(window).height()
-									* window.opener.syncCursorScrollPercent
+									* window.opener.syncScrollPercent
 						}, 250);
-				window.opener.syncCursorUpdateRequired = false;
+				window.opener.syncScrollUpdateRequired = false;
 			}
 		}
 
-		window.setTimeout(syncCursorScroll, 100);
+		window.setTimeout(syncScroll, 100);
 	}
 
-	syncCursorScroll();
+	syncScroll();
 
 	var ajaxCall = function() {
 

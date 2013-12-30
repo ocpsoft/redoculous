@@ -156,11 +156,11 @@ html,body {
 		});
 	};
 
-	var syncCursorUpdateRequired = false;
-	var syncCursorScrollPercent;
-	var syncCursorTimeoutId;
-	var syncCursor = function() {
-		window.clearTimeout(syncCursorTimeoutId);
+	var syncScrollUpdateRequired = false;
+	var syncScrollPercent;
+	var syncScrollTimeoutId;
+	var syncScroll = function() {
+		window.clearTimeout(syncScrollTimeoutId);
 		if (followCursor) {
 
 			/* calculate % by lines
@@ -181,16 +181,16 @@ html,body {
 			var scrollTop = $(editor).scrollTop();
 			var newPercent = scrollTop / height;
 
-			if (newPercent != syncCursorScrollPercent) {
-				syncCursorScrollPercent = newPercent;
-				syncCursorUpdateRequired = true;
+			if (newPercent != syncScrollPercent) {
+				syncScrollPercent = newPercent;
+				syncScrollUpdateRequired = true;
 			}
 		}
-		syncCursorTimeoutId = window.setTimeout(syncCursor, 100);
+		syncScrollTimeoutId = window.setTimeout(syncScroll, 100);
 	}
 
 	load();
-	syncCursor();
+	syncScroll();
 </script>
 
 </html>
