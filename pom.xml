@@ -19,8 +19,16 @@
       <module>api</module>
       <module>app</module>
       <module>embedded</module>
-      <module>tests</module>
    </modules>
+
+   <profiles>
+      <profile>
+         <id>test</id>
+         <modules>
+            <module>tests</module>
+         </modules>
+      </profile>
+   </profiles>
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -126,10 +134,10 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <argLine>-Xms256m -Xmx512m -XX:MaxPermSize=160m</argLine>
-              <systemProperties>
-                 <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
-              </systemProperties>
+               <argLine>-Xms256m -Xmx512m -XX:MaxPermSize=160m</argLine>
+               <systemProperties>
+                  <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+               </systemProperties>
             </configuration>
          </plugin>
 
