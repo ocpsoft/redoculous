@@ -1,17 +1,50 @@
 $.support.cors = false;
 
+var connected = false;
+
 $.fn.redoculousNow = function() {
 
 	var handle = $(this);
+	var editor = window.opener;
 	var titlePattern = "%TITLE%";
 
 	var connectToParent = function() {
-		if (window.opener) {
-			if (window.opener.getParameterByName("path") != getParameterByName("path")) {
-				window.opener.location.search = "?path=" + getCurrentFilePath();
+		try {
+			if (editor) {
+				if (!editor.isViewerOpen()) {
+					if (!connected) {
+						// if editor has just opened this viewer
+						if (editor.getCurrentFilePath() != getCurrentFilePath()
+								&& getCurrentFilePath() != "") {
+							window.location.search = "?path="
+									+ editor.getCurrentFilePath();
+						}
+					} else {
+						// if editor has just changed URLs
+						if (editor.getCurrentFilePath() != getCurrentFilePath()) {
+							window.location.search = "?path="
+									+ editor.getCurrentFilePath();
+						}
+					}
+				} else if (editor.isViewerOpen()) {
+					if (!connected) {
+						// if viewer has changed URL
+
+						if (editor.getCurrentFilePath() != getCurrentFilePath()
+								&& editor.getCurrentFilePath() != "") {
+							editor.location.search = "?path="
+									+ getCurrentFilePath();
+						}
+					}
+				}
+
+				editor.setViewer(window);
+				connected = true;
+
+				window.setTimeout(connectToParent, 1000);
 			}
-			window.opener.setViewerOpen(window);
-			window.setTimeout(connectToParent, 500);
+		} catch (err) {
+			window.setTimeout(connectToParent, 200);
 		}
 	};
 
@@ -23,8 +56,8 @@ $.fn.redoculousNow = function() {
 	var syncCursor = function() {
 		window.clearTimeout(syncCursorTimeoutId);
 
-		if (window.opener) {
-			if (window.opener.follow && window.opener.syncCursorUpdateRequired) {
+		if (editor) {
+			if (editor.follow && editor.syncCursorUpdateRequired) {
 
 				if (syncCursorHighlighter == null) {
 					$("html")
@@ -35,12 +68,11 @@ $.fn.redoculousNow = function() {
 
 				syncCursorHighlighter.stop();
 				syncCursorHighlighter.animate({
-					top : ($("body").height())
-							* window.opener.syncCursorPercent + 25
+					top : ($("body").height()) * editor.syncCursorPercent + 25
 				}, 250);
-				window.opener.syncCursorUpdateRequired = false;
+				editor.syncCursorUpdateRequired = false;
 			}
-			if (!window.opener.follow && syncCursorHighlighter) {
+			if (!editor.follow && syncCursorHighlighter) {
 				syncCursorHighlighter.remove();
 				syncCursorHighlighter = null;
 			}
@@ -57,17 +89,17 @@ $.fn.redoculousNow = function() {
 	var syncScroll = function() {
 		window.clearTimeout(syncScrollTimeoutId);
 
-		if (window.opener) {
-			if (window.opener.follow && window.opener.syncScrollUpdateRequired) {
+		if (editor) {
+			if (editor.follow && editor.syncScrollUpdateRequired) {
 
 				var newScrollTop = ($(document).height() - $(window).height())
-						* window.opener.syncScrollPercent;
+						* editor.syncScrollPercent;
 
 				$('html, body').stop();
 				$('html, body').animate({
 					scrollTop : newScrollTop
 				}, 250);
-				window.opener.syncScrollUpdateRequired = false;
+				editor.syncScrollUpdateRequired = false;
 			}
 		}
 
@@ -79,17 +111,17 @@ $.fn.redoculousNow = function() {
 
 	/* Unload Sync */
 	$(window).unload(function() {
-		if (window.opener) {
-			window.opener.onViewerClosed();
+		if (editor) {
+			editor.onViewerClosed();
 		}
 	});
 
 	var ajaxCall = function() {
 
-		if (!window.opener || window.opener.viewerUpdateRequired) {
+		if (!editor || editor.viewerUpdateRequired) {
 
-			if (window.opener)
-				window.opener.viewerUpdateRequired = false;
+			if (editor)
+				editor.viewerUpdateRequired = false;
 
 			var url = window.location;
 			console.log("Requesting document [" + url + "]");

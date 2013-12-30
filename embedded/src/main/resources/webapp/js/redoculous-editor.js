@@ -190,17 +190,11 @@ $.fn.redoculousEditor = function() {
 		}
 	});
 
-	$("#openViewer").click(
-			function() {
-				if (!isViewerOpen()) {
-					setViewerOpen(window.open(getAppURL() + "?path="
-							+ getCurrentFilePath()));
-				}
-			});
-
-	var isViewerOpen = function() {
-		return viewer && !viewer.closed;
-	}
+	$("#openViewer").click(function() {
+		if (!isViewerOpen()) {
+			window.open(getAppURL() + "?path=" + getCurrentFilePath());
+		}
+	});
 
 	$("#open").click(function() {
 		var path = getCurrentFilePath();
@@ -256,12 +250,20 @@ $.fn.redoculousEditor = function() {
 
 };
 
+var isViewerOpen = function() {
+	return viewer && !viewer.closed;
+}
+
 var onViewerClosed = function() {
 	$("#openViewer").removeClass("hidden");
 	$("#follow").addClass("hidden");
 }
 
-var setViewerOpen = function(obj) {
+var getViewer = function() {
+	return viewer;
+}
+
+var setViewer = function(obj) {
 	viewer = obj;
 	$("#openViewer").addClass("hidden");
 	$("#follow").removeClass("hidden");
