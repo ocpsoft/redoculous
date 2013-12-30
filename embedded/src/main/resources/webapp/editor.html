@@ -92,6 +92,7 @@
 
 	var save = function() {
 		var url = window.location;
+		window.clearTimeout(loadTimeoutId);
 		window.clearTimeout(saveTimeoutId);
 		saveTimeoutCleared = true;
 
@@ -100,7 +101,7 @@
 		$.ajax({
 			url : url,
 			cache : false,
-			data : "content=" + $("#editor").val(),
+			data : "content=" + encodeURIComponent($("#editor").val()),
 			dataType : "text",
 			type : "POST"
 		})
