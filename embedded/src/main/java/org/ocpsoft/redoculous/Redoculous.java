@@ -60,6 +60,7 @@ public class Redoculous
       ResourceHandler handler = new ResourceHandler();
       handler.setDirectoriesListed(true);
       handler.setBaseResource(Resource.newClassPathResource("webapp"));
+      handler.setWelcomeFiles(new String[] { "index.html" });
       return handler;
    }
 

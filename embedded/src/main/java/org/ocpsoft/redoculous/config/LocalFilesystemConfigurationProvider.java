@@ -20,7 +20,7 @@ import java.io.File;
 import javax.servlet.ServletContext;
 
 import org.ocpsoft.redoculous.config.editor.SaveFileOperation;
-import org.ocpsoft.redoculous.config.editor.ServeEditorOperation;
+import org.ocpsoft.redoculous.config.editor.LoadFileOperation;
 import org.ocpsoft.redoculous.config.util.CanonicalizeFileName;
 import org.ocpsoft.redoculous.config.util.LiveReloadScriptAppender;
 import org.ocpsoft.redoculous.config.util.PreviewLinkInterceptor;
@@ -73,7 +73,7 @@ public class LocalFilesystemConfigurationProvider extends HttpConfigurationProvi
                                  .and(Subset.evaluate(ConfigurationBuilder.begin()
                                           .addRule()
                                           .when(Method.isGet())
-                                          .perform(new ServeEditorOperation())
+                                          .perform(new LoadFileOperation())
 
                                           .addRule()
                                           .when(Method.isPost())

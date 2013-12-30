@@ -56,7 +56,7 @@ public class SaveFileOperation extends HttpOperation
       catch (IOException e) {
          throw new RuntimeException(e);
       }
-      Response.setStatus(200);
-      Response.complete();
+      Response.setStatus(200).perform(event, context);;
+      Response.complete().perform(event, context);;
    }
 }

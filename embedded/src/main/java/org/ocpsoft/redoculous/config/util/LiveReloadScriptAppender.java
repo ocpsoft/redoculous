@@ -44,6 +44,7 @@ public class LiveReloadScriptAppender implements ResponseContentInterceptor
       builder.append("      ").append(buffer).append("\n");
       builder.append("    </div>").append("\n");
       builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/jquery.min.js'></script>").append("\n");
+      builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/redoculous-common.js'></script>").append("\n");
       builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/redoculous-now.js'></script>").append("\n");
       builder.append("  </body>").append("\n");
       builder.append("</html>").append("\n");

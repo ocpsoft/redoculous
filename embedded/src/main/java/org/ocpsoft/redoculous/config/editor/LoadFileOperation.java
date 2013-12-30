@@ -10,7 +10,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.rewrite.context.EvaluationContext;
@@ -22,26 +21,16 @@ import org.ocpsoft.rewrite.servlet.http.event.HttpServletRewrite;
  * @author <a href="mailto:lincolnbaxter@gmail.com">Lincoln Baxter, III</a>
  * 
  */
-public class ServeEditorOperation extends HttpOperation
+public class LoadFileOperation extends HttpOperation
 {
 
    @Override
    public void performHttp(HttpServletRewrite event, EvaluationContext context)
    {
       try {
-         if (event.getRequest().getParameterMap().containsKey("serveContent"))
-         {
-            String content = getFile(event, context);
-            Response.write(content).perform(event, context);
-            Response.complete().perform(event, context);
-         }
-         else
-         {
-            InputStream editor = ServeEditorOperation.class.getResourceAsStream("/webapp/editor.html");
-            String content = Streams.toString(editor);
-            Response.write(content).perform(event, context);
-            Response.complete().perform(event, context);
-         }
+         String content = getFile(event, context);
+         Response.write(content).perform(event, context);
+         Response.complete().perform(event, context);
       }
       catch (FileNotFoundException e) {
          throw new RuntimeException(e);
