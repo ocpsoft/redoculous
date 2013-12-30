@@ -2,6 +2,9 @@ $.support.cors = false;
 
 $.fn.redoculousNow = function() {
 
+	var handle = $(this);
+	var titlePattern = "%TITLE%";
+
 	if (window.opener) {
 		if (getParameterByName(window.opener.location.search, "path") != getParameterByName(
 				window.location.search, "path")) {
@@ -10,9 +13,25 @@ $.fn.redoculousNow = function() {
 		}
 	}
 
-	var handle = $(this);
+	var syncCursorScrollTimeoutId;
+	var syncCursorScroll = function() {
+		window.clearTimeout(syncCursorScrollTimeoutId);
 
-	var titlePattern = "%TITLE%";
+		if (window.opener) {
+			if (window.opener.followCursor) {
+				$('html, body').stop();
+				$('html, body').animate(
+						{
+							scrollTop : $(window).height()
+									* window.opener.syncCursorScrollPercent
+						}, 250);
+			}
+		}
+
+		window.setTimeout(syncCursorScroll, 100);
+	}
+
+	syncCursorScroll();
 
 	var ajaxCall = function() {
 
@@ -36,7 +55,7 @@ $.fn.redoculousNow = function() {
 						console.log("Error fetching document [" + url + "] - ["
 								+ status + "-" + error + "]");
 
-						setTimeout(reload, 1000);
+						setTimeout(reload, 100);
 					})
 			// Success
 			.done(function(html) {
@@ -50,10 +69,10 @@ $.fn.redoculousNow = function() {
 					title = title.text();
 					document.title = titlePattern.replace("%TITLE%", title);
 				}
-				setTimeout(reload, 500);
+				setTimeout(reload, 100);
 			});
 		} else {
-			setTimeout(reload, 1000);
+			setTimeout(reload, 100);
 		}
 	};
 

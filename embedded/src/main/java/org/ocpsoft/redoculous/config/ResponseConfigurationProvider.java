@@ -32,7 +32,6 @@ import org.ocpsoft.rewrite.servlet.config.Response;
 
 public class ResponseConfigurationProvider extends HttpConfigurationProvider
 {
-
    Transposition<String> safeFileName = new SafeFileNameTransposition();
    Transposition<String> canonicalizeFilename = new CanonicalizeFileName();
 

@@ -37,86 +37,102 @@ html,body {
 
 <script type='text/javascript' src='/js/jquery.min.js'></script>
 <script type="text/javascript">
-	var value = $("#editor").val()
+	/* Add methods to String to get lines and count number of lines */
+	String.prototype.lines = function() {
+		return this.split(/\r*\n/);
+	}
+	String.prototype.lineCount = function() {
+		return this.lines().length
+				- (navigator.userAgent.indexOf("MSIE") != -1);
+	}
 
+	/* Prepare the editor data */
+	var editor = $("#editor");
+	var value = editor.val()
+
+	var followCursor = true;
 	var initialized = false;
-	var loadTimeoutId;
-	var saveTimeoutCleared = true;
-	var saveTimeoutId;
+	var syncTimeoutId;
 	var viewerUpdateRequired = true;
 	var viewerId;
 
-	$("#editor").keyup(function() {
-		window.clearTimeout(loadTimeoutId);
-		window.clearTimeout(saveTimeoutId);
-		if (value != $("#editor").val()) {
-			saveTimeoutCleared = false;
-			saveTimeoutId = window.setTimeout(save, 250);
-		}
+	/* Editor methods */
+	editor.keyup(function() {
+		window.clearTimeout(syncTimeoutId);
+		syncTimeoutId = window.setTimeout(sync, 250);
 	});
+
+	var sync = function() {
+		window.clearTimeout(syncTimeoutId);
+
+		if (value != editor.val()) {
+			if (!load()) {
+				value = editor.val();
+				save();
+			}
+		}
+	}
 
 	var load = function() {
 		var url = window.location;
-		var cancelLoad = false;
+		var loaded = false;
 
-		if (saveTimeoutCleared) {
-			console.log("Loading document [" + url + "]");
+		console.log("Loading document [" + url + "]");
 
-			$
-					.ajax({
-						url : url + "&serveContent",
-						cache : false,
-						dataType : "text",
-						type : "GET"
-					})
-					// Failure
-					.fail(
-							function(xhr, status, error) {
-								console.log("Error loading document [" + url
-										+ "] - [" + status + "-" + error + "]");
-							})
-					// Success
-					.done(
-							function(data) {
-								var value = $("#editor").val();
-								if (value != data) {
-									if (value != "") {
-										var confirm = window
-												.confirm("The document has changed on"
-														+ " the filesystem. Load changes?");
-										if (confirm) {
-											$("#editor").val(data);
-										} else {
-											window.clearTimeout(loadTimeoutId);
-											cancelLoad = true;
-										}
-									} else {
-										$("#editor").val(data);
+		$
+				.ajax({
+					url : url + "&serveContent",
+					async : false,
+					cache : false,
+					dataType : "text",
+					type : "GET",
+					timeout : 5000
+				})
+				// Failure
+				.fail(
+						function(xhr, status, error) {
+							console.log("Error loading document [" + url
+									+ "] - [" + status + "-" + error + "]");
+						})
+				// Success
+				.done(
+						function(data) {
+							if (value != data) {
+								if (value != "") {
+									var confirm = window
+											.confirm("The document has changed on"
+													+ " the filesystem. Load changes?");
+									if (confirm) {
+										editor.val(data);
+										loaded = true;
 									}
+								} else {
+									editor.val(data);
+									loaded = true;
 								}
-							});
-		}
 
-		if (cancelLoad == false)
-			loadTimeoutId = window.setTimeout(load, 2000);
+								if (loaded) {
+									value = data;
+									viewerUpdateRequired = true;
+								}
+							}
+						});
 
 		initialized = true;
+		return loaded;
 	};
 
 	var openViewer = function() {
 		if (viewerOpen())
 			viewerId = window.open(window.location.href.replace('/edit', ''));
 	}
-	
+
 	var viewerOpen = function() {
 		return !viewerId || viewerId.closed;
 	}
 
 	var save = function() {
 		var url = window.location;
-		window.clearTimeout(loadTimeoutId);
-		window.clearTimeout(saveTimeoutId);
-		saveTimeoutCleared = true;
 		viewerUpdateRequired = true;
 
 		console.log("Saving document [" + url + "]");
@@ -124,7 +140,7 @@ html,body {
 		$.ajax({
 			url : url,
 			cache : false,
-			data : "content=" + encodeURIComponent($("#editor").val()),
+			data : "content=" + encodeURIComponent(editor.val()),
 			dataType : "text",
 			type : "POST"
 		})
@@ -138,11 +154,40 @@ html,body {
 		.done(function(html) {
 			console.log("Saved document [" + url + "]");
 		});
-
-		loadTimeoutId = window.setTimeout(load, 2000);
 	};
 
+	var syncCursorUpdateRequired = false;
+	var syncCursorScrollPercent;
+	var syncCursorTimeoutId;
+	var syncCursor = function() {
+		window.clearTimeout(syncCursorTimeoutId);
+		if (followCursor) {
+			var totalLines = editor.val().split("\n").length;
+			var currentLine = editor.val().substr(0, editor[0].selectionStart)
+					.split("\n").length;
+
+			if (currentLine > 0)
+				currentLine = currentLine - 1;
+
+			if (totalLines == 0)
+				totalLines = 1;
+
+			var newPercent = (currentLine * 100) / (totalLines * 100);
+
+			var height = $(editor).height();
+			var scrollTop = $(editor).scrollTop();
+			var newPercent = scrollTop / height;
+
+			if (newPercent != syncCursorScrollPercent) {
+				syncCursorScrollPercent = newPercent;
+				syncCursorUpdateRequired = true;
+			}
+		}
+		syncCursorTimeoutId = window.setTimeout(syncCursor, 500);
+	}
+
 	load();
+	syncCursor();
 </script>
 
 </html>
