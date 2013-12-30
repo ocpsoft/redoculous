@@ -1,8 +1,12 @@
 <html>
 
 <head>
-<link rel="stylesheet" type="text/css" href="/css/bootstrap.css"> 
+<link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
 <style type="text/css">
+html,body {
+	background: rgb(41, 41, 41);
+}
+
 #editor {
 	height: 100%;
 	width: 100%;
@@ -27,8 +31,7 @@
 
 <body>
 	<textarea id="editor" rows="50" cols="100"></textarea>
-	<a id="openViewer" class="btn primary"
-		onclick="window.open(window.location.href.replace('/edit', ''))">Open
+	<a id="openViewer" class="btn primary" onclick="openViewer()">Open
 		Viewer</a>
 </body>
 
@@ -40,6 +43,8 @@
 	var loadTimeoutId;
 	var saveTimeoutCleared = true;
 	var saveTimeoutId;
+	var viewerUpdateRequired = true;
+	var viewerId;
 
 	$("#editor").keyup(function() {
 		window.clearTimeout(loadTimeoutId);
@@ -98,11 +103,21 @@
 		initialized = true;
 	};
 
+	var openViewer = function() {
+		if (viewerOpen())
+			viewerId = window.open(window.location.href.replace('/edit', ''));
+	}
+	
+	var viewerOpen = function() {
+		return !viewerId || viewerId.closed;
+	}
+
 	var save = function() {
 		var url = window.location;
 		window.clearTimeout(loadTimeoutId);
 		window.clearTimeout(saveTimeoutId);
 		saveTimeoutCleared = true;
+		viewerUpdateRequired = true;
 
 		console.log("Saving document [" + url + "]");
 
