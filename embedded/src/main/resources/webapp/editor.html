@@ -156,6 +156,8 @@ html,body {
 		});
 	};
 
+	var syncCursorPercent;
+	var syncCursorUpdateRequired = false;
 	var syncScrollUpdateRequired = false;
 	var syncScrollPercent;
 	var syncScrollTimeoutId;
@@ -163,7 +165,6 @@ html,body {
 		window.clearTimeout(syncScrollTimeoutId);
 		if (followCursor) {
 
-			/* calculate % by lines
 			var totalLines = editor.val().split("\n").length;
 			var currentLine = editor.val().substr(0, editor[0].selectionStart)
 					.split("\n").length;
@@ -174,15 +175,18 @@ html,body {
 			if (totalLines == 0)
 				totalLines = 1;
 
-			var newPercent = (currentLine * 100) / (totalLines * 100);
-			 */
+			var newCursorPercent = (currentLine * 100) / (totalLines * 100);
+			if (newCursorPercent != syncCursorPercent) {
+				syncCursorPercent = newCursorPercent;
+				syncCursorUpdateRequired = true;
+			}
 
 			var height = $(editor).height();
 			var scrollTop = $(editor).scrollTop();
-			var newPercent = scrollTop / height;
+			var newScrollPercent = scrollTop / height;
 
-			if (newPercent != syncScrollPercent) {
-				syncScrollPercent = newPercent;
+			if (newScrollPercent != syncScrollPercent) {
+				syncScrollPercent = newScrollPercent;
 				syncScrollUpdateRequired = true;
 			}
 		}

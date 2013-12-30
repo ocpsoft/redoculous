@@ -13,6 +13,39 @@ $.fn.redoculousNow = function() {
 		}
 	}
 
+	/* Begin SyncCursor */
+	var syncCursorHighlighter = null;
+	var syncCursorTimeoutId;
+	var syncCursor = function() {
+		window.clearTimeout(syncCursorTimeoutId);
+
+		if (window.opener) {
+			if (window.opener.followCursor
+					&& window.opener.syncCursorUpdateRequired) {
+
+				if (syncCursorHighlighter == null) {
+					$("body")
+							.append(
+									"<div id='redoculousCursorHighlighter' style='width: 100%; height: 60px; background-color: yellow; position: absolute; opacity: 0.2;'></div>")
+					syncCursorHighlighter = $('#redoculousCursorHighlighter');
+				}
+
+				syncCursorHighlighter.stop();
+				syncCursorHighlighter.animate({
+					top : $(document).height()
+							* window.opener.syncCursorPercent
+				}, 250);
+				window.opener.syncCursorUpdateRequired = false;
+			}
+		}
+
+		window.setTimeout(syncCursor, 100);
+	}
+
+	syncCursor();
+	/* End SyncCursor */
+
+	/* Begin SyncScroll */
 	var syncScrollTimeoutId;
 	var syncScroll = function() {
 		window.clearTimeout(syncScrollTimeoutId);
@@ -34,6 +67,7 @@ $.fn.redoculousNow = function() {
 	}
 
 	syncScroll();
+	/* End SyncScroll */
 
 	var ajaxCall = function() {
 
