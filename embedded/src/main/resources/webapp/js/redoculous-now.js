@@ -26,7 +26,7 @@ $.fn.redoculousNow = function() {
 				if (syncCursorHighlighter == null) {
 					$("body")
 							.append(
-									"<div id='redoculousCursorHighlighter' style='width: 100%; height: 60px; background-color: yellow; position: absolute; opacity: 0.2;'></div>")
+									"<div id='redoculousCursorHighlighter' style='width: 100%; height: 100px; background-color: yellow; position: absolute; opacity: 0.2;'></div>")
 					syncCursorHighlighter = $('#redoculousCursorHighlighter');
 				}
 
