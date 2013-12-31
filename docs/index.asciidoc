@@ -21,7 +21,8 @@ or http://search.maven.org/#search%7Cga%7C1%7Credoculous-embedded[Release] of th
 
 5. Click open to edit a file, and enjoy!
 
-=== Redoculous Server*Coming soon.*
+=== Redoculous Server
+TIP: Coming soon...
 
 == Support
 If you are having difficulty with Redoculous, please visit the
