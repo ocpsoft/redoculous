@@ -21,6 +21,7 @@ import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.render.RenderRequest;
+import org.ocpsoft.redoculous.render.RenderResult;
 import org.ocpsoft.redoculous.render.Renderer;
 
 public class RenderService
@@ -40,8 +41,10 @@ public class RenderService
    @Inject
    private UserTransaction tx;
 
-   public String resolveRendered(RenderRequest request)
+   public RenderResult resolveRendered(RenderRequest request)
    {
+      RenderResult result = new RenderResult();
+
       Repository repo = request.getRepository();
       String ref = request.getRef();
       String path = request.getPath();
@@ -49,23 +52,41 @@ public class RenderService
       File source = resolvePath(repo.getRefDir(ref), path);
       if (source != null && source.isFile())
       {
-         File result = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
-         if (!result.exists())
+         File gridFile = gfs.getFile(repo.getCachedRefDir(ref), getRelativePath(repo.getRefDir(ref), source));
+         if (!gridFile.exists())
          {
             Lock lock = gridLock.getLock(tx, source.getAbsolutePath());
             lock.lock();
             try
             {
-               if (!result.exists())
+               if (!gridFile.exists())
                {
                   LOOP: for (Renderer renderer : renderers)
                   {
+                     // Match the renderer to the file extension only
                      for (String extension : renderer.getSupportedExtensions())
                      {
                         if (extension.matches(source.getName().replaceAll("^.*\\.([^.]+)", "$1")))
                         {
-                           render(renderer, request, source, (GridFile) result);
-                           log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Complete.");
+                           render(renderer, request, source, (GridFile) gridFile);
+                           log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Completed by ["
+                                    + renderer.getName() + "] renderer.");
+                           result.setMediaType(renderer.getOutputMediaType());
+
+                           break LOOP;
+                        }
+                     }
+
+                     // Try matching the renderer by regular expression pattern on the entire filename
+                     for (String extension : renderer.getSupportedExtensions())
+                     {
+                        if (source.getName().matches(extension))
+                        {
+                           render(renderer, request, source, (GridFile) gridFile);
+                           log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Completed by ["
+                                    + renderer.getName() + "] renderer.");
+                           result.setMediaType(renderer.getOutputMediaType());
+
                            break LOOP;
                         }
                      }
@@ -84,10 +105,12 @@ public class RenderService
 
          try
          {
-            if (result.exists())
-               return Streams.toString(gfs.getInput(result));
+            if (gridFile.exists())
+               result.setStream(gfs.getInput(gridFile));
             else if (source.exists())
-               return Streams.toString(gfs.getInput(source));
+               result.setStream(gfs.getInput(source));
+
+            return result;
          }
          catch (FileNotFoundException e)
          {

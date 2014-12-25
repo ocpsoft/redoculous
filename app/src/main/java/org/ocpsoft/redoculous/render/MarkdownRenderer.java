@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 
 import org.jruby.embed.ScriptingContainer;
 import org.ocpsoft.common.util.Streams;
@@ -68,6 +69,18 @@ public class MarkdownRenderer implements Renderer, JRubyLoadPathProvider
    public List<String> getLoadPaths()
    {
       return Arrays.asList("ruby/maruku/lib");
+   }
+
+   @Override
+   public int priority()
+   {
+      return Renderer.TEXT;
+   }
+
+   @Override
+   public MediaType getOutputMediaType()
+   {
+      return MediaType.TEXT_HTML_TYPE;
    }
 
 }

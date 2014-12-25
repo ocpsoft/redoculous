@@ -13,15 +13,20 @@ public class WatermarkInterceptor implements ResponseContentInterceptor
    public void intercept(HttpServletRewrite event, ResponseContent buffer,
             ResponseContentInterceptorChain chain)
    {
-      String content = new String(buffer.getContents(), buffer.getCharset());
-      content = content + "<center style='margin: 25px !important; " +
-               "font-size: 12px !important; " +
-               "display: block !important; " +
-               "visibility: visible !important;'>" +
-               "Rendered with " +
-               "<a style='opacity: 0.8;' href='http://redoculous.io'>redoculous</a> - by " +
-               "<a style='opacity: 0.8;' href='http://ocpsoft.org/'>ocpsoft.org</a> &copy " + getYear() + "</center>";
-      buffer.setContents(content.getBytes());
+      String contentType = event.getResponse().getContentType();
+      if (contentType == null || contentType.contains("html"))
+      {
+         String content = new String(buffer.getContents(), buffer.getCharset());
+         content = content + "<center style='margin: 25px !important; " +
+                  "font-size: 12px !important; " +
+                  "display: block !important; " +
+                  "visibility: visible !important;'>" +
+                  "Rendered with " +
+                  "<a style='opacity: 0.8;' href='http://redoculous.io'>redoculous</a> - by " +
+                  "<a style='opacity: 0.8;' href='http://ocpsoft.org/'>ocpsoft.org</a> &copy " + getYear()
+                  + "</center>";
+         buffer.setContents(content.getBytes());
+      }
       chain.proceed();
    }
 

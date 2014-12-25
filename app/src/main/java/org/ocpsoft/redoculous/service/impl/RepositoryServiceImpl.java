@@ -23,6 +23,7 @@ import org.ocpsoft.redoculous.cache.Keys;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.model.impl.GitRepository;
 import org.ocpsoft.redoculous.render.RenderRequest;
+import org.ocpsoft.redoculous.render.RenderResult;
 import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
 import org.ocpsoft.redoculous.rest.model.RepositoryStatus.State;
 import org.ocpsoft.redoculous.service.RepositoryService;
@@ -55,12 +56,12 @@ public class RepositoryServiceImpl implements RepositoryService
    private UserTransaction tx;
 
    @Override
-   public String getRenderedContent(String namespace, String repo, String ref, String path)
+   public RenderResult getRenderedContent(String namespace, String repo, String ref, String path)
    {
       if (path.startsWith("/"))
          path = path.substring(1);
 
-      String result = render.resolveRendered(new RenderRequest(getGridRepository(namespace, repo), ref, path));
+      RenderResult result = render.resolveRendered(new RenderRequest(getGridRepository(namespace, repo), ref, path));
 
       if (result == null)
       {

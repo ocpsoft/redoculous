@@ -9,6 +9,7 @@ package org.ocpsoft.redoculous.service;
 import java.util.Set;
 
 import org.ocpsoft.redoculous.model.Repository;
+import org.ocpsoft.redoculous.render.RenderResult;
 import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
 
 /**
@@ -17,7 +18,7 @@ import org.ocpsoft.redoculous.rest.model.RepositoryStatus;
  */
 public interface RepositoryService
 {
-   String getRenderedContent(String namespace, String repo, String ref, String path);
+   RenderResult getRenderedContent(String namespace, String repo, String ref, String path);
 
    void updateRepository(String namespace, String repo);
 

@@ -23,7 +23,9 @@ public class DocumentFilter implements FileFilter
       {
          for (String extension : renderer.getSupportedExtensions())
          {
-            if (!file.getName().equals(".git") && (file.getName().endsWith("." + extension) || file.isDirectory()))
+            if (!file.getName().equals(".git")
+                     && (file.getName().endsWith("." + extension) || file.isDirectory() || file.getName().matches(
+                              extension)))
                return true;
          }
       }

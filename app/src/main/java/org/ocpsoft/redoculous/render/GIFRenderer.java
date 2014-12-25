@@ -10,21 +10,21 @@ import javax.ws.rs.core.MediaType;
 import org.ocpsoft.common.util.Streams;
 
 @ApplicationScoped
-public class HTMLRenderer implements Renderer
+public class GIFRenderer implements Renderer
 {
-   public HTMLRenderer()
+   public GIFRenderer()
    {}
 
    @Override
    public Iterable<String> getSupportedExtensions()
    {
-      return Arrays.asList("html", "xhtml", "html5", "htm");
+      return Arrays.asList("gif");
    }
 
    @Override
    public String getName()
    {
-      return "html";
+      return "GIF";
    }
 
    @Override
@@ -39,10 +39,9 @@ public class HTMLRenderer implements Renderer
       return Renderer.BINARY;
    }
 
-   
    @Override
    public MediaType getOutputMediaType()
    {
-      return MediaType.TEXT_HTML_TYPE;
+      return new MediaType("image", "gif");
    }
 }

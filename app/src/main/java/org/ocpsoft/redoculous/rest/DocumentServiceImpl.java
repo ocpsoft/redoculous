@@ -1,14 +1,21 @@
 package org.ocpsoft.redoculous.rest;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.ocpsoft.common.util.Streams;
+import org.ocpsoft.redoculous.render.RenderResult;
 import org.ocpsoft.redoculous.rest.model.VersionResult;
 import org.ocpsoft.redoculous.service.RepositoryService;
 
@@ -22,9 +29,16 @@ public class DocumentServiceImpl implements DocumentService
    @Override
    public Response serve(String namespace, String repoName, String refName, String path) throws Exception
    {
-      String content = rs.getRenderedContent(namespace, repoName, refName, path);
+      final RenderResult content = rs.getRenderedContent(namespace, repoName, refName, path);
+      StreamingOutput output = new StreamingOutput() {
+         @Override
+         public void write(OutputStream output) throws IOException, WebApplicationException
+         {
+            Streams.copy(content.getStream(), output);
+         }
+      };
       if (content != null)
-         return Response.ok(content).build();
+         return Response.ok(output).type(content.getMediaType()).build();
       return Response.status(404).build();
    }
 
@@ -32,16 +46,16 @@ public class DocumentServiceImpl implements DocumentService
    public Response serveNoTableOfContents(String namespace, String repoName, String refName, String path)
             throws Exception
    {
-      String content = rs.getRenderedContent(namespace, repoName, refName, path);
-      if (content != null)
+      RenderResult content = rs.getRenderedContent(namespace, repoName, refName, path);
+      if (content != null && content.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
       {
-         Document document = Jsoup.parse(content, UTF8);
+         Document document = Jsoup.parse(Streams.toString(content.getStream()), UTF8);
          Element toc = document.getElementById("toc");
          if (toc != null)
          {
             toc.remove();
          }
-         return Response.ok(document.toString()).build();
+         return Response.ok(document.toString()).type(MediaType.TEXT_HTML_TYPE).build();
       }
       return Response.status(404).build();
    }
@@ -50,13 +64,13 @@ public class DocumentServiceImpl implements DocumentService
    public Response serveTableOfContents(String namespace, String repoName, String refName, String path)
             throws Exception
    {
-      String content = rs.getRenderedContent(namespace, repoName, refName, path);
-      if (content != null)
+      RenderResult content = rs.getRenderedContent(namespace, repoName, refName, path);
+      if (content != null && content.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
       {
-         Document document = Jsoup.parse(content, UTF8);
+         Document document = Jsoup.parse(Streams.toString(content.getStream()), UTF8);
          Element toc = document.getElementById("toc");
          if (toc != null)
-            return Response.ok(toc.toString()).build();
+            return Response.ok(toc.toString()).type(MediaType.TEXT_HTML_TYPE).build();
          else
             return Response.noContent().status(201).build();
       }

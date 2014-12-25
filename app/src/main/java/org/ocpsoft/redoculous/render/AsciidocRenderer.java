@@ -11,6 +11,7 @@ import java.util.Stack;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 
 import org.asciidoctor.Options;
 import org.asciidoctor.SafeMode;
@@ -63,5 +64,17 @@ public class AsciidocRenderer implements Renderer, JRubyLoadPathProvider
    public List<String> getLoadPaths()
    {
       return Arrays.asList("gems/asciidoctor-0.1.4/lib");
+   }
+
+   @Override
+   public int priority()
+   {
+      return Renderer.TEXT;
+   }
+
+   @Override
+   public MediaType getOutputMediaType()
+   {
+      return MediaType.TEXT_HTML_TYPE;
    }
 }
