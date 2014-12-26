@@ -46,7 +46,7 @@ public class DocumentServiceImpl implements DocumentService
    public Response serveNoTableOfContents(String namespace, String repoName, String refName, String path)
             throws Exception
    {
-      RenderResult content = rs.getRenderedContent(namespace, repoName, refName, path);
+      final RenderResult content = rs.getRenderedContent(namespace, repoName, refName, path);
       if (content != null && content.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
       {
          Document document = Jsoup.parse(Streams.toString(content.getStream()), UTF8);
@@ -55,7 +55,19 @@ public class DocumentServiceImpl implements DocumentService
          {
             toc.remove();
          }
-         return Response.ok(document.toString()).type(MediaType.TEXT_HTML_TYPE).build();
+         return Response.ok(document.toString()).type(content.getMediaType()).build();
+      }
+      else if (content != null)
+      {
+         StreamingOutput output = new StreamingOutput() {
+            @Override
+            public void write(OutputStream output) throws IOException, WebApplicationException
+            {
+               Streams.copy(content.getStream(), output);
+            }
+         };
+         if (content != null)
+            return Response.ok(output).type(content.getMediaType()).build();
       }
       return Response.status(404).build();
    }

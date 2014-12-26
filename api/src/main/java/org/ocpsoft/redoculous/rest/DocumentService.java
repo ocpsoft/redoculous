@@ -10,7 +10,6 @@ import javax.ws.rs.core.Response;
 import org.ocpsoft.redoculous.rest.model.VersionResult;
 
 @Path("/v1/serve")
-@Produces({ "text/html" })
 public interface DocumentService
 {
    @GET
@@ -32,6 +31,7 @@ public interface DocumentService
 
    @GET
    @Path("/toc")
+   @Produces({ "text/html" })
    public Response serveTableOfContents(
             @QueryParam("ns") @DefaultValue("") String namespace,
             @QueryParam("repo") String repoName,

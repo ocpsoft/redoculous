@@ -7,6 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import javax.enterprise.inject.Any;
@@ -16,6 +19,8 @@ import javax.transaction.UserTransaction;
 
 import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
+import org.ocpsoft.common.pattern.WeightedComparator;
+import org.ocpsoft.common.util.Iterators;
 import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.logging.Logger;
 import org.ocpsoft.redoculous.cache.GridLock;
@@ -43,6 +48,9 @@ public class RenderService
 
    public RenderResult resolveRendered(RenderRequest request)
    {
+      List<Renderer> renderers = new ArrayList<Renderer>(Iterators.asList(this.renderers));
+      Collections.sort(renderers, new WeightedComparator());
+      
       RenderResult result = new RenderResult();
 
       Repository repo = request.getRepository();
@@ -61,6 +69,7 @@ public class RenderService
             {
                if (!gridFile.exists())
                {
+
                   LOOP: for (Renderer renderer : renderers)
                   {
                      // Match the renderer to the file extension only
@@ -100,6 +109,29 @@ public class RenderService
          }
          else
          {
+            // Set the media-type for cached results.
+            LOOP: for (Renderer renderer : renderers)
+            {
+               // Match the renderer to the file extension only
+               for (String extension : renderer.getSupportedExtensions())
+               {
+                  if (extension.matches(gridFile.getName().replaceAll("^.*\\.([^.]+)", "$1")))
+                  {
+                     result.setMediaType(renderer.getOutputMediaType());
+                     break LOOP;
+                  }
+               }
+
+               // Try matching the renderer by regular expression pattern on the entire filename
+               for (String extension : renderer.getSupportedExtensions())
+               {
+                  if (gridFile.getName().matches(extension))
+                  {
+                     result.setMediaType(renderer.getOutputMediaType());
+                     break LOOP;
+                  }
+               }
+            }
             log.info("Render: [" + repo.getUrl() + "] [" + ref + "] [" + path + "] - Not required (already cached).");
          }
 
