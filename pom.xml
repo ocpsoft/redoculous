@@ -143,35 +143,6 @@
       </plugins>
    </build>
 
-   <repositories>
-      <repository>
-         <id>sonatype-snapshots</id>
-         <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-      </repository>
-      <repository>
-         <id>eap</id>
-         <url>http://maven.repository.redhat.com/techpreview/all</url>
-         <releases>
-            <enabled>true</enabled>
-         </releases>
-         <snapshots>
-            <enabled>true</enabled>
-         </snapshots>
-      </repository>
-   </repositories>
-   <pluginRepositories>
-      <pluginRepository>
-         <id>eap</id>
-         <url>http://maven.repository.redhat.com/techpreview/all</url>
-         <releases>
-            <enabled>true</enabled>
-         </releases>
-         <snapshots>
-            <enabled>true</enabled>
-         </snapshots>
-      </pluginRepository>
-   </pluginRepositories>
-
    <developers>
       <developer>
          <id>lincolnbaxter</id>
