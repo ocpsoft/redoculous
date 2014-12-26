@@ -50,13 +50,52 @@ $.fn.redoculousNow = function() {
 
 	connectToParent();
 
+
+   /* Begin SyncCursor */
+
+	var lastWords;
+   var syncWordsTimeoutId;
+   var syncWords = function() {
+      window.clearTimeout(syncWordsTimeoutId);
+
+      if (editor) {
+         if(editor.syncWords && editor.syncWords.length > 0) {
+            var newWords = editor.syncWords.replaceAll("\\W+", ".*");
+            if (editor.follow && newWords != lastWords && newWords.length > 2) {
+               handle.highlightRegex()
+               lastWords = newWords;
+               console.log(editor.syncWords);
+               console.log(lastWords);
+               handle.highlightRegex(lastWords);
+            }
+         }
+      }
+
+      window.setTimeout(syncWords, 100);
+   }
+
+   syncWords();
+   /* End SyncWords */
+	
+	
 	/* Begin SyncCursor */
+
+   var getTocOffset = function() {
+      var toc = $("#toc");
+      var tocOffset = 0;
+      if(toc.length > 0)
+      {
+         tocOffset = toc.height();
+      }
+      return tocOffset;
+   }
+	
 	var syncCursorHighlighter = null;
 	var syncCursorTimeoutId;
 	var syncCursor = function() {
 		window.clearTimeout(syncCursorTimeoutId);
 
-		if (editor) {
+		if (false && editor) {
 			if (editor.follow && editor.syncCursorUpdateRequired) {
 
 				if (syncCursorHighlighter == null) {
@@ -65,10 +104,12 @@ $.fn.redoculousNow = function() {
 									"<div id='redoculousCursorHighlighter' style='width: 100%; height: 100px; background-color: yellow; position: absolute; left: 0; opacity: 0.2;'></div>")
 					syncCursorHighlighter = $('#redoculousCursorHighlighter');
 				}
+				
+				var cursorPos = ($("body").height() - getTocOffset()) * editor.syncCursorPercent + 25 + getTocOffset() + (getTocOffset() * editor.syncCursorPercent);
 
 				syncCursorHighlighter.stop();
 				syncCursorHighlighter.animate({
-					top : ($("body").height()) * editor.syncCursorPercent + 25
+					top : cursorPos
 				}, 250);
 				editor.syncCursorUpdateRequired = false;
 			}
@@ -91,9 +132,9 @@ $.fn.redoculousNow = function() {
 
 		if (editor) {
 			if (editor.follow && editor.syncScrollUpdateRequired) {
-
-				var newScrollTop = ($(document).height() - $(window).height())
-						* editor.syncScrollPercent;
+			   
+				var newScrollTop = (($(document).height() - $(window).height())
+						* editor.syncScrollPercent) + (getTocOffset());
 
 				$('html, body').stop();
 				$('html, body').animate({

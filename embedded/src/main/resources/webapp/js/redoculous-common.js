@@ -33,6 +33,13 @@ if (typeof String.prototype.endsWith != 'function') {
 	};
 }
 
+if (typeof String.prototype.replaceAll != 'function') {
+   String.prototype.replaceAll = function (find, replace) {
+      return this.replace(new RegExp(find, 'g'), replace);
+   };
+}
+
+
 var getNearestDirectory = function(path) {
 	var result = path.substring(0, path.lastIndexOf('/'));
 	return result;
@@ -67,5 +74,40 @@ var nl2br = function(str, is_xhtml) {
 	return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag
 			+ '$2');
 };
+
+function getCaretPosition(ctrl) {
+   var start, end;
+   if (ctrl.setSelectionRange) {
+       start = ctrl.selectionStart;
+       end = ctrl.selectionEnd;
+   } else if (document.selection && document.selection.createRange) {
+       var range = document.selection.createRange();
+       start = 0 - range.duplicate().moveStart('character', -100000);
+       end = start + range.text.length;
+   }
+   return {
+       start: start,
+       end: end
+   }
+}
+
+function getWordAtCaret(value, caret) {
+   var result = /\S+$/.exec(value.slice(0, value.indexOf(' ',caret.end)));
+   var lastWord = result ? result[0] : null;
+   return lastWord;
+}
+
+function getCurrentLine(string, caretPos) {
+   var start = caretPos.start;
+   var end = caretPos.end;
+   
+   if(start == end && start > 0)
+      start--;
+   
+   for (; start >= 0 && string[start] != "\n"; --start);
+   for (; end < string.length && string[end] != "\n"; ++end);
+
+   return string.substring(start + 1, end);
+}
 
 console.log('Loaded: redoculous-common.js');

@@ -16,9 +16,24 @@ var syncScrollUpdateRequired = false;
 var syncScrollPercent;
 var syncScrollTimeoutId;
 
+var syncWord;
+var syncWords;
+
 $.fn.redoculousEditor = function() {
 
 	var handle = $(this);
+	
+	editor.keyup(function () {
+	   syncWord = getWordAtCaret(this.value, getCaretPosition(this));
+	   syncWords = getCurrentLine(this.value, getCaretPosition(this));
+	   console.log(syncWords);
+	});
+   
+   editor.click(function () {
+      syncWord = getWordAtCaret(this.value, getCaretPosition(this));
+      syncWords = getCurrentLine(this.value, getCaretPosition(this));
+      console.log(syncWords);
+   });
 
 	var getServerURL = function() {
 		var url = window.location.href;

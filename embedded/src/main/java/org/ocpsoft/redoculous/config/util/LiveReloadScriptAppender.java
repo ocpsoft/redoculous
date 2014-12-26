@@ -33,7 +33,8 @@ public class LiveReloadScriptAppender implements ResponseContentInterceptor
       builder.append("<!DOCTYPE html>").append("\n");
       builder.append("<html>").append("\n");
       builder.append("  <head>").append("\n");
-      builder.append("    <link rel='stylesheet' href='" + /*event.getContextPath() +*/ "/css/asciidoctor.css'").append("\n");
+      builder.append("    <link rel='stylesheet' href='" + /*event.getContextPath() +*/ "/css/asciidoctor.css' />").append("\n");
+      builder.append("    <link rel='stylesheet' href='" + /*event.getContextPath() +*/ "/css/viewer.css' />").append("\n");
       builder.append("    <link rel='shortcut icon' href='" +/*event.getContextPath() +*/ "/favicon.ico' />").append("\n");
       builder.append("    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=US-ASCII\">").append("\n");
       builder.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">").append("\n");
@@ -44,6 +45,7 @@ public class LiveReloadScriptAppender implements ResponseContentInterceptor
       builder.append("      ").append(buffer).append("\n");
       builder.append("    </div>").append("\n");
       builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/jquery.min.js'></script>").append("\n");
+      builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/jquery.highlight.js'></script>").append("\n");
       builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/redoculous-common.js'></script>").append("\n");
       builder.append("    <script type='text/javascript' src='" + /*event.getContextPath() +*/ "/js/redoculous-now.js'></script>").append("\n");
       builder.append("  </body>").append("\n");
