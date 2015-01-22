@@ -9,6 +9,7 @@ $.fn.redoculous = function()
    var root = handle.attr("data-root");
    var titlePattern = handle.attr("data-title");
    var onload = handle.attr("data-onload");
+   var onfail = handle.attr("data-onfail");
    var history = handle.attr("data-history") === "true" ? true : false;
 
    if (history && (History == null))
@@ -58,11 +59,6 @@ $.fn.redoculous = function()
                   }
                }
             });
-
-      if (onload)
-      {
-         eval(onload);
-      }
    };
 
    var setupHistory = function(root)
@@ -95,6 +91,10 @@ $.fn.redoculous = function()
       {
          console.log("Error fetching document [" + url + "] - [" + status + "-" + error + "]");
          handle.html("Content temporarily unavailable. System may be down for maintenance.");
+         if(onfail)
+         {
+            eval(onfail);
+         }
       })
       // Success
       .done(function(html)
