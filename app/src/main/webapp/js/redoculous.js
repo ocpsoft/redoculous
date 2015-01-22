@@ -114,6 +114,11 @@ $.fn.redoculous = function()
          {
             handle.html(html);
          }
+
+         if(onload)
+         {
+            eval(onload);
+         }
       });
    };
 
