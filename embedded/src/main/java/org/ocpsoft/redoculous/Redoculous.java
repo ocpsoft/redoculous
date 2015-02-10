@@ -1,7 +1,9 @@
 package org.ocpsoft.redoculous;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
@@ -48,7 +50,8 @@ public class Redoculous
 
    public static void main(String[] args) throws Exception
    {
-      Server server = new Server(Integer.getInteger("port", 4343));
+      Integer port = Integer.getInteger("port", 4343);
+      Server server = new Server(port);
 
       HandlerList handlers = new HandlerList();
       handlers.addHandler(getServletContextHandler());
@@ -58,6 +61,9 @@ public class Redoculous
 
       server.setHandler(handlers);
       server.start();
+      // Open the web browser
+      if (Desktop.isDesktopSupported())
+         Desktop.getDesktop().browse(new URI("http://localhost:" + port));
       server.join();
    }
 
