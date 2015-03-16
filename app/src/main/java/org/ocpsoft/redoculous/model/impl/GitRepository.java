@@ -233,7 +233,7 @@ public class GitRepository extends AbstractRepository implements Repository
             }
             Files.delete(refDir, true);
             Files.delete(refCacheDir, true);
-            throw new RewriteException("Could checkout ref [" + ref + "] from repository [" + getUrl() + "] [" + getKey() + "].", e);
+            throw new RewriteException("Could NOT checkout ref [" + ref + "] from repository [" + getUrl() + "] [" + getKey() + "].", e);
          }
          finally
          {
