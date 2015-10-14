@@ -38,10 +38,10 @@ public class GridInputStream2 extends InputStream {
    private byte[] currentBuffer = null;
    private boolean endReached = false;
    private boolean closed = false;
-   private FileChunkMapper fileChunkMapper;
+   private FileChunkMapper2 fileChunkMapper;
 
    public GridInputStream2(GridFile file, Cache<String, byte[]> cache) {
-      fileChunkMapper = new FileChunkMapper(file, cache);
+      fileChunkMapper = new FileChunkMapper2(file, cache);
    }
 
    @Override
