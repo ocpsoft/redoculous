@@ -24,24 +24,45 @@ public class CacheProducer
    @Inject
    private EmbeddedCacheManager cacheManager;
 
+   public static final String FILESYSTEM = "filesystem";
+   public static final String METADATA = "metadata";
    public static final String DEFAULT = "default";
+
    private static final String REPO_CACHE_LOCK = "grid.lock";
    private static final String REPO_CACHE_FILESYSTEM = "filesystem.content";
    private static final String REPO_CACHE_METADATA = "filesystem.metadata";
 
    @Produces
    @Singleton
+   @Named(FILESYSTEM)
    public GridFilesystem getGridFilesystem()
+   {
+      Cache<String, byte[]> fsCacheData = getFilesystemCacheData();
+      Cache<String, Metadata> fsCacheMetadata = getFilesystemCacheMetadata();
+      return new GridFilesystem(fsCacheData, fsCacheMetadata);
+   }
+
+   @Produces
+   @Singleton
+   @Named(METADATA)
+   public Cache<String, Metadata> getFilesystemCacheMetadata()
+   {
+      Cache<String, Metadata> fsCacheMetadata = cacheManager.<String, Metadata>
+               getCache(REPO_CACHE_METADATA)
+               .getAdvancedCache()
+               .with(CacheProducer.class.getClassLoader());
+      return fsCacheMetadata;
+   }
+
+   @Produces
+   @Singleton
+   public Cache<String, byte[]> getFilesystemCacheData()
    {
       Cache<String, byte[]> fsCacheData = cacheManager.<String, byte[]>
                getCache(REPO_CACHE_FILESYSTEM)
                .getAdvancedCache()
                .with(CacheProducer.class.getClassLoader());
-      Cache<String, Metadata> fsCacheMetadata = cacheManager.<String, Metadata>
-               getCache(REPO_CACHE_METADATA)
-               .getAdvancedCache()
-               .with(CacheProducer.class.getClassLoader());
-      return new GridFilesystem(fsCacheData, fsCacheMetadata);
+      return fsCacheData;
    }
 
    @Produces

@@ -15,14 +15,18 @@ import java.util.concurrent.locks.Lock;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.transaction.UserTransaction;
 
+import org.infinispan.Cache;
 import org.infinispan.io.GridFile;
 import org.infinispan.io.GridFilesystem;
+import org.infinispan.io.GridInputStream2;
 import org.ocpsoft.common.pattern.WeightedComparator;
 import org.ocpsoft.common.util.Iterators;
 import org.ocpsoft.common.util.Streams;
 import org.ocpsoft.logging.Logger;
+import org.ocpsoft.redoculous.cache.CacheProducer;
 import org.ocpsoft.redoculous.cache.GridLock;
 import org.ocpsoft.redoculous.model.Repository;
 import org.ocpsoft.redoculous.render.RenderRequest;
@@ -50,7 +54,7 @@ public class RenderService
    {
       List<Renderer> renderers = new ArrayList<Renderer>(Iterators.asList(this.renderers));
       Collections.sort(renderers, new WeightedComparator());
-      
+
       RenderResult result = new RenderResult();
 
       Repository repo = request.getRepository();
@@ -186,6 +190,10 @@ public class RenderService
       return relative;
    }
 
+   @Inject
+   @Named(CacheProducer.FILESYSTEM)
+   private Cache<String, byte[]> cache;
+
    private void render(Renderer renderer, RenderRequest request, File source, GridFile result)
    {
       InputStream input = null;
@@ -196,7 +204,7 @@ public class RenderService
             result.getParentFile().mkdirs();
 
          result.createNewFile();
-         input = new BufferedInputStream(gfs.getInput(source));
+         input = new BufferedInputStream(new GridInputStream2(result, cache));
          output = new BufferedOutputStream(gfs.getOutput(result));
          renderer.render(request, input, output);
       }
