@@ -34,6 +34,7 @@
       <maven.compiler.source>1.7</maven.compiler.source>
       <maven.compiler.target>1.7</maven.compiler.target>
       <version.rewrite>3.0.0.Alpha6</version.rewrite>
+      <version.logging>1.0.4.FInal</version.logging>
       <version.jgit>3.0.0.201306101825-r</version.jgit>
       <version.junit>4.8.1</version.junit>
       <version.jsoup>1.7.2</version.jsoup>
@@ -77,6 +78,11 @@
             <groupId>org.ocpsoft.rewrite</groupId>
             <artifactId>rewrite-transform-minify</artifactId>
             <version>${version.rewrite}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.ocpsoft.logging</groupId>
+            <artifactId>logging-api</artifactId>
+            <version>${version.logging}</version>
          </dependency>
 
          <dependency>
