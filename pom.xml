@@ -190,6 +190,15 @@
             <enabled>false</enabled>
          </snapshots>
       </repository>
+      <repository>
+         <id>sonatype-releases</id>
+         <name>Sonatype Releases Repository</name>
+         <layout>default</layout>
+         <url>https://oss.sonatype.org/content/repositories/releases/</url>
+         <snapshots>
+            <enabled>false</enabled>
+         </snapshots>
+      </repository>
    </repositories>
 
 </project>
