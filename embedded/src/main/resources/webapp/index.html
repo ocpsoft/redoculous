@@ -1,0 +1,34 @@
+<html>
+
+<head>
+<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/css/editor.css">
+</head>
+
+<body data-redoculous-editor>
+	<textarea id="editor" rows="50" cols="100"></textarea>
+	<div id="editorCover"></div>
+	<div id="controls">
+		<a id="bookmarklet" class="btn btn-default fl" data-toggle="tooltip"
+			data-placement="top"
+			data-original-title="Drag this link your bookmarks menu, then open a file in your browser and click to edit with Redoculous."
+			href="javascript:window.location.href = 'http://localhost:4343/?path=' + window.location.href;">
+			<span class="glyphicon glyphicon-link"></span> <span
+			style="display: none;">Edit with Redoculous</span>
+		</a>
+		<!--  -->
+		<a id="open" class="btn btn-default fl">Open file</a> <a id="follow"
+			class="btn hidden btn-primary fr">Viewer linked</a>
+		<!--  -->
+		<a id="openViewer" class="btn btn-primary fr">Open Viewer</a>
+
+		<div id="stats" style="color: yellow;"></div>
+	</div>
+</body>
+
+<script type='text/javascript' src='/js/jquery.min.js'></script>
+<script type='text/javascript' src='/js/bootstrap.min.js'></script>
+<script type='text/javascript' src='/js/redoculous-common.js'></script>
+<script type='text/javascript' src='/js/redoculous-editor.js'></script>
+
+</html>

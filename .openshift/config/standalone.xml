@@ -186,6 +186,29 @@
             <!--iiop enable-by-default="false" use-qualified-name="false"/-->
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:1.2" default-cache-container="cluster">
+            <cache-container name="redoculous" aliases="ha-partition" jndi-name="java:jboss/infinispan/redoculous-cluster" default-cache="default">
+               <transport />
+               <distributed-cache name="default" mode="SYNC" owners="2" start="LAZY">
+                  <locking isolation="REPEATABLE_READ"/>
+                  <file-store passivation="true" preload="true" path="redoculous"></file-store>
+                  <eviction strategy="LIRS" max-entries="10000"/>
+               </distributed-cache>
+               <distributed-cache name="grid.lock" mode="SYNC" owners="2" start="LAZY" remote-timeout="300000">
+                  <locking acquire-timeout="300000"/>
+                  <file-store passivation="false" fetch-state="false" />
+                  <transaction mode="FULL_XA" locking="PESSIMISTIC" stop-timeout="30000"/>
+               </distributed-cache>
+               <distributed-cache name="filesystem.content" mode="ASYNC" owners="2" start="LAZY" batching="true" remote-timeout="30000">
+                  <locking isolation="REPEATABLE_READ" />
+                  <file-store passivation="true" preload="true" path="redoculous" />
+                  <eviction strategy="NONE" max-entries="-1"/>
+               </distributed-cache>
+               <replicated-cache name="filesystem.metadata" mode="ASYNC" start="LAZY" remote-timeout="30000">
+                  <file-store passivation="true" preload="true" path="redoculous" />
+                  <locking isolation="REPEATABLE_READ" />
+                  <eviction strategy="NONE" max-entries="-1"/>
+               </replicated-cache>
+            </cache-container>
             <cache-container name="cluster" aliases="ha-partition" default-cache="default">
                 <transport lock-timeout="60000"/>
                 <replicated-cache name="default" mode="SYNC" batching="true">

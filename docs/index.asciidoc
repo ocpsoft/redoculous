@@ -1,0 +1,37 @@
+
+Redoculous is a simple Markup language preview editor and publishing server - edit 
+documents locally in real-time, and publish instantly to the web
+with a few small snippits of HTML. Designed for handling multiple
+versions of documents, publishing directly from source has never 
+been easier. Just use a little basic HTML to add a Redoculous pane
+to any web page, and include the required scripts to publish
+your documentation instantly.
+
+=== Use Redoculous Editor
+In order to use the Redoculous Editor, you must:
+
+1. Have Java 7 https://www.java.com/[installed].
+
+2. Get a recent https://oss.sonatype.org/content/repositories/snapshots/org/ocpsoft/redoculous-embedded/[Snapshot] 
+or http://search.maven.org/#search%7Cga%7C1%7Credoculous-embedded[Release] of the application JAR file.
+
+3. Run the JAR from anywhere with `java -jar redoculous-embedded.jar`
+
+4. Access the editor at http://localhost:4343/[]
+
+5. Click open to edit a file, and enjoy!
+
+=== Redoculous Server
+TIP: Coming soon...
+
+== Support
+If you are having difficulty with Redoculous, please visit the
+link:http://ocpsoft.org/support/redoculous-users/[Redoculous Users Forum]
+and post a question. We will respond as quickly as possible.
+
+== Get involved
+Project homepage:: http://ocpsoft.org/redoculous/
+Source-code:: http://github.com/ocpsoft/redoculous
+Twitter:: http://twitter.com/ocpsoft
+
+

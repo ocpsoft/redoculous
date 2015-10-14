@@ -1,0 +1,12 @@
+This is a simple document.
+
+[source,xml]
+----
+<dependency>
+   <groupId>com.ocpsoft</groupId>
+   <artifactId>prettyfaces-jsf2</artifactId>
+   <version>3.3.3</version>
+</dependency>
+----
+
+Now add the Rewrite servlet and the PrettyFaces compatibility module to your +pom.xml+:

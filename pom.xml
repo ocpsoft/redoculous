@@ -1,45 +1,191 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>redoculous</groupId>
-  <artifactId>redoculous</artifactId>
-  <packaging>war</packaging>
-  <version>1.0</version>
-  <name>redoculous</name>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
-  </properties>
-  <dependencies>
-    <dependency>
-      <groupId>org.jboss.spec</groupId>
-      <artifactId>jboss-javaee-6.0</artifactId>
-      <version>1.0.0.Final</version>
-      <type>pom</type>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
-  <profiles>
-    <profile>
-     <!-- When built in OpenShift the 'openshift' profile will be used when invoking mvn. -->
-     <!-- Use this profile for any OpenShift specific customization your app will need. -->
-     <!-- By default that is to put the resulting archive into the 'deployments' folder. -->
-     <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
-     <id>openshift</id>
-     <build>
-        <finalName>redoculous</finalName>
-        <plugins>
-          <plugin>
-            <artifactId>maven-war-plugin</artifactId>
-            <version>2.1.1</version>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>org.ocpsoft</groupId>
+      <artifactId>ocpsoft-parent</artifactId>
+      <version>10</version>
+   </parent>
+
+   <groupId>org.ocpsoft.redoculous</groupId>
+   <artifactId>redoculous-parent</artifactId>
+   <packaging>pom</packaging>
+   <version>1.0.0-SNAPSHOT</version>
+
+   <name>Redoculous - Parent POM</name>
+
+   <modules>
+      <module>api</module>
+      <module>app</module>
+      <module>embedded</module>
+   </modules>
+
+   <profiles>
+      <profile>
+         <id>test</id>
+         <modules>
+            <module>tests</module>
+         </modules>
+      </profile>
+   </profiles>
+
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <maven.compiler.source>1.7</maven.compiler.source>
+      <maven.compiler.target>1.7</maven.compiler.target>
+      <version.rewrite>3.0.0.Alpha4</version.rewrite>
+      <version.jgit>3.0.0.201306101825-r</version.jgit>
+      <version.junit>4.8.1</version.junit>
+      <version.jsoup>1.7.2</version.jsoup>
+      <version.gson>2.2.2</version.gson>
+      <version.shrinkwrap>1.2.0</version.shrinkwrap>
+   </properties>
+
+   <dependencyManagement>
+      <dependencies>
+
+         <dependency>
+            <groupId>org.jboss.spec</groupId>
+            <artifactId>jboss-javaee-6.0</artifactId>
+            <version>3.0.3.Final</version>
+            <scope>provided</scope>
+            <type>pom</type>
+         </dependency>
+
+         <dependency>
+            <groupId>org.ocpsoft.redoculous</groupId>
+            <artifactId>redoculous-server-api</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.ocpsoft.rewrite</groupId>
+            <artifactId>rewrite-servlet</artifactId>
+            <version>${version.rewrite}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.ocpsoft.rewrite</groupId>
+            <artifactId>rewrite-transform-markup</artifactId>
+            <version>${version.rewrite}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.ocpsoft.rewrite</groupId>
+            <artifactId>rewrite-transform-less</artifactId>
+            <version>${version.rewrite}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.ocpsoft.rewrite</groupId>
+            <artifactId>rewrite-transform-minify</artifactId>
+            <version>${version.rewrite}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>${version.jgit}</version>
+         </dependency>
+         <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${version.gson}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${version.jsoup}</version>
+         </dependency>
+
+         <!-- Test Dependencies -->
+         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
-              <outputDirectory>deployments</outputDirectory>
-              <warName>ROOT</warName>
+               <source>${maven.compiler.source}</source>
+               <target>${maven.compiler.target}</target>
+               <encoding>UTF-8</encoding>
             </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+               <archive>
+                  <manifest>
+                     <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                     <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                  </manifest>
+               </archive>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <argLine>-Xms256m -Xmx512m -XX:MaxPermSize=160m</argLine>
+               <systemProperties>
+                  <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+               </systemProperties>
+            </configuration>
+         </plugin>
+
+      </plugins>
+   </build>
+
+   <developers>
+      <developer>
+         <id>lincolnbaxter</id>
+         <name>Lincoln Baxter, III</name>
+         <email>lincoln@ocpsoft.org</email>
+         <timezone>-5</timezone>
+      </developer>
+   </developers>
+
+   <url>http://ocpsoft.org/redoculous/</url>
+
+   <licenses>
+      <license>
+         <name>Apache License</name>
+         <url>http://www.apache.org/licenses/</url>
+         <distribution>repo</distribution>
+      </license>
+   </licenses>
+
+   <scm>
+      <connection>scm:git:git://github.com/ocpsoft/redoculous.git</connection>
+      <developerConnection>scm:git:git@github.com:ocpsoft/redoculous.git</developerConnection>
+      <url>http://github.com/ocpsoft/redoculous</url>
+      <tag>HEAD</tag>
+   </scm>
+
+   <issueManagement>
+      <system>GitHub</system>
+      <url>https://github.com/ocpsoft/redoculous/issues</url>
+   </issueManagement>
+
+   <repositories>
+      <repository>
+         <id>central</id>
+         <name>Maven Repository Switchboard</name>
+         <layout>default</layout>
+         <url>http://repo1.maven.org/maven2</url>
+         <snapshots>
+            <enabled>false</enabled>
+         </snapshots>
+      </repository>
+   </repositories>
+
 </project>
+
+

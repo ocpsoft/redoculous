@@ -1,0 +1,3 @@
+org.ocpsoft.redoculous.config.ResponseConfigurationProvider
+org.ocpsoft.redoculous.config.LocalFilesystemConfigurationProvider
+org.ocpsoft.redoculous.config.LoggingConfigurationProvider

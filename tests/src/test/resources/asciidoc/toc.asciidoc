@@ -1,0 +1,341 @@
+= PrettyFaces 3.x Migration Guide
+Christian Kaltepoth
+:description: This guide described the process of migrating existing PrettyFaces applications to Rewrite
+:keywords: PrettyFaces, Rewrite, Migration
+:toc:
+:toclevels: 4
+
+= PrettyFaces 3.x Migration Guide
+
+This guide describes how to migrate existing applications built using PrettyFaces 3.x to Rewrite 2.0.
+
+toc::[]
+
+== Migration strategies
+
+There are basically two ways of migrating such applications to Rewrite:
+
+PrettyFaces compatibility module:: This Rewrite module allows you to keep your old PrettyFace 3.x
+  configuration and use it with Rewrite. The module supports both the XML configuration file
+  +pretty-config.xml+ and the PrettyFaces annotations like +@URLMapping+. You should use this way
+  of migration for your application if you don't want to modify your existing code.
+
+JSF integration module:: If you don't want to use the old PrettyFaces 3.x configuration anymore and
+  want to use all the new features of Rewrite, you should choose the Rewrite JSF integration module. 
+  This module provides a new way of configuration and therefore requires you to adapt your 
+  existing configuration.
+
+NOTE: Both ways of migrating will only work for JSF 2.x applications.
+
+The following sections will describe both ways in detail.
+
+== PrettyFaces compatibility module
+
+Migrating application using PrettyFaces 3.x is very easy. Just follow the steps described below.
+
+=== Update your dependencies
+
+First you have to remove the old `com.ocpsoft.prettyfaces` dependency from your project. Open
+your +pom.xml+ and remove the following entry:
+
+[source,xml]
+----
+<dependency>
+   <groupId>com.ocpsoft</groupId>
+   <artifactId>prettyfaces-jsf2</artifactId>
+   <version>3.3.3</version>
+</dependency>
+----
+
+Now add the Rewrite servlet and the PrettyFaces compatibility module to your +pom.xml+:
+
+[source,xml]
+----
+<dependency>
+   <groupId>org.ocpsoft.rewrite</groupId>
+   <artifactId>rewrite-servlet</artifactId>
+   <version>${rewrite.version}</version>
+</dependency>
+<dependency>
+   <groupId>org.ocpsoft.rewrite</groupId>
+   <artifactId>rewrite-config-prettyfaces</artifactId>
+   <version>${rewrite.version}</version>
+</dependency>
+----
+
+Your code should still compile fine after updating the dependencies.
+
+
+=== Filter registration
+
+If you used PrettyFaces in a Servlet 3.0 environment, the required servlet filter is automatically 
+registered. In this case you typically don't have an entry for the +PrettyFilter+ in your +web.xml+
+and you can therefore skip this section.
+
+If you added the +PrettyFilter+ manually to your +web.xml+, you will have to replace the filter
+declaration to use the Rewrite filter instead. Locate the following entry in your +web.xml+:
+
+[source,xml]
+----
+<filter>
+   <filter-name>Pretty Filter</filter-name>
+   <filter-class>com.ocpsoft.pretty.PrettyFilter</filter-class>
+   <async-supported>true</async-supported>
+</filter>
+<filter-mapping> 
+   <filter-name>Pretty Filter</filter-name> 
+   <url-pattern>/*</url-pattern> 
+   <dispatcher>FORWARD</dispatcher>
+   <dispatcher>REQUEST</dispatcher>
+   <dispatcher>INCLUDE</dispatcher>
+   <dispatcher>ASYNC</dispatcher>
+   <dispatcher>ERROR</dispatcher>
+</filter-mapping>
+----
+
+Remove this entry completely and replace it with the corresponding entry for the +RewriteFilter+:
+
+[source,xml]
+----
+<filter>
+   <filter-name>OCPsoft Rewrite Filter</filter-name>
+   <filter-class>org.ocpsoft.rewrite.servlet.RewriteFilter</filter-class>
+   <async-supported>true</async-supported>
+</filter>
+<filter-mapping>
+   <filter-name>OCPsoft Rewrite Filter</filter-name>
+   <url-pattern>/*</url-pattern>
+   <dispatcher>FORWARD</dispatcher>
+   <dispatcher>REQUEST</dispatcher>
+   <dispatcher>INCLUDE</dispatcher>
+   <dispatcher>ASYNC</dispatcher>
+   <dispatcher>ERROR</dispatcher>
+</filter-mapping>
+----
+
+NOTE: Please not that if you are using a Servlet 3.x container and your +web.xml+ doesn't set
++metadata-complete="true"+, you don't have to register the Rewrite filter manually, because
+this is done automatically. In this case just make sure to remove the old +PrettyFilter+ entry. 
+
+=== Test your application
+
+After having performed the changes described in the two sections, your migration is complete.
+Although we consider the compatibility module to be very solid and stable, you should test your 
+application carefully. If something doesn't work as before, let us know. :) 
+
+== JSF integration module
+
+This section describes how to migrate existing PrettyFaces configuration to the Rewrite
+JSF integration module.
+
+=== Adding the Rewrite dependencies
+
+If you want to use the Rewrite JSF integration module, you have to add the following dependencies
+to your project.
+
+[source,xml]
+----
+<!-- Rewrite with JSF integration -->
+<dependency>
+   <groupId>org.ocpsoft.rewrite</groupId>
+   <artifactId>rewrite-servlet</artifactId>
+   <version>${rewrite.version}</version>
+</dependency>
+<dependency>
+   <groupId>org.ocpsoft.rewrite</groupId>
+   <artifactId>rewrite-integration-jsf</artifactId>
+   <version>${rewrite.version}</version>
+</dependency>
+
+<!-- optional: CDI integration -->
+<dependency>
+   <groupId>org.ocpsoft.rewrite</groupId>
+   <artifactId>rewrite-integration-cdi</artifactId>
+   <version>${rewrite.version}</version>
+</dependency>
+----
+
+Adding the dependencies in a Servlet 3.0 environment will automatically register the required
+Servlet listeners and filters.
+
+=== PrettyFaces XML configuration
+
+PrettyFaces used an XML file called +pretty-config.xml+ to configure URL mappings and rewrite rules.
+Rewrite uses a fluent Java API for configuration instead. XML files are not supported any more.
+
+----
+public class MyConfigurationProvider extends HttpConfigurationProvider {
+
+  @Override
+  public Configuration getConfiguration(ServletContext context) {
+  
+     return ConfigurationBuilder.begin()
+               
+               /* add your rules here */
+
+               ;
+  }
+
+  @Override
+  public int priority() {
+     return 10;
+  }
+
+}
+----
+
+==== URL Mappings
+
+The URL mappings of PrettyFaces have been replace with a Rewrite rule called +Join+. 
+The concepts are very similar. You can specify a _virtual path_ that is mapped to a
+physical server resource.
+
+[cols="1a,1a", options="header"]
+|===
+|PrettyFaces
+|Rewrite
+| 
+----
+<url-mapping id="login">
+  <pattern value="/login" />
+  <view-id value="/login.jsf" /> 
+</url-mapping>
+----
+|
+----
+@Override
+public Configuration getConfiguration(ServletContext context) {
+  
+   return ConfigurationBuilder.begin()
+
+             .addRule(Join.path("/login").to("/login.jsf"))
+             
+             ;
+}
+|===
+
+==== Path Parameters
+
+Path parameters are dynamic parts of an URL which you typically use to embed details about an addressed
+resource. With PrettyFaces you had to use EL-like expressions in the pattern part of the mapping to
+add such parameters. Rewrite parameters are very similar to that.  The only real difference is that 
+you have to use +\{param\}+ instead of +#\{param\}+ for the parameter. 
+
+[cols="1a,1a", options="header"]
+|===
+|PrettyFaces
+|Rewrite
+| 
+----
+<url-mapping id="viewCategory">
+  <pattern value="/store/#{category}/" />
+  <view-id value="/faces/shop/store.jsf" /> 
+</url-mapping>
+----
+|
+----
+.addRule(
+  Join.path("/store/{category}/").to("/faces/shop/store.jsf")
+)
+|===
+
+In the example show above the parameters will be automatically turned into query parameters with
+the same name as the parameter. This means that you can access the parameter using the standard
+Servlet API:
+
+----
+request.getParameter("category");
+----
+
+Instead of using the standard Servlet API to access the parameters, it is often easier
+to use EL-injected path parameters. With PrettyFaces you would simply use an EL expression that
+refers to a bean property for that. PrettyFaces will then automatically inject the path parameter
+value into that bean property.
+
+Rewrite uses a concept called _parameter bindings_ to achieve the same. With Rewrite you can
+_bind_ parameters to bean properties by calling +.where("param").bindsTo(...)+. See the following
+code for an example: 
+
+[cols="1a,1a", options="header"]
+|===
+|PrettyFaces
+|Rewrite
+| 
+----
+<url-mapping id="viewCategory">
+  <pattern value="/store/#{bean.category}/" />
+  <view-id value="/faces/shop/store.jsf" /> 
+</url-mapping>
+----
+|
+----
+.addRule(
+  Join.path("/store/{category}/").to("/faces/shop/store.jsf")
+).where("category").bindsTo(El.property("bean.category"))
+|===
+
+If your bean uses a JSF-specifc scope like +@ViewScoped+), you have to wrap 
+the +El+ binding in a +PhaseBinding+. This will tell PrettyFaces to submit the 
+binding in the specified JSF phase which ensures, that the scope of the bean will
+be active.
+
+So instead of:
+
+----
+.bindsTo(El.property("bean.category"))
+----
+
+You have to write:
+
+----
+.bindsTo(PhaseBinding.to(El.property("bean.category"))).after(PhaseId.RESTORE_VIEW))
+----
+
+==== Page actions
+
+PrettyFaces allowed the user to specify a _page action_ which is invoked when a request
+for the mapping is received. 
+
+
+[cols="1a,1a", options="header"]
+|===
+|PrettyFaces
+|Rewrite
+| 
+----
+<url-mapping id="viewItem">
+  <pattern value="/store/item/#{id}/" />
+  <view-id value="/faces/shop/item.jsf" /> 
+  <action>#{bean.loadItem}</action>
+</url-mapping>
+----
+|
+----
+.addRule(
+  Join.path("/store/item/#{id}/").to("/faces/shop/item.jsf")
+).perform(Invoke.binding(El.retrievalMethod("bean.loadItem")))
+|===
+
+With the Rewrite configuration shown above, the page action is invoked very early in request 
+processing, even before the JSF lifecycle starts. In some situations this may lead to problems.
+Especially if you are using a scope like +@ViewScoped+, which requires an active JSF
+lifecycle.
+
+To work around this problem, you can defer the invocation of the page action by wrapping it in
+a +PhaseOperation+. 
+
+So instead of:
+
+----
+.perform(
+  Invoke.binding(El.retrievalMethod("bean.loadItem"))
+)
+----
+
+You have to write:
+
+----
+.perform(
+  PhaseOperation.enqueue(
+    Invoke.binding(El.retrievalMethod("bean.loadItem"))
+  ).after(PhaseId.RES...

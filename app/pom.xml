@@ -1,0 +1,144 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>org.ocpsoft.redoculous</groupId>
+      <artifactId>redoculous-parent</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+   </parent>
+
+   <artifactId>redoculous-server</artifactId>
+   <packaging>war</packaging>
+
+   <name>Redoculous Server</name>
+
+   <properties>
+      <main.basedir>${project.parent.basedir}</main.basedir>
+      <version.infinispan>5.2.6.Final</version.infinispan>
+   </properties>
+
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>org.jruby</groupId>
+            <artifactId>jruby-complete</artifactId>
+            <version>1.7.6</version>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+
+   <dependencies>
+      <dependency>
+         <groupId>org.ocpsoft.redoculous</groupId>
+         <artifactId>redoculous-server-api</artifactId>
+      </dependency>
+
+      <dependency>
+         <groupId>org.jboss.spec</groupId>
+         <artifactId>jboss-javaee-6.0</artifactId>
+         <scope>provided</scope>
+         <type>pom</type>
+      </dependency>
+
+      <!-- Rewrite -->
+      <dependency>
+         <groupId>org.ocpsoft.rewrite</groupId>
+         <artifactId>rewrite-servlet</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.ocpsoft.rewrite</groupId>
+         <artifactId>rewrite-transform-markup</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.ocpsoft.rewrite</groupId>
+         <artifactId>rewrite-transform-less</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.ocpsoft.rewrite</groupId>
+         <artifactId>rewrite-transform-minify</artifactId>
+      </dependency>
+
+      <!-- Asciidoctor -->
+      <dependency>
+         <groupId>org.asciidoctor</groupId>
+         <artifactId>asciidoctor-java-integration</artifactId>
+         <version>0.1.4</version>
+      </dependency>
+
+      <!-- Compression -->
+      <dependency>
+         <groupId>net.lingala.zip4j</groupId>
+         <artifactId>zip4j</artifactId>
+         <version>1.3.1</version>
+      </dependency>
+
+      <!-- Git -->
+      <dependency>
+         <groupId>org.eclipse.jgit</groupId>
+         <artifactId>org.eclipse.jgit</artifactId>
+      </dependency>
+
+      <!-- GitHub -->
+      <dependency>
+         <groupId>com.google.code.gson</groupId>
+         <artifactId>gson</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.jsoup</groupId>
+         <artifactId>jsoup</artifactId>
+      </dependency>
+
+      <!-- Infinispan -->
+      <dependency>
+         <groupId>org.infinispan</groupId>
+         <artifactId>infinispan-cdi</artifactId>
+         <version>${version.infinispan}</version>
+         <exclusions>
+            <exclusion>
+               <artifactId>getopt</artifactId>
+               <groupId>gnu-getopt</groupId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.infinispan</groupId>
+         <artifactId>infinispan-core</artifactId>
+         <version>${version.infinispan}</version>
+         <scope>provided</scope>
+      </dependency>
+
+      <!-- Test Dependencies -->
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+   <profiles>
+      <profile>
+         <!-- When built in OpenShift the 'openshift' profile will be used when invoking mvn. -->
+         <!-- Use this profile for any OpenShift specific customization your app will need. -->
+         <!-- By default that is to put the resulting archive into the 'deployments' folder. -->
+         <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
+         <id>openshift</id>
+         <build>
+            <finalName>redoculous</finalName>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-war-plugin</artifactId>
+                  <version>2.1.1</version>
+                  <configuration>
+                     <warName>ROOT</warName>
+                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                     <outputDirectory>${main.basedir}/deployments</outputDirectory>
+                  </configuration>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+
+</project>
+
+
