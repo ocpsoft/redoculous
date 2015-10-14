@@ -186,7 +186,7 @@
             <!--iiop enable-by-default="false" use-qualified-name="false"/-->
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:1.2" default-cache-container="cluster">
-            <cache-container name="redoculous" aliases="ha-partition" jndi-name="java:jboss/infinispan/redoculous-cluster" default-cache="default">
+            <cache-container name="redoculous" aliases="redoculous-partition" jndi-name="java:jboss/infinispan/redoculous-cluster" default-cache="default">
                <transport />
                <distributed-cache name="default" mode="SYNC" owners="2" start="LAZY">
                   <locking isolation="REPEATABLE_READ"/>
