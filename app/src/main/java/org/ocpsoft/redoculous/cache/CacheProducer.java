@@ -34,7 +34,6 @@ public class CacheProducer
 
    @Produces
    @Singleton
-   @Named(FILESYSTEM)
    public GridFilesystem getGridFilesystem()
    {
       Cache<String, byte[]> fsCacheData = getFilesystemCacheData();
@@ -56,6 +55,7 @@ public class CacheProducer
 
    @Produces
    @Singleton
+   @Named(FILESYSTEM)
    public Cache<String, byte[]> getFilesystemCacheData()
    {
       Cache<String, byte[]> fsCacheData = cacheManager.<String, byte[]>
