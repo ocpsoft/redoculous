@@ -203,10 +203,10 @@
                 </long-running-threads>
             </default-workmanager>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:jgroups:1.1" default-stack="tcp">
+        <subsystem xmlns="urn:jboss:domain:jgroups:1.1" default-stack="udp">
             <stack name="udp">
                 <transport type="UDP" socket-binding="jgroups-udp"/>
-                <protocol type="openshift.KUBE_PING"/>
+                <protocol type="PING"/>
                 <protocol type="MERGE3"/>
                 <protocol type="FD_SOCK" socket-binding="jgroups-udp-fd"/>
                 <protocol type="FD"/>
@@ -214,8 +214,6 @@
                 <protocol type="pbcast.NAKACK"/>
                 <protocol type="UNICAST2"/>
                 <protocol type="pbcast.STABLE"/>
-                <!-- ##JGROUPS_AUTH## -->
-                <!-- ##JGROUPS_ENCRYPT## -->
                 <protocol type="pbcast.GMS"/>
                 <protocol type="UFC"/>
                 <protocol type="MFC"/>
@@ -224,7 +222,7 @@
             </stack>
             <stack name="tcp">
                 <transport type="TCP" socket-binding="jgroups-tcp"/>
-                <protocol type="openshift.KUBE_PING"/>
+                <protocol type="MPING" socket-binding="jgroups-mping"/>
                 <protocol type="MERGE2"/>
                 <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
                 <protocol type="FD"/>
@@ -232,8 +230,6 @@
                 <protocol type="pbcast.NAKACK"/>
                 <protocol type="UNICAST2"/>
                 <protocol type="pbcast.STABLE"/>
-                <!-- ##JGROUPS_AUTH## -->
-                <!-- ##JGROUPS_ENCRYPT## -->
                 <protocol type="pbcast.GMS"/>
                 <protocol type="UFC"/>
                 <protocol type="MFC"/>
